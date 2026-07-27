@@ -1,0 +1,175 @@
+/* Seleção visual dos lançamentos por período e loja */
+
+.slot-selection {
+  display: grid;
+  gap: 14px;
+}
+
+.slot-selector-group {
+  display: grid;
+  gap: 8px;
+}
+
+.slot-selector-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.slot-selector-title strong {
+  font-size: 14px;
+}
+
+.slot-selector-title small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.period-card-grid,
+.store-card-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.period-card-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.store-card-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.slot-period-card,
+.slot-store-card {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--border);
+  background: #f8f5fa;
+  color: var(--foreground);
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.slot-period-card {
+  min-height: 67px;
+  display: grid;
+  gap: 4px;
+  border-radius: 14px;
+  padding: 11px 12px;
+}
+
+.slot-period-card strong {
+  font-size: 14px;
+}
+
+.slot-period-card span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.slot-store-card {
+  min-height: 82px;
+  display: grid;
+  align-content: space-between;
+  gap: 5px;
+  border-radius: 14px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.slot-store-card strong {
+  font-size: 15px;
+}
+
+.slot-store-card span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.slot-store-card i {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ece6f1;
+  color: var(--primary-dark);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.slot-period-card.is-partial {
+  border-color: #e4c873;
+  background: #fff8e4;
+}
+
+.slot-period-card.is-complete,
+.slot-store-card.is-filled {
+  border-color: #9fd3af;
+  background: #e8f7ed;
+}
+
+.slot-period-card.is-complete span,
+.slot-store-card.is-filled span {
+  color: #327348;
+}
+
+.slot-store-card.is-filled i {
+  background: #58ad73;
+  color: #fff;
+}
+
+.slot-period-card.is-selected,
+.slot-store-card.is-selected {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(118, 80, 167, 0.15);
+}
+
+.slot-current-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 8px 10px;
+  background: #f5f0f9;
+  font-size: 11px;
+}
+
+.slot-current-summary strong {
+  color: var(--primary-dark);
+}
+
+.slot-current-summary span {
+  color: var(--muted);
+  text-align: right;
+}
+
+@media (max-width: 420px) {
+  .slot-period-card {
+    min-height: 61px;
+    padding: 9px 10px;
+  }
+
+  .slot-store-card {
+    min-height: 75px;
+    padding: 9px 5px;
+  }
+
+  .slot-store-card strong {
+    font-size: 14px;
+  }
+
+  .slot-store-card span {
+    font-size: 8px;
+  }
+}
