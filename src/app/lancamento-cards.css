@@ -154,6 +154,11 @@
   text-align: right;
 }
 
+/* O status de caixa não aberto continua sendo salvo automaticamente. */
+.sale-modal .zero-button + label {
+  display: none;
+}
+
 @media (max-width: 420px) {
   .slot-period-card {
     min-height: 61px;
