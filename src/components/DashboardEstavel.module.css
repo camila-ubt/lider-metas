@@ -7,7 +7,6 @@
 .chartCard,
 .sectionCard,
 .storeCard,
-.detailCard,
 .insightCard {
   background: #fff;
   border: 1px solid var(--border);
@@ -23,7 +22,8 @@
 .heroTop,
 .sectionHeader,
 .storeHeader,
-.detailHeader {
+.activeGoalHeader,
+.periodHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -40,8 +40,7 @@
 }
 
 .hero h2,
-.sectionHeader h2,
-.detailHeader h2 {
+.sectionHeader h2 {
   margin: 0;
 }
 
@@ -66,61 +65,52 @@
   color: #276d3d;
 }
 
-.trackWrap {
-  margin-top: 28px;
-  padding: 38px 2px 8px;
+.activeGoal {
+  display: grid;
+  gap: 9px;
+  margin-top: 22px;
+  border: 1px solid #e9e0f0;
+  border-radius: 17px;
+  padding: 15px;
+  background: #faf8fc;
 }
 
-.track {
-  position: relative;
-  height: 16px;
+.activeGoalHeader span,
+.activeGoal small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.activeGoalHeader strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 19px;
+}
+
+.activeGoalHeader b {
+  align-self: center;
+  color: var(--primary-dark);
+  font-size: 13px;
+  text-align: right;
+}
+
+.activeTrack {
+  height: 13px;
+  overflow: hidden;
   border-radius: 999px;
-  background: #eee8f4;
+  background: #e9e2ef;
 }
 
-.fill {
-  position: absolute;
-  inset: 0 auto 0 0;
+.activeTrack span {
+  display: block;
+  height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #7650a7, #9a6fc3, #5aa777);
-  transition: width 0.4s ease;
+  transition: width 0.35s ease;
 }
 
-.milestone {
-  position: absolute;
-  top: 50%;
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  transform: translate(-50%, -50%);
-  border: 3px solid #fff;
-  border-radius: 50%;
-  background: #d8cfdf;
-  box-shadow: 0 5px 14px rgba(59, 36, 79, 0.18);
-  font-size: 16px;
-  filter: grayscale(1);
-}
-
-.milestoneUnlocked {
-  background: #7650a7;
-  filter: none;
-}
-
-.milestoneLabel {
-  position: absolute;
-  top: -34px;
-  left: 50%;
-  width: max-content;
-  max-width: 100px;
-  transform: translateX(-50%);
-  color: var(--foreground);
-  font-size: 10px;
-  font-weight: 900;
-  text-align: center;
-}
-
-.levelGrid,
+.stepGrid,
 .kpiGrid,
 .chartGrid,
 .storeGrid,
@@ -129,37 +119,76 @@
   gap: 12px;
 }
 
-.levelGrid {
+.stepGrid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 20px;
+  margin-top: 13px;
 }
 
-.levelCard {
+.step {
+  min-width: 0;
   display: grid;
-  gap: 4px;
-  border: 1px solid #ece4f3;
+  justify-items: center;
+  gap: 3px;
+  border: 1px solid #e9e2ef;
   border-radius: 15px;
-  padding: 13px;
-  background: #faf8fc;
+  padding: 11px 7px;
+  background: #f8f5fa;
+  color: var(--muted);
+  text-align: center;
 }
 
-.levelCard strong {
+.stepIcon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #d8cfdf;
+  box-shadow: 0 4px 11px rgba(59, 36, 79, 0.14);
+  color: #6f6478;
   font-size: 14px;
 }
 
-.levelCard span {
-  font-size: 13px;
+.step strong {
+  max-width: 100%;
+  color: var(--foreground);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.step small {
+  max-width: 100%;
+  font-size: 9px;
+  overflow-wrap: anywhere;
+}
+
+.step em {
+  font-size: 9px;
+  font-style: normal;
   font-weight: 800;
 }
 
-.levelCard small {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.levelDone {
+.stepDone {
   border-color: #acd9b9;
   background: #eaf7ee;
+  color: #276d3d;
+}
+
+.stepDone .stepIcon {
+  background: #4d9f68;
+  color: #fff;
+}
+
+.stepCurrent {
+  border-color: #a98bc8;
+  background: #f2ebf8;
+  color: var(--primary-dark);
+}
+
+.stepCurrent .stepIcon {
+  background: var(--primary);
+  color: #fff;
 }
 
 .kpiGrid {
@@ -197,12 +226,16 @@
   line-height: 1.4;
 }
 
-.positive { color: #2f7d49 !important; }
-.negative { color: #a14646 !important; }
+.positive {
+  color: #2f7d49 !important;
+}
+
+.negative {
+  color: #a14646 !important;
+}
 
 .chartCard,
 .sectionCard,
-.detailCard,
 .insightCard {
   padding: 20px;
 }
@@ -259,9 +292,17 @@
   stroke-dasharray: 4 5;
 }
 
-.lineMeta { stroke: #4b9d65; }
-.lineSuper { stroke: #d0a02c; }
-.lineMega { stroke: #4384b2; }
+.lineMeta {
+  stroke: #4b9d65;
+}
+
+.lineSuper {
+  stroke: #d0a02c;
+}
+
+.lineMega {
+  stroke: #4384b2;
+}
 
 .legend {
   display: flex;
@@ -285,14 +326,29 @@
   background: #7650a7;
 }
 
-.legend .meta { background: #4b9d65; }
-.legend .super { background: #d0a02c; }
-.legend .mega { background: #4384b2; }
-.legend .projection { background: repeating-linear-gradient(90deg, #7650a7 0 5px, transparent 5px 8px); }
+.legend .meta {
+  background: #4b9d65;
+}
+
+.legend .super {
+  background: #d0a02c;
+}
+
+.legend .mega {
+  background: #4384b2;
+}
+
+.legend .projection {
+  background: repeating-linear-gradient(
+    90deg,
+    #7650a7 0 5px,
+    transparent 5px 8px
+  );
+}
 
 .barList {
   display: grid;
-  gap: 16px;
+  gap: 17px;
   margin-top: 16px;
 }
 
@@ -304,21 +360,39 @@
 .barTitle {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 12px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .barTitle strong {
-  font-size: 14px;
+  font-size: 15px;
+}
+
+.barTitle span {
+  color: var(--muted);
+  text-align: right;
 }
 
 .barRow {
   display: grid;
-  grid-template-columns: 74px 1fr 82px;
+  grid-template-columns: 78px 1fr 76px;
   align-items: center;
   gap: 8px;
   color: var(--muted);
   font-size: 10px;
+}
+
+.barRow > span,
+.barRow > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.barRow b {
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
 }
 
 .barTrack {
@@ -338,12 +412,29 @@
   border-radius: inherit;
 }
 
-.barFill { background: #7650a7; }
-.barFillMeta { background: #b9a6ce; }
-.barFillProjection { background: #5ba875; }
-.barFillMorning { background: #a884c8; }
-.barFillNight { background: #5b3d86; }
-.barFillHistory { background: #7650a7; }
+.barFill {
+  background: #7650a7;
+}
+
+.barFillMeta {
+  background: #b9a6ce;
+}
+
+.barFillProjection {
+  background: #5ba875;
+}
+
+.barFillMorning {
+  background: #a884c8;
+}
+
+.barFillNight {
+  background: #5b3d86;
+}
+
+.barFillHistory {
+  background: #7650a7;
+}
 
 .filters {
   display: flex;
@@ -364,17 +455,9 @@
 }
 
 .storeCard {
-  width: 100%;
+  min-width: 0;
   padding: 18px;
   color: var(--foreground);
-  text-align: left;
-  transition: border-color 0.15s ease, transform 0.15s ease;
-}
-
-.storeCard:hover,
-.storeSelected {
-  border-color: #aa8cca;
-  transform: translateY(-1px);
 }
 
 .storeHeader strong {
@@ -420,57 +503,98 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: #7650a7;
+  background: linear-gradient(90deg, #7650a7, #5aa777);
 }
 
-.periodGrid,
-.periodDetailGrid {
+.nextStoreLevel {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 5px 10px;
+  margin-top: 11px;
+  border-radius: 11px;
+  padding: 9px 10px;
+  background: #f2ebf8;
+  color: var(--primary-dark);
+  font-size: 10px;
+}
+
+.nextStoreLevel b {
+  font-weight: 900;
+}
+
+.periodGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 14px;
 }
 
-.periodBox,
-.periodDetail {
+.periodBox {
+  min-width: 0;
   display: grid;
-  gap: 4px;
-  border-radius: 13px;
-  padding: 10px;
-  background: #f7f3fa;
+  gap: 8px;
+  border: 1px solid #ece4f3;
+  border-radius: 14px;
+  padding: 11px;
+  background: #f8f5fa;
 }
 
-.periodBox small,
-.periodDetail small {
-  color: var(--muted);
-  font-size: 10px;
+.periodHeader {
+  align-items: baseline;
+  gap: 6px;
 }
 
-.periodBox strong {
+.periodHeader strong {
   font-size: 13px;
 }
 
-.periodBox em {
+.periodHeader em {
   color: var(--primary);
   font-size: 10px;
   font-style: normal;
   font-weight: 900;
+  white-space: nowrap;
 }
 
-.detailCard {
-  margin-top: 12px;
+.periodBox > p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
-.periodDetailGrid {
-  margin-top: 16px;
+.periodStats {
+  display: grid;
+  gap: 6px;
+  margin: 0;
 }
 
-.periodDetail {
-  padding: 14px;
+.periodStats div {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 7px;
+  border-top: 1px solid #e9e1ef;
+  padding-top: 5px;
 }
 
-.periodDetail strong {
-  font-size: 21px;
+.periodStats dt,
+.periodStats dd {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.periodStats dt {
+  color: var(--muted);
+}
+
+.periodStats dd {
+  max-width: 62%;
+  font-weight: 800;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .rankList {
@@ -487,6 +611,11 @@
   border-radius: 13px;
   padding: 11px 12px;
   background: #f8f5fa;
+}
+
+.rankItem strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .rankNumber {
@@ -522,7 +651,7 @@
   font-size: 12px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .kpiGrid,
   .chartGrid,
   .storeGrid {
@@ -538,30 +667,52 @@
   .hero,
   .chartCard,
   .sectionCard,
-  .detailCard,
   .insightCard {
     border-radius: 18px;
     padding: 15px;
   }
 
   .heroTop,
-  .sectionHeader,
-  .detailHeader {
+  .sectionHeader {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .trackWrap {
-    padding-top: 44px;
+  .activeGoalHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
   }
 
-  .milestoneLabel {
-    max-width: 76px;
+  .activeGoalHeader b {
+    align-self: flex-start;
+    text-align: left;
+  }
+
+  .stepGrid {
+    gap: 6px;
+  }
+
+  .step {
+    border-radius: 12px;
+    padding: 9px 3px;
+  }
+
+  .stepIcon {
+    width: 27px;
+    height: 27px;
+    font-size: 12px;
+  }
+
+  .step strong {
     font-size: 9px;
   }
 
-  .levelGrid,
-  .kpiGrid,
+  .step small,
+  .step em {
+    font-size: 8px;
+  }
+
   .chartGrid,
   .storeGrid,
   .insightGrid {
@@ -581,12 +732,17 @@
   }
 
   .kpi strong {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   .barRow {
-    grid-template-columns: 63px 1fr 71px;
-    gap: 6px;
+    grid-template-columns: 67px 1fr 65px;
+    gap: 5px;
+    font-size: 9px;
+  }
+
+  .barTitle {
+    align-items: flex-start;
   }
 
   .filters {
@@ -598,7 +754,42 @@
     min-width: 0;
   }
 
-  .periodDetailGrid {
+  .storeCard {
+    border-radius: 17px;
+    padding: 15px;
+  }
+
+  .storeValue {
+    font-size: 24px;
+  }
+
+  .periodGrid {
+    gap: 6px;
+  }
+
+  .periodBox {
+    padding: 9px;
+  }
+
+  .periodBox > p {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 390px) {
+  .periodGrid {
     grid-template-columns: 1fr;
+  }
+
+  .step small {
+    display: none;
+  }
+
+  .rankItem {
+    grid-template-columns: 30px 1fr;
+  }
+
+  .rankItem > b {
+    grid-column: 2;
   }
 }
