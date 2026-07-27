@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import DashboardEstavel from "@/components/DashboardEstavel";
 import { createClient } from "@/lib/supabase/client";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -17,20 +18,28 @@ function inicioMes(valor) {
 
 function fimMes(valor) {
   const [ano, mes] = valor.split("-").map(Number);
-  return new Date(ano, mes, 0).toISOString().slice(0, 10);
+  return `${ano}-${String(mes).padStart(2, "0")}-${String(
+    new Date(ano, mes, 0).getDate()
+  ).padStart(2, "0")}`;
 }
 
 function hojeLocal() {
   const data = new Date();
-  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(data.getDate()).padStart(2, "0")}`;
 }
 
 function dataLocal(ano, mes, dia) {
-  return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+  return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(
+    2,
+    "0"
+  )}`;
 }
 
 function valorParaEdicao(valor) {
-  return Number(valor).toLocaleString("pt-BR", {
+  return Number(valor || 0).toLocaleString("pt-BR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -38,17 +47,13 @@ function valorParaEdicao(valor) {
 
 function interpretarValor(valor) {
   const texto = String(valor ?? "").trim();
-
   if (!texto) return Number.NaN;
-
   if (texto.includes(",")) {
     return Number(texto.replace(/\./g, "").replace(",", "."));
   }
-
   if (/^\d{1,3}(\.\d{3})+$/.test(texto)) {
     return Number(texto.replace(/\./g, ""));
   }
-
   return Number(texto);
 }
 
@@ -66,7 +71,8 @@ export default function Home() {
   const [metas, setMetas] = useState([]);
   const [login, setLogin] = useState({ nome: "", email: "", senha: "" });
   const [modoCadastro, setModoCadastro] = useState(false);
-  const [modalAberto, setModalAberto] = useState(false);
+  const [modalVendaAberto, setModalVendaAberto] = useState(false);
+  const [modalMetaAberto, setModalMetaAberto] = useState(false);
   const [lancamento, setLancamento] = useState({
     data: hojeLocal(),
     loja_id: "",
@@ -106,10 +112,12 @@ export default function Home() {
   }, [perfil, mes]);
 
   useEffect(() => {
-    if (!modalAberto) return undefined;
+    if (!modalVendaAberto && !modalMetaAberto) return undefined;
 
     function fecharComEsc(evento) {
-      if (evento.key === "Escape") setModalAberto(false);
+      if (evento.key !== "Escape") return;
+      setModalVendaAberto(false);
+      setModalMetaAberto(false);
     }
 
     const overflowAnterior = document.body.style.overflow;
@@ -120,7 +128,7 @@ export default function Home() {
       document.body.style.overflow = overflowAnterior;
       window.removeEventListener("keydown", fecharComEsc);
     };
-  }, [modalAberto]);
+  }, [modalVendaAberto, modalMetaAberto]);
 
   async function carregarPerfil(id) {
     const { data, error } = await supabase
@@ -143,24 +151,24 @@ export default function Home() {
         .select("*")
         .gte("data", inicioMes(mes))
         .lte("data", fimMes(mes))
-        .order("data", { ascending: false }),
+        .order("data", { ascending: true }),
       supabase.from("metas_mensais").select("*").eq("mes", inicioMes(mes)),
     ]);
 
     const erro = lojasResp.error || vendasResp.error || metasResp.error;
     if (erro) setMensagem(erro.message);
 
-    setLojas(lojasResp.data || []);
+    const lojasCarregadas = lojasResp.data || [];
+    setLojas(lojasCarregadas);
     setVendas(vendasResp.data || []);
     setMetas(metasResp.data || []);
-
     setLancamento((atual) => ({
       ...atual,
-      loja_id: atual.loja_id || lojasResp.data?.[0]?.id || "",
+      loja_id: atual.loja_id || lojasCarregadas[0]?.id || "",
     }));
     setMetaForm((atual) => ({
       ...atual,
-      loja_id: atual.loja_id || lojasResp.data?.[0]?.id || "",
+      loja_id: atual.loja_id || lojasCarregadas[0]?.id || "",
     }));
     setCarregando(false);
   }
@@ -175,7 +183,6 @@ export default function Home() {
         password: login.senha,
         options: { data: { nome: login.nome } },
       });
-
       setMensagem(
         error
           ? error.message
@@ -188,7 +195,6 @@ export default function Home() {
       email: login.email,
       password: login.senha,
     });
-
     if (error) setMensagem("E-mail ou senha incorretos.");
   }
 
@@ -207,7 +213,6 @@ export default function Home() {
 
   function preencherSlot(data, lojaId, periodo, lista = vendas) {
     const existente = vendaDoSlot(data, lojaId, periodo, lista);
-
     setLancamento({
       data,
       loja_id: String(lojaId),
@@ -235,13 +240,9 @@ export default function Home() {
         (slot) => !vendaDoSlot(data, slot.loja_id, slot.periodo)
       ) || sequencia[0];
 
-    preencherSlot(
-      data,
-      primeiroPendente.loja_id,
-      primeiroPendente.periodo
-    );
+    preencherSlot(data, primeiroPendente.loja_id, primeiroPendente.periodo);
     setMensagem("");
-    setModalAberto(true);
+    setModalVendaAberto(true);
   }
 
   function mudarSlot(campo, valor) {
@@ -255,7 +256,6 @@ export default function Home() {
     setMensagem("");
 
     const valor = interpretarValor(lancamento.valor);
-
     if (!Number.isFinite(valor) || valor < 0) {
       setMensagem("Informe um valor de venda válido.");
       return;
@@ -266,7 +266,6 @@ export default function Home() {
     if (valor > 0 && observacao === "Caixa não aberto") observacao = "";
 
     setSalvando(true);
-
     const { data: vendaSalva, error } = await supabase
       .from("vendas_diarias")
       .upsert(
@@ -299,13 +298,13 @@ export default function Home() {
           )
       ),
       vendaSalva,
-    ];
+    ].sort((a, b) => a.data.localeCompare(b.data));
 
     setVendas(vendasAtualizadas);
 
     if (acao === "fechar") {
       setMensagem("Venda salva com sucesso.");
-      setModalAberto(false);
+      setModalVendaAberto(false);
       setSalvando(false);
       return;
     }
@@ -340,10 +339,27 @@ export default function Home() {
       setMensagem("Salvo. Continue no próximo período.");
     } else {
       setMensagem("Dia completo: todas as lojas e períodos foram preenchidos.");
-      setModalAberto(false);
+      setModalVendaAberto(false);
     }
-
     setSalvando(false);
+  }
+
+  function metaDoSlot(lojaId, periodo) {
+    return metas.find(
+      (item) =>
+        Number(item.loja_id) === Number(lojaId) && item.periodo === periodo
+    );
+  }
+
+  function abrirMeta(lojaId, periodo) {
+    const existente = metaDoSlot(lojaId, periodo);
+    setMetaForm({
+      loja_id: String(lojaId),
+      periodo,
+      valor: existente ? valorParaEdicao(existente.valor_meta) : "",
+    });
+    setMensagem("");
+    setModalMetaAberto(true);
   }
 
   async function salvarMeta(evento) {
@@ -355,6 +371,7 @@ export default function Home() {
       return;
     }
 
+    setSalvando(true);
     const { error } = await supabase.from("metas_mensais").upsert(
       {
         mes: inicioMes(mes),
@@ -366,37 +383,15 @@ export default function Home() {
       { onConflict: "mes,loja_id,periodo" }
     );
 
-    if (error) setMensagem(error.message);
-    else {
+    if (error) {
+      setMensagem(error.message);
+    } else {
       setMensagem("Meta salva com sucesso.");
-      setMetaForm((atual) => ({ ...atual, valor: "" }));
-      carregarDados();
+      setModalMetaAberto(false);
+      await carregarDados();
     }
+    setSalvando(false);
   }
-
-  const resumo = useMemo(() => {
-    const totalVendido = vendas.reduce(
-      (soma, item) => soma + Number(item.valor_vendido),
-      0
-    );
-    const meta = metas.reduce(
-      (soma, item) => soma + Number(item.valor_meta),
-      0
-    );
-    const supermeta = meta * 1.2;
-    const megameta = meta * 1.3;
-    const [ano, numeroMes] = mes.split("-").map(Number);
-    const diasNoMes = new Date(ano, numeroMes, 0).getDate();
-    const hoje = new Date();
-    const diasPassados =
-      ano === hoje.getFullYear() && numeroMes === hoje.getMonth() + 1
-        ? hoje.getDate()
-        : diasNoMes;
-    const media = diasPassados ? totalVendido / diasPassados : 0;
-    const projecao = media * diasNoMes;
-
-    return { totalVendido, meta, supermeta, megameta, media, projecao };
-  }, [vendas, metas, mes]);
 
   const diasCalendario = useMemo(() => {
     const [ano, numeroMes] = mes.split("-").map(Number);
@@ -405,35 +400,11 @@ export default function Home() {
     const itens = Array(primeiroDiaSemana).fill(null);
 
     for (let dia = 1; dia <= totalDias; dia += 1) {
-      itens.push({
-        numero: dia,
-        data: dataLocal(ano, numeroMes, dia),
-      });
+      itens.push({ numero: dia, data: dataLocal(ano, numeroMes, dia) });
     }
-
     while (itens.length % 7 !== 0) itens.push(null);
     return itens;
   }, [mes]);
-
-  function vendidoDaLoja(lojaId, periodo) {
-    return vendas
-      .filter(
-        (item) =>
-          Number(item.loja_id) === Number(lojaId) &&
-          (!periodo || item.periodo === periodo)
-      )
-      .reduce((soma, item) => soma + Number(item.valor_vendido), 0);
-  }
-
-  function metaDaLoja(lojaId, periodo) {
-    return metas
-      .filter(
-        (item) =>
-          Number(item.loja_id) === Number(lojaId) &&
-          (!periodo || item.periodo === periodo)
-      )
-      .reduce((soma, item) => soma + Number(item.valor_meta), 0);
-  }
 
   function statusDoDia(data) {
     const vendasDoDia = vendas.filter((item) => item.data === data);
@@ -445,17 +416,12 @@ export default function Home() {
     const noite = lojas.filter((loja) =>
       vendaDoSlot(data, loja.id, "noite")
     ).length;
-    const total = vendasDoDia.reduce(
-      (soma, item) => soma + Number(item.valor_vendido),
-      0
-    );
 
     return {
       preenchidos,
       totalEsperado,
       manha,
       noite,
-      total,
       completo: totalEsperado > 0 && preenchidos >= totalEsperado,
       parcial: preenchidos > 0 && preenchidos < totalEsperado,
     };
@@ -472,9 +438,7 @@ export default function Home() {
           <div className="brand-mark">LM</div>
           <p className="eyebrow">Gestão das lojas</p>
           <h1>Líder Metas</h1>
-          <p className="muted">
-            Acompanhe as metas da CB, AA e AB por período.
-          </p>
+          <p className="muted">Acompanhe as metas da CB, AA e AB por período.</p>
 
           <form onSubmit={entrar} className="form-stack">
             {modoCadastro && (
@@ -536,29 +500,31 @@ export default function Home() {
           <div className="brand-mark">LM</div>
           <h1>Aguardando aprovação</h1>
           <p className="muted">
-            Seu cadastro foi criado, mas ainda precisa ser liberado pela
-            administradora.
+            Seu cadastro foi criado, mas ainda precisa ser liberado pela administradora.
           </p>
-          <button className="primary-button" onClick={sair}>
-            Sair
-          </button>
+          <button className="primary-button" onClick={sair}>Sair</button>
         </section>
       </main>
     );
   }
 
-  const dataModal = new Date(
-    `${lancamento.data}T12:00:00`
-  ).toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  });
+  const dataModal = new Date(`${lancamento.data}T12:00:00`).toLocaleDateString(
+    "pt-BR",
+    { weekday: "long", day: "2-digit", month: "long" }
+  );
   const slotAtual = vendaDoSlot(
     lancamento.data,
     lancamento.loja_id,
     lancamento.periodo
   );
+  const slotsMetas = lojas.flatMap((loja) =>
+    periodos.map((periodo) => ({
+      loja,
+      periodo,
+      registro: metaDoSlot(loja.id, periodo),
+    }))
+  );
+  const metasPreenchidas = slotsMetas.filter((item) => item.registro).length;
 
   return (
     <main className="app-shell">
@@ -573,9 +539,7 @@ export default function Home() {
             value={mes}
             onChange={(evento) => setMes(evento.target.value)}
           />
-          <button className="secondary-button" onClick={sair}>
-            Sair
-          </button>
+          <button className="secondary-button" onClick={sair}>Sair</button>
         </div>
       </header>
 
@@ -603,98 +567,10 @@ export default function Home() {
       </nav>
 
       {mensagem && <p className="message app-message">{mensagem}</p>}
+      {carregando && <p className="muted">Atualizando dados...</p>}
 
       {tela === "painel" && (
-        <section>
-          <div className="kpi-grid">
-            <article className="kpi">
-              <span>Total vendido</span>
-              <strong>{dinheiro.format(resumo.totalVendido)}</strong>
-            </article>
-            <article className="kpi">
-              <span>Meta</span>
-              <strong>{dinheiro.format(resumo.meta)}</strong>
-              <small>
-                {resumo.meta
-                  ? `${Math.round(
-                      (resumo.totalVendido / resumo.meta) * 100
-                    )}% atingido`
-                  : "Meta não cadastrada"}
-              </small>
-            </article>
-            <article className="kpi">
-              <span>Média diária</span>
-              <strong>{dinheiro.format(resumo.media)}</strong>
-            </article>
-            <article className="kpi">
-              <span>Projeção</span>
-              <strong>{dinheiro.format(resumo.projecao)}</strong>
-              <small>
-                {resumo.projecao >= resumo.meta && resumo.meta
-                  ? "Ritmo suficiente para a meta"
-                  : "Abaixo do ritmo da meta"}
-              </small>
-            </article>
-          </div>
-
-          <div className="levels-card">
-            {[
-              { nome: "Meta", valor: resumo.meta },
-              { nome: "Supermeta", valor: resumo.supermeta },
-              { nome: "Megameta", valor: resumo.megameta },
-            ].map((nivel) => {
-              const porcentagem = nivel.valor
-                ? Math.min((resumo.totalVendido / nivel.valor) * 100, 100)
-                : 0;
-
-              return (
-                <div className="level" key={nivel.nome}>
-                  <div>
-                    <strong>{nivel.nome}</strong>
-                    <span>{dinheiro.format(nivel.valor)}</span>
-                  </div>
-                  <div className="progress">
-                    <div style={{ width: `${porcentagem}%` }} />
-                  </div>
-                  <small>{Math.round(porcentagem)}%</small>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="store-grid">
-            {lojas.map((loja) => {
-              const vendido = vendidoDaLoja(loja.id);
-              const meta = metaDaLoja(loja.id);
-
-              return (
-                <article className="store-card" key={loja.id}>
-                  <div className="store-title">
-                    <div>
-                      <span>{loja.codigo}</span>
-                      <h2>{loja.nome}</h2>
-                    </div>
-                    <strong>
-                      {meta ? Math.round((vendido / meta) * 100) : 0}%
-                    </strong>
-                  </div>
-                  <p className="store-total">{dinheiro.format(vendido)}</p>
-                  <p className="muted">Meta: {dinheiro.format(meta)}</p>
-                  <div className="period-row">
-                    <span>
-                      Manhã
-                      <b>{dinheiro.format(vendidoDaLoja(loja.id, "manha"))}</b>
-                    </span>
-                    <span>
-                      Noite
-                      <b>{dinheiro.format(vendidoDaLoja(loja.id, "noite"))}</b>
-                    </span>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </section>
+        <DashboardEstavel mes={mes} vendas={vendas} metas={metas} lojas={lojas} />
       )}
 
       {tela === "lancamentos" && (
@@ -709,33 +585,20 @@ export default function Home() {
                 </p>
               </div>
               <div className="calendar-legend">
-                <span>
-                  <i className="legend-dot complete" /> Completo
-                </span>
-                <span>
-                  <i className="legend-dot partial" /> Parcial
-                </span>
-                <span>
-                  <i className="legend-dot empty" /> Pendente
-                </span>
+                <span><i className="legend-dot complete" /> Completo</span>
+                <span><i className="legend-dot partial" /> Parcial</span>
+                <span><i className="legend-dot empty" /> Pendente</span>
               </div>
             </div>
 
             <div className="calendar-weekdays">
-              {diasSemana.map((dia) => (
-                <span key={dia}>{dia}</span>
-              ))}
+              {diasSemana.map((dia) => <span key={dia}>{dia}</span>)}
             </div>
 
             <div className="calendar-grid">
               {diasCalendario.map((dia, indice) => {
                 if (!dia) {
-                  return (
-                    <div
-                      className="calendar-day calendar-day-empty"
-                      key={`vazio-${indice}`}
-                    />
-                  );
+                  return <div className="calendar-day calendar-day-empty" key={`vazio-${indice}`} />;
                 }
 
                 const status = statusDoDia(dia.data);
@@ -749,212 +612,98 @@ export default function Home() {
                 return (
                   <button
                     type="button"
-                    className={`calendar-day ${classeStatus} ${
-                      hoje ? "today" : ""
-                    }`}
+                    className={`calendar-day ${classeStatus} ${hoje ? "today" : ""}`}
                     key={dia.data}
                     onClick={() => abrirDia(dia.data)}
                     aria-label={`Dia ${dia.numero}: ${status.preenchidos} de ${status.totalEsperado} lançamentos preenchidos`}
                   >
                     <span className="calendar-number">{dia.numero}</span>
                     <span className="calendar-periods">
-                      <b
-                        className={
-                          status.manha === lojas.length
-                            ? "full"
-                            : status.manha > 0
-                              ? "some"
-                              : ""
-                        }
-                      >
-                        M
-                      </b>
-                      <b
-                        className={
-                          status.noite === lojas.length
-                            ? "full"
-                            : status.noite > 0
-                              ? "some"
-                              : ""
-                        }
-                      >
-                        N
-                      </b>
+                      <b className={status.manha === lojas.length ? "full" : status.manha > 0 ? "some" : ""}>M</b>
+                      <b className={status.noite === lojas.length ? "full" : status.noite > 0 ? "some" : ""}>N</b>
                     </span>
-                    {status.preenchidos > 0 && (
-                      <small>{status.preenchidos}/{status.totalEsperado}</small>
-                    )}
+                    {status.preenchidos > 0 && <small>{status.preenchidos}/{status.totalEsperado}</small>}
                   </button>
                 );
               })}
             </div>
 
             <p className="calendar-help">
-              M e N ficam verdes quando todas as lojas daquele período foram
-              preenchidas. Valores zerados também contam como preenchidos.
+              M e N ficam verdes quando todas as lojas daquele período foram preenchidas. Valores zerados também contam como preenchidos.
             </p>
           </div>
         </section>
       )}
 
       {tela === "metas" && perfil.papel === "admin" && (
-        <section className="content-grid">
-          <form className="panel form-stack" onSubmit={salvarMeta}>
-            <div>
-              <p className="eyebrow">Configuração mensal</p>
-              <h2>Cadastrar meta</h2>
-            </div>
-            <label>
-              Loja
-              <select
-                value={metaForm.loja_id}
-                onChange={(evento) =>
-                  setMetaForm({
-                    ...metaForm,
-                    loja_id: evento.target.value,
-                  })
-                }
-              >
-                {lojas.map((loja) => (
-                  <option key={loja.id} value={loja.id}>
-                    {loja.codigo} — {loja.nome}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Período
-              <select
-                value={metaForm.periodo}
-                onChange={(evento) =>
-                  setMetaForm({
-                    ...metaForm,
-                    periodo: evento.target.value,
-                  })
-                }
-              >
-                <option value="manha">Manhã</option>
-                <option value="noite">Noite</option>
-              </select>
-            </label>
-            <label>
-              Valor da meta
-              <input
-                inputMode="decimal"
-                placeholder="0,00"
-                value={metaForm.valor}
-                onChange={(evento) =>
-                  setMetaForm({ ...metaForm, valor: evento.target.value })
-                }
-                required
-              />
-            </label>
-            <button className="primary-button">Salvar meta</button>
-            <p className="muted">
-              Supermeta e Megameta são calculadas automaticamente em 120% e
-              130%.
-            </p>
-          </form>
-
-          <div className="panel">
+        <section className="meta-manager">
+          <div className="panel meta-overview-panel">
             <p className="eyebrow">Mês selecionado</p>
             <h2>Metas cadastradas</h2>
-            <div className="history-list">
-              {lojas
-                .flatMap((loja) =>
-                  periodos.map((periodo) => ({
-                    loja,
-                    periodo,
-                    valor: metaDaLoja(loja.id, periodo),
-                  }))
-                )
-                .map((item) => (
-                  <div
-                    className="history-item"
+            <div className={`meta-progress-summary ${metasPreenchidas === slotsMetas.length && slotsMetas.length ? "all-filled" : ""}`}>
+              {metasPreenchidas === slotsMetas.length && slotsMetas.length
+                ? `Todas as ${slotsMetas.length} metas estão preenchidas`
+                : `${metasPreenchidas} de ${slotsMetas.length} preenchidas · ${slotsMetas.length - metasPreenchidas} pendentes`}
+            </div>
+
+            <div className="history-list meta-status-grid">
+              {slotsMetas.map((item) => {
+                const configurada = Boolean(item.registro);
+                return (
+                  <button
+                    type="button"
+                    className={`history-item meta-status-card ${configurada ? "is-filled" : "is-pending"}`}
+                    onClick={() => abrirMeta(item.loja.id, item.periodo)}
                     key={`${item.loja.id}-${item.periodo}`}
                   >
                     <div>
-                      <strong>
-                        {item.loja.codigo} ·{" "}
-                        {item.periodo === "manha" ? "Manhã" : "Noite"}
-                      </strong>
-                      <span>{item.valor ? "Configurada" : "Pendente"}</span>
+                      <strong>{item.loja.codigo} · {item.periodo === "manha" ? "Manhã" : "Noite"}</strong>
+                      <span>{configurada ? "Configurada" : "Pendente"}</span>
+                      <small className="meta-card-action">{configurada ? "Toque para editar" : "Toque para preencher"}</small>
                     </div>
-                    <b>{dinheiro.format(item.valor)}</b>
-                  </div>
-                ))}
+                    <b>{dinheiro.format(Number(item.registro?.valor_meta || 0))}</b>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
       )}
 
-      {modalAberto && (
+      {modalVendaAberto && (
         <div
           className="modal-backdrop"
           onMouseDown={(evento) => {
-            if (evento.target === evento.currentTarget) setModalAberto(false);
+            if (evento.target === evento.currentTarget) setModalVendaAberto(false);
           }}
         >
-          <section
-            className="sale-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="titulo-modal-venda"
-          >
+          <section className="sale-modal" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-venda">
             <div className="modal-header">
               <div>
                 <p className="eyebrow">Lançamento diário</p>
                 <h2 id="titulo-modal-venda">{dataModal}</h2>
               </div>
-              <button
-                type="button"
-                className="modal-close"
-                onClick={() => setModalAberto(false)}
-                aria-label="Fechar"
-              >
-                ×
-              </button>
+              <button type="button" className="modal-close" onClick={() => setModalVendaAberto(false)} aria-label="Fechar">×</button>
             </div>
 
-            <form
-              className="form-stack modal-form"
-              onSubmit={(evento) => salvarVenda(evento, "proximo")}
-            >
+            <form className="form-stack modal-form" onSubmit={(evento) => salvarVenda(evento, "proximo")}>
               <label>
                 Loja
-                <select
-                  value={lancamento.loja_id}
-                  onChange={(evento) =>
-                    mudarSlot("loja_id", evento.target.value)
-                  }
-                >
-                  {lojas.map((loja) => (
-                    <option key={loja.id} value={loja.id}>
-                      {loja.codigo} — {loja.nome}
-                    </option>
-                  ))}
+                <select value={lancamento.loja_id} onChange={(evento) => mudarSlot("loja_id", evento.target.value)}>
+                  {lojas.map((loja) => <option key={loja.id} value={loja.id}>{loja.codigo} — {loja.nome}</option>)}
                 </select>
               </label>
 
               <label>
                 Período
-                <select
-                  value={lancamento.periodo}
-                  onChange={(evento) =>
-                    mudarSlot("periodo", evento.target.value)
-                  }
-                >
+                <select value={lancamento.periodo} onChange={(evento) => mudarSlot("periodo", evento.target.value)}>
                   <option value="manha">Manhã</option>
                   <option value="noite">Noite</option>
                 </select>
               </label>
 
               <div className="slot-status">
-                <span
-                  className={`status-pill ${
-                    slotAtual ? "filled" : "unfilled"
-                  }`}
-                >
+                <span className={`status-pill ${slotAtual ? "filled" : "unfilled"}`}>
                   {slotAtual ? "Já preenchido — pode editar" : "Pendente"}
                 </span>
               </div>
@@ -965,12 +714,7 @@ export default function Home() {
                   inputMode="decimal"
                   placeholder="0,00"
                   value={lancamento.valor}
-                  onChange={(evento) =>
-                    setLancamento({
-                      ...lancamento,
-                      valor: evento.target.value,
-                    })
-                  }
+                  onChange={(evento) => setLancamento({ ...lancamento, valor: evento.target.value })}
                   autoFocus
                   required
                 />
@@ -979,13 +723,7 @@ export default function Home() {
               <button
                 type="button"
                 className="zero-button"
-                onClick={() =>
-                  setLancamento({
-                    ...lancamento,
-                    valor: "0,00",
-                    observacao: "Caixa não aberto",
-                  })
-                }
+                onClick={() => setLancamento({ ...lancamento, valor: "0,00", observacao: "Caixa não aberto" })}
               >
                 Marcar caixa não aberto
               </button>
@@ -995,32 +733,76 @@ export default function Home() {
                 <textarea
                   rows="3"
                   value={lancamento.observacao}
-                  onChange={(evento) =>
-                    setLancamento({
-                      ...lancamento,
-                      observacao: evento.target.value,
-                    })
-                  }
+                  onChange={(evento) => setLancamento({ ...lancamento, observacao: evento.target.value })}
                   placeholder="Opcional"
                 />
               </label>
 
               <div className="modal-actions">
-                <button
-                  type="button"
-                  className="secondary-button"
-                  disabled={salvando}
-                  onClick={(evento) => salvarVenda(evento, "fechar")}
-                >
-                  Salvar e fechar
-                </button>
-                <button
-                  type="submit"
-                  className="primary-button"
-                  disabled={salvando}
-                >
-                  {salvando ? "Salvando..." : "Salvar e próximo"}
-                </button>
+                <button type="button" className="secondary-button" disabled={salvando} onClick={(evento) => salvarVenda(evento, "fechar")}>Salvar e fechar</button>
+                <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar e próximo"}</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {modalMetaAberto && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={(evento) => {
+            if (evento.target === evento.currentTarget) setModalMetaAberto(false);
+          }}
+        >
+          <section className="sale-modal" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-meta">
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">Configuração mensal</p>
+                <h2 id="titulo-modal-meta">Cadastrar meta</h2>
+              </div>
+              <button type="button" className="modal-close" onClick={() => setModalMetaAberto(false)} aria-label="Fechar">×</button>
+            </div>
+
+            <form className="form-stack modal-form" onSubmit={salvarMeta}>
+              <label>
+                Loja
+                <select value={metaForm.loja_id} onChange={(evento) => {
+                  const lojaId = evento.target.value;
+                  const existente = metaDoSlot(lojaId, metaForm.periodo);
+                  setMetaForm({ ...metaForm, loja_id: lojaId, valor: existente ? valorParaEdicao(existente.valor_meta) : "" });
+                }}>
+                  {lojas.map((loja) => <option key={loja.id} value={loja.id}>{loja.codigo} — {loja.nome}</option>)}
+                </select>
+              </label>
+
+              <label>
+                Período
+                <select value={metaForm.periodo} onChange={(evento) => {
+                  const periodo = evento.target.value;
+                  const existente = metaDoSlot(metaForm.loja_id, periodo);
+                  setMetaForm({ ...metaForm, periodo, valor: existente ? valorParaEdicao(existente.valor_meta) : "" });
+                }}>
+                  <option value="manha">Manhã</option>
+                  <option value="noite">Noite</option>
+                </select>
+              </label>
+
+              <label>
+                Valor da meta
+                <input
+                  inputMode="decimal"
+                  placeholder="0,00"
+                  value={metaForm.valor}
+                  onChange={(evento) => setMetaForm({ ...metaForm, valor: evento.target.value })}
+                  autoFocus
+                  required
+                />
+              </label>
+
+              <p className="muted">Supermeta e Megameta são calculadas automaticamente em 120% e 130%.</p>
+              <div className="modal-actions">
+                <button type="button" className="secondary-button" onClick={() => setModalMetaAberto(false)}>Cancelar</button>
+                <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar meta"}</button>
               </div>
             </form>
           </section>
