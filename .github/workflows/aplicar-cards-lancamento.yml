@@ -1,0 +1,184 @@
+name: Aplicar cards no lançamento
+
+on:
+  push:
+    paths:
+      - ".github/workflows/aplicar-cards-lancamento.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Atualizar modal de lançamento
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          caminho = Path("src/app/page.js")
+          texto = caminho.read_text(encoding="utf-8")
+
+          seletor_antigo = re.compile(
+              r'(<form className="form-stack modal-form" onSubmit=\{\(evento\) => salvarVenda\(evento, "proximo"\)\}>\n)'
+              r'.*?'
+              r'(\n\s*<div className="slot-status">)',
+              re.S,
+          )
+
+          seletor_novo = r'''\1              <div className="slot-selection">
+                <div className="slot-selector-group">
+                  <div className="slot-selector-title">
+                    <strong>Período</strong>
+                    <small>Verde = todas as lojas lançadas</small>
+                  </div>
+                  <div className="period-card-grid">
+                    {periodos.map((periodo) => {
+                      const preenchidas = lojas.filter((loja) =>
+                        vendaDoSlot(lancamento.data, loja.id, periodo)
+                      ).length;
+                      const completo = lojas.length > 0 && preenchidas === lojas.length;
+                      const parcial = preenchidas > 0 && !completo;
+                      const selecionado = lancamento.periodo === periodo;
+
+                      return (
+                        <button
+                          type="button"
+                          className={`slot-period-card ${
+                            completo ? "is-complete" : parcial ? "is-partial" : ""
+                          } ${selecionado ? "is-selected" : ""}`}
+                          onClick={() => mudarSlot("periodo", periodo)}
+                          aria-pressed={selecionado}
+                          key={periodo}
+                        >
+                          <strong>{periodo === "manha" ? "Manhã" : "Noite"}</strong>
+                          <span>{preenchidas} de {lojas.length} lojas preenchidas</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="slot-selector-group">
+                  <div className="slot-selector-title">
+                    <strong>Loja</strong>
+                    <small>Toque para lançar ou editar</small>
+                  </div>
+                  <div className="store-card-grid">
+                    {lojas.map((loja) => {
+                      const venda = vendaDoSlot(
+                        lancamento.data,
+                        loja.id,
+                        lancamento.periodo
+                      );
+                      const selecionada =
+                        Number(lancamento.loja_id) === Number(loja.id);
+
+                      return (
+                        <button
+                          type="button"
+                          className={`slot-store-card ${
+                            venda ? "is-filled" : ""
+                          } ${selecionada ? "is-selected" : ""}`}
+                          onClick={() => mudarSlot("loja_id", String(loja.id))}
+                          aria-pressed={selecionada}
+                          key={loja.id}
+                        >
+                          <i>{venda ? "✓" : "+"}</i>
+                          <strong>{loja.codigo}</strong>
+                          <span>
+                            {venda
+                              ? dinheiro.format(Number(venda.valor_vendido || 0))
+                              : "Pendente"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>\2'''
+
+          texto, quantidade = seletor_antigo.subn(seletor_novo, texto, count=1)
+          if quantidade != 1:
+              raise SystemExit("Não foi possível localizar os seletores antigos do modal.")
+
+          status_antigo = re.compile(
+              r'\n\s*<div className="slot-status">\s*'
+              r'<span className=\{`status-pill \$\{slotAtual \? "filled" : "unfilled"\}`\}>\s*'
+              r'\{slotAtual \? "Já preenchido — pode editar" : "Pendente"\}\s*'
+              r'</span>\s*</div>',
+              re.S,
+          )
+
+          status_novo = '''
+              <div className="slot-current-summary">
+                <strong>
+                  {lojas.find((loja) => Number(loja.id) === Number(lancamento.loja_id))?.codigo}
+                  {" · "}
+                  {lancamento.periodo === "manha" ? "Manhã" : "Noite"}
+                </strong>
+                <span>
+                  {slotAtual
+                    ? `Lançado: ${dinheiro.format(Number(slotAtual.valor_vendido || 0))}`
+                    : "Pendente"}
+                </span>
+              </div>'''
+
+          texto, quantidade = status_antigo.subn(status_novo, texto, count=1)
+          if quantidade != 1:
+              raise SystemExit("Não foi possível atualizar o resumo do slot selecionado.")
+
+          avancar_antigo = re.compile(
+              r'    setVendas\(vendasAtualizadas\);\n\n'
+              r'    if \(acao === "fechar"\) \{.*?'
+              r'    setSalvando\(false\);\n'
+              r'  \}\n\n'
+              r'  function metaDoSlot',
+              re.S,
+          )
+
+          avancar_novo = '''    setVendas(vendasAtualizadas);
+
+    if (acao === "fechar") {
+      setMensagem("Venda salva com sucesso.");
+      setModalVendaAberto(false);
+      setSalvando(false);
+      return;
+    }
+
+    setMensagem("Venda salva. Escolha o próximo card para continuar.");
+    setSalvando(false);
+  }
+
+  function metaDoSlot'''
+
+          texto, quantidade = avancar_antigo.subn(avancar_novo, texto, count=1)
+          if quantidade != 1:
+              raise SystemExit("Não foi possível remover o avanço automático.")
+
+          texto = texto.replace(
+              '{salvando ? "Salvando..." : "Salvar e próximo"}',
+              '{salvando ? "Salvando..." : "Salvar lançamento"}',
+              1,
+          )
+
+          caminho.write_text(texto, encoding="utf-8")
+          PY
+
+      - name: Publicar alteração
+        run: |
+          git add src/app/page.js
+          if git diff --cached --quiet; then
+            echo "Nenhuma alteração necessária."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Criar seleção visual no lançamento diário"
+          git push
