@@ -49,6 +49,10 @@ function dataDoDia(ano, mes, dia) {
   return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 }
 
+function diaDaData(data) {
+  return Number(String(data).slice(8, 10));
+}
+
 function nomePeriodo(periodo) {
   return periodo === "manha" ? "Manhã" : "Noite";
 }
@@ -127,20 +131,26 @@ function variacao(atual, anterior) {
 }
 
 function caminhoLinha(valores, maximo, largura = 720, altura = 250, margem = 32) {
-  if (!valores.length) return "";
   const areaLargura = largura - margem * 2;
   const areaAltura = altura - margem * 2;
+  let iniciou = false;
 
   return valores
     .map((valor, indice) => {
+      if (valor === null || valor === undefined || !Number.isFinite(Number(valor))) {
+        return "";
+      }
       const x = margem + (indice / Math.max(valores.length - 1, 1)) * areaLargura;
-      const y = altura - margem - (Number(valor || 0) / Math.max(maximo, 1)) * areaAltura;
-      return `${indice === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+      const y = altura - margem - (Number(valor) / Math.max(maximo, 1)) * areaAltura;
+      const comando = iniciou ? "L" : "M";
+      iniciou = true;
+      return `${comando} ${x.toFixed(2)} ${y.toFixed(2)}`;
     })
+    .filter(Boolean)
     .join(" ");
 }
 
-function GraficoAcumulado({ diario, meta }) {
+function GraficoAcumulado({ diario, meta, diaCorte, projecao }) {
   const acumulado = [];
   let total = 0;
   diario.forEach((valor) => {
@@ -148,8 +158,18 @@ function GraficoAcumulado({ diario, meta }) {
     acumulado.push(total);
   });
 
-  const rotaMeta = diario.map((_, indice) => (meta / diario.length) * (indice + 1));
-  const maximo = Math.max(...acumulado, meta * 1.3, 1);
+  const realizado = acumulado.map((valor, indice) =>
+    indice < diaCorte ? valor : null
+  );
+  const rotaMeta = diario.map((_, indice) => (meta / Math.max(diario.length, 1)) * (indice + 1));
+  const linhaProjecao = diario.map(() => null);
+
+  if (diaCorte > 0) {
+    linhaProjecao[diaCorte - 1] = acumulado[diaCorte - 1] || 0;
+    linhaProjecao[diario.length - 1] = projecao;
+  }
+
+  const maximo = Math.max(...acumulado, projecao, meta * 1.3, 1);
 
   return (
     <div className={styles.chartBox}>
@@ -168,11 +188,24 @@ function GraficoAcumulado({ diario, meta }) {
           );
         })}
         <path className={styles.metaLine} d={caminhoLinha(rotaMeta, maximo)} />
-        <path className={styles.salesLine} d={caminhoLinha(acumulado, maximo)} />
+        <path className={styles.salesLine} d={caminhoLinha(realizado, maximo)} />
+        {diaCorte < diario.length && diaCorte > 0 && (
+          <path
+            d={caminhoLinha(linhaProjecao, maximo)}
+            fill="none"
+            stroke="#7650a7"
+            strokeWidth="5"
+            strokeDasharray="12 10"
+            strokeLinecap="round"
+          />
+        )}
       </svg>
       <div className={styles.legend}>
         <span><i className={styles.salesDot} /> Realizado</span>
         <span><i className={styles.metaDot} /> Ritmo da Meta</span>
+        {diaCorte < diario.length && (
+          <span><i style={{ background: "#7650a7" }} /> Projeção</span>
+        )}
       </div>
     </div>
   );
@@ -238,6 +271,17 @@ export default function FechamentoMensal() {
     const valorMes = mesSelecionado();
     const [ano, numeroMes] = valorMes.split("-").map(Number);
     const intervalo = intervaloMes(ano, numeroMes);
+    const hoje = new Date();
+    const mesAtual = ano === hoje.getFullYear() && numeroMes === hoje.getMonth() + 1;
+    const mesPassado =
+      ano < hoje.getFullYear() ||
+      (ano === hoje.getFullYear() && numeroMes < hoje.getMonth() + 1);
+    const diaCorte = mesAtual
+      ? Math.min(hoje.getDate(), intervalo.ultimoDia)
+      : mesPassado
+        ? intervalo.ultimoDia
+        : 0;
+
     const intervalosHistoricos = [ano - 2, ano - 1].map((anoHistorico) => ({
       ano: anoHistorico,
       ...intervaloMes(anoHistorico, numeroMes),
@@ -275,14 +319,15 @@ export default function FechamentoMensal() {
     }
 
     const lojas = lojasResp.data || [];
-    const vendas = vendasResp.data || [];
+    const vendasMes = vendasResp.data || [];
+    const vendas = vendasMes.filter((venda) => diaDaData(venda.data) <= diaCorte);
     const metas = metasResp.data || [];
     const chavesPreenchidas = new Set(
       vendas.map((venda) => `${venda.data}|${Number(venda.loja_id)}|${venda.periodo}`)
     );
     const faltas = [];
 
-    for (let dia = 1; dia <= intervalo.ultimoDia; dia += 1) {
+    for (let dia = 1; dia <= diaCorte; dia += 1) {
       const data = dataDoDia(ano, numeroMes, dia);
       periodos.forEach((periodo) => {
         lojas.forEach((loja) => {
@@ -294,12 +339,7 @@ export default function FechamentoMensal() {
       });
     }
 
-    if (faltas.length) {
-      setPendencias(faltas);
-      setModo("pendencias");
-      setCarregando(false);
-      return;
-    }
+    setPendencias(faltas);
 
     const metasPorSlot = new Map(
       metas.map((meta) => [
@@ -310,7 +350,7 @@ export default function FechamentoMensal() {
 
     const diario = Array.from({ length: intervalo.ultimoDia }, () => 0);
     vendas.forEach((venda) => {
-      const dia = Number(String(venda.data).slice(8, 10));
+      const dia = diaDaData(venda.data);
       if (dia >= 1 && dia <= diario.length) {
         diario[dia - 1] += Number(venda.valor_vendido || 0);
       }
@@ -353,16 +393,24 @@ export default function FechamentoMensal() {
     const totalMeta = somar(metas, "valor_meta");
     const totalManha = somar(vendas.filter((venda) => venda.periodo === "manha"));
     const totalNoite = somar(vendas.filter((venda) => venda.periodo === "noite"));
+    const projecao = diaCorte > 0
+      ? (totalVendido / diaCorte) * intervalo.ultimoDia
+      : 0;
     const nivelGeral = avaliarNivel(totalVendido, totalMeta);
     const ranking = [...lojasResumo].sort(
       (a, b) => b.nivel.percentual - a.nivel.percentual
     );
 
-    const historico = intervalosHistoricos.map((item, indice) => ({
-      ano: item.ano,
-      vendas: historicosResp[indice]?.data || [],
-      total: somar(historicosResp[indice]?.data || []),
-    }));
+    const historico = intervalosHistoricos.map((item, indice) => {
+      const vendasHistoricas = (historicosResp[indice]?.data || []).filter(
+        (venda) => diaDaData(venda.data) <= diaCorte
+      );
+      return {
+        ano: item.ano,
+        vendas: vendasHistoricas,
+        total: somar(vendasHistoricas),
+      };
+    });
     historico.push({ ano, vendas, total: totalVendido });
 
     const anterior = historico.find((item) => item.ano === ano - 1)?.total || 0;
@@ -373,30 +421,39 @@ export default function FechamentoMensal() {
     const caixasNaoAbertos = vendas.filter(
       (venda) => Number(venda.valor_vendido || 0) === 0
     ).length;
+    const previa = !mesPassado || faltas.length > 0;
 
     const insights = [];
+    if (previa) {
+      insights.push(`Prévia calculada com os lançamentos realizados até o dia ${diaCorte}.`);
+      insights.push(`Mantido o ritmo atual, a projeção de fechamento é ${dinheiro.format(projecao)}.`);
+    }
+
     if (nivelGeral.nome === "Abaixo da Meta") {
-      insights.push(`O resultado geral ficou ${dinheiro.format(nivelGeral.falta)} abaixo da Meta.`);
+      insights.push(`O resultado atual está ${dinheiro.format(nivelGeral.falta)} abaixo da Meta.`);
     } else if (nivelGeral.proximo) {
-      insights.push(`O mês alcançou a ${nivelGeral.nome} e ficou a ${dinheiro.format(nivelGeral.falta)} da ${nivelGeral.proximo}.`);
+      insights.push(`O resultado alcançou a ${nivelGeral.nome} e está a ${dinheiro.format(nivelGeral.falta)} da ${nivelGeral.proximo}.`);
     } else {
-      insights.push("O resultado geral alcançou a Megameta do mês.");
+      insights.push("O resultado geral já alcançou a Megameta.");
     }
 
     if (melhorLoja) {
-      insights.push(`${melhorLoja.codigo} liderou o mês com ${percentual.format(melhorLoja.nivel.percentual)}% da Meta.`);
+      insights.push(`${melhorLoja.codigo} lidera com ${percentual.format(melhorLoja.nivel.percentual)}% da Meta.`);
     }
     if (atencaoLoja && atencaoLoja.nivel.percentual < 100) {
-      insights.push(`${atencaoLoja.codigo} encerrou abaixo da Meta e precisa de atenção no próximo planejamento.`);
+      insights.push(`${atencaoLoja.codigo} está abaixo da Meta e merece atenção no planejamento.`);
     }
-    insights.push(`O período da noite representou ${percentual.format(participacaoNoite)}% das vendas do mês.`);
+    insights.push(`O período da noite representa ${percentual.format(participacaoNoite)}% das vendas.`);
 
     if (comparacaoAnterior !== null) {
       const direcao = comparacaoAnterior >= 0 ? "cresceu" : "recuou";
-      insights.push(`O total ${direcao} ${percentual.format(Math.abs(comparacaoAnterior))}% em relação ao mesmo mês de ${ano - 1}.`);
+      insights.push(`O total ${direcao} ${percentual.format(Math.abs(comparacaoAnterior))}% em relação ao mesmo período de ${ano - 1}.`);
     }
     if (caixasNaoAbertos > 0) {
       insights.push(`${caixasNaoAbertos} caixas foram registrados como não abertos.`);
+    }
+    if (faltas.length > 0) {
+      insights.push(`Ainda faltam ${faltas.length} lançamentos em ${new Set(faltas.map((item) => item.data)).size} dias.`);
     }
 
     setDados({
@@ -408,14 +465,19 @@ export default function FechamentoMensal() {
       totalMeta,
       totalManha,
       totalNoite,
+      projecao,
       nivelGeral,
       lojas: ranking,
       historico,
       diario,
+      diaCorte,
+      totalDias: intervalo.ultimoDia,
       insights,
       caixasNaoAbertos,
+      previa,
     });
-    setModo("relatorio");
+
+    setModo(faltas.length ? "pendencias" : "relatorio");
     setCarregando(false);
   }
 
@@ -446,7 +508,7 @@ export default function FechamentoMensal() {
   return (
     <>
       <button type="button" className={styles.launcher} onClick={abrirFechamento}>
-        Fechamento do mês
+        Prévia / fechamento
       </button>
 
       {aberto && (
@@ -455,20 +517,24 @@ export default function FechamentoMensal() {
             <div className={styles.modalHeader}>
               <div>
                 <p>Reunião mensal</p>
-                <h2>{modo === "relatorio" ? `Fechamento — ${dados?.tituloMes || ""}` : "Antes de fechar o mês"}</h2>
+                <h2>
+                  {modo === "relatorio"
+                    ? `${dados?.previa ? "Prévia" : "Fechamento"} — ${dados?.tituloMes || ""}`
+                    : "Antes de fechar o mês"}
+                </h2>
               </div>
               <button type="button" onClick={fechar} aria-label="Fechar">×</button>
             </div>
 
-            {carregando && <div className={styles.loading}>Conferindo todos os lançamentos...</div>}
+            {carregando && <div className={styles.loading}>Preparando o resumo e conferindo os lançamentos...</div>}
             {erro && <div className={styles.error}>{erro}</div>}
 
             {!carregando && !erro && modo === "pendencias" && (
               <div className={styles.pendingContent}>
                 <div className={styles.warning}>
-                  <strong>O fechamento ainda não pode ser concluído.</strong>
+                  <strong>Existem lançamentos pendentes.</strong>
                   <span>
-                    Faltam {pendencias.length} lançamentos em {pendenciasPorDia.size} dias. Preencha todos os caixas, inclusive os que não abriram.
+                    Faltam {pendencias.length} lançamentos em {pendenciasPorDia.size} dias. Você pode completar os dados ou visualizar uma prévia parcial agora.
                   </span>
                 </div>
 
@@ -488,13 +554,25 @@ export default function FechamentoMensal() {
 
                 <div className={styles.actions}>
                   <button type="button" className={styles.secondary} onClick={fechar}>Fechar</button>
-                  <button type="button" className={styles.primary} onClick={irAoCalendario}>Ir ao calendário</button>
+                  <button type="button" className={styles.primary} onClick={() => setModo("relatorio")}>Ver prévia</button>
+                  <button type="button" className={styles.secondary} onClick={irAoCalendario}>Ir ao calendário</button>
                 </div>
               </div>
             )}
 
             {!carregando && !erro && modo === "relatorio" && dados && (
               <div className={styles.report}>
+                {dados.previa && (
+                  <div className={styles.warning}>
+                    <strong>Prévia parcial do fechamento</strong>
+                    <span>
+                      Dados considerados até o dia {dados.diaCorte}. {pendencias.length > 0
+                        ? `Ainda faltam ${pendencias.length} lançamentos em ${pendenciasPorDia.size} dias.`
+                        : "O mês ainda está em andamento e os números podem mudar."}
+                    </span>
+                  </div>
+                )}
+
                 <section className={styles.hero}>
                   <div>
                     <span>Resultado geral</span>
@@ -510,6 +588,7 @@ export default function FechamentoMensal() {
                   <article><span>Meta</span><strong>{dinheiro.format(dados.totalMeta)}</strong></article>
                   <article><span>Supermeta</span><strong>{dinheiro.format(dados.totalMeta * 1.2)}</strong></article>
                   <article><span>Megameta</span><strong>{dinheiro.format(dados.totalMeta * 1.3)}</strong></article>
+                  <article><span>Projeção</span><strong>{dinheiro.format(dados.projecao)}</strong></article>
                   <article><span>Caixas não abertos</span><strong>{dados.caixasNaoAbertos}</strong></article>
                 </section>
 
@@ -517,7 +596,12 @@ export default function FechamentoMensal() {
                   <div className={styles.sectionHeader}>
                     <div><p>Evolução do mês</p><h3>Vendas acumuladas</h3></div>
                   </div>
-                  <GraficoAcumulado diario={dados.diario} meta={dados.totalMeta} />
+                  <GraficoAcumulado
+                    diario={dados.diario}
+                    meta={dados.totalMeta}
+                    diaCorte={dados.diaCorte}
+                    projecao={dados.projecao}
+                  />
                 </section>
 
                 <section className={styles.reportSection}>
@@ -529,7 +613,10 @@ export default function FechamentoMensal() {
                       <article className={styles.storeResult} key={loja.id}>
                         <div className={styles.storeHeading}>
                           <span>{indice + 1}</span>
-                          <div><strong>{loja.codigo} — {loja.nome}</strong><small>{dinheiro.format(loja.vendido)} · {percentual.format(loja.nivel.percentual)}%</small></div>
+                          <div>
+                            <strong>{loja.codigo} — {loja.nome}</strong>
+                            <small>{dinheiro.format(loja.vendido)} · {percentual.format(loja.nivel.percentual)}%</small>
+                          </div>
                           <b>{loja.nivel.nome}</b>
                         </div>
                         <div className={styles.levelRow}>
@@ -553,7 +640,10 @@ export default function FechamentoMensal() {
 
                 <section className={styles.reportSection}>
                   <div className={styles.sectionHeader}>
-                    <div><p>Comparativo histórico</p><h3>Mesmo mês em anos anteriores</h3></div>
+                    <div>
+                      <p>Comparativo histórico</p>
+                      <h3>Mesmo mês, até o mesmo dia</h3>
+                    </div>
                   </div>
                   <div className={styles.historyBars}>
                     {dados.historico.map((item) => {
@@ -581,8 +671,14 @@ export default function FechamentoMensal() {
                 </section>
 
                 <div className={styles.actionsNoPrint}>
-                  <button type="button" className={styles.secondary} onClick={fechar}>Fechar</button>
-                  <button type="button" className={styles.primary} onClick={() => window.print()}>Imprimir / salvar PDF</button>
+                  {pendencias.length > 0 ? (
+                    <button type="button" className={styles.secondary} onClick={() => setModo("pendencias")}>Ver pendências</button>
+                  ) : (
+                    <button type="button" className={styles.secondary} onClick={fechar}>Fechar</button>
+                  )}
+                  <button type="button" className={styles.primary} onClick={() => window.print()}>
+                    {dados.previa ? "Salvar prévia em PDF" : "Imprimir / salvar PDF"}
+                  </button>
                 </div>
               </div>
             )}
