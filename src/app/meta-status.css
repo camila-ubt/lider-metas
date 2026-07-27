@@ -1,0 +1,253 @@
+/* Painel visual de metas */
+
+.meta-manager {
+  display: block;
+}
+
+.meta-overview-panel {
+  width: min(790px, 100%);
+  margin: 0 auto;
+}
+
+.meta-progress-summary {
+  margin: -5px 0 18px;
+  border: 1px solid #ead8a0;
+  border-radius: 13px;
+  padding: 10px 12px;
+  background: #fff8e4;
+  color: #755714;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.meta-progress-summary.all-filled {
+  border-color: #acd9b9;
+  background: #eaf7ee;
+  color: #205f34;
+}
+
+.meta-status-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.meta-status-card {
+  position: relative;
+  min-width: 0;
+  min-height: 116px;
+  border: 1px solid var(--border);
+  padding: 15px;
+  align-items: flex-start;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.meta-status-card:hover,
+.meta-status-card:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+  box-shadow: 0 9px 22px rgba(70, 46, 92, 0.1);
+}
+
+.meta-status-card.is-filled {
+  border-color: #acd9b9;
+  background: #eaf7ee;
+}
+
+.meta-status-card.is-pending {
+  border-color: #e6ce82;
+  background: #fff8e4;
+}
+
+.meta-status-card::after {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.meta-status-card.is-filled::after {
+  content: "✓";
+  background: #5eb277;
+  color: #fff;
+}
+
+.meta-status-card.is-pending::after {
+  content: "!";
+  background: #e0af37;
+  color: #fff;
+}
+
+.meta-status-card > div {
+  padding-right: 28px;
+}
+
+.meta-status-card strong {
+  font-size: 16px;
+}
+
+.meta-status-card span {
+  margin-top: 3px;
+  font-weight: 700;
+}
+
+.meta-status-card.is-filled span {
+  color: #367249;
+}
+
+.meta-status-card.is-pending span {
+  color: #806117;
+}
+
+.meta-status-card > b {
+  align-self: flex-end;
+  margin-top: auto;
+  font-size: 18px;
+}
+
+.meta-card-action {
+  width: 100%;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.meta-form-panel {
+  display: none;
+}
+
+body.meta-editor-active {
+  overflow: hidden;
+}
+
+.meta-editor-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: rgba(35, 24, 48, 0.56);
+  backdrop-filter: blur(3px);
+}
+
+.meta-form-panel.meta-editor-open {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1101;
+  display: grid;
+  width: min(500px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  margin: 0;
+  overflow-y: auto;
+  transform: translate(-50%, -50%);
+  animation: meta-modal-in 0.18s ease-out;
+}
+
+@keyframes meta-modal-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px)) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.meta-form-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1ecf6;
+  color: var(--primary-dark);
+  font-size: 27px;
+  line-height: 1;
+}
+
+.meta-form-panel > div:first-of-type {
+  padding-right: 46px;
+}
+
+@media (max-width: 560px) {
+  .meta-overview-panel {
+    padding: 19px 14px;
+  }
+
+  .meta-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .meta-status-card {
+    min-height: 116px;
+    padding: 12px 10px;
+    border-radius: 13px;
+  }
+
+  .meta-status-card::after {
+    top: 9px;
+    right: 9px;
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .meta-status-card > div {
+    padding-right: 20px;
+  }
+
+  .meta-status-card strong {
+    font-size: 14px;
+  }
+
+  .meta-status-card > b {
+    font-size: 14px;
+  }
+
+  .meta-card-action {
+    font-size: 9px;
+  }
+
+  .meta-form-panel.meta-editor-open {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 24px 24px 0 0;
+    padding: 22px 18px calc(20px + env(safe-area-inset-bottom));
+    transform: none;
+    animation: meta-sheet-in 0.18s ease-out;
+  }
+
+  @keyframes meta-sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
