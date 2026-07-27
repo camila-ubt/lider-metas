@@ -1,5 +1,4 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import MetaStatusEnhancer from "@/components/MetaStatusEnhancer";
 import "./globals.css";
 import "./meta-status.css";
 
@@ -21,10 +20,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>
-        <MetaStatusEnhancer />
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
