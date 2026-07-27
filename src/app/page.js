@@ -223,8 +223,8 @@ export default function Home() {
   }
 
   function sequenciaDoDia() {
-    return lojas.flatMap((loja) =>
-      periodos.map((periodo) => ({ loja_id: loja.id, periodo }))
+    return periodos.flatMap((periodo) =>
+      lojas.map((loja) => ({ loja_id: loja.id, periodo }))
     );
   }
 
@@ -251,7 +251,7 @@ export default function Home() {
     preencherSlot(lancamento.data, lojaId, periodo);
   }
 
-  async function salvarVenda(evento, acao = "proximo") {
+  async function salvarVenda(evento, acao = "continuar") {
     evento.preventDefault();
     setMensagem("");
 
@@ -301,6 +301,11 @@ export default function Home() {
     ].sort((a, b) => a.data.localeCompare(b.data));
 
     setVendas(vendasAtualizadas);
+    setLancamento((atual) => ({
+      ...atual,
+      valor: valorParaEdicao(vendaSalva.valor_vendido),
+      observacao: vendaSalva.observacao || "",
+    }));
 
     if (acao === "fechar") {
       setMensagem("Venda salva com sucesso.");
@@ -309,38 +314,7 @@ export default function Home() {
       return;
     }
 
-    const sequencia = sequenciaDoDia();
-    const indiceAtual = sequencia.findIndex(
-      (slot) =>
-        Number(slot.loja_id) === Number(lancamento.loja_id) &&
-        slot.periodo === lancamento.periodo
-    );
-    const proximos = [
-      ...sequencia.slice(indiceAtual + 1),
-      ...sequencia.slice(0, indiceAtual),
-    ];
-    const proximoPendente = proximos.find(
-      (slot) =>
-        !vendaDoSlot(
-          lancamento.data,
-          slot.loja_id,
-          slot.periodo,
-          vendasAtualizadas
-        )
-    );
-
-    if (proximoPendente) {
-      preencherSlot(
-        lancamento.data,
-        proximoPendente.loja_id,
-        proximoPendente.periodo,
-        vendasAtualizadas
-      );
-      setMensagem("Salvo. Continue no próximo período.");
-    } else {
-      setMensagem("Dia completo: todas as lojas e períodos foram preenchidos.");
-      setModalVendaAberto(false);
-    }
+    setMensagem("Venda salva. Escolha o próximo card para continuar.");
     setSalvando(false);
   }
 
@@ -517,6 +491,9 @@ export default function Home() {
     lancamento.loja_id,
     lancamento.periodo
   );
+  const lojaAtual = lojas.find(
+    (loja) => Number(loja.id) === Number(lancamento.loja_id)
+  );
   const slotsMetas = lojas.flatMap((loja) =>
     periodos.map((periodo) => ({
       loja,
@@ -686,25 +663,87 @@ export default function Home() {
               <button type="button" className="modal-close" onClick={() => setModalVendaAberto(false)} aria-label="Fechar">×</button>
             </div>
 
-            <form className="form-stack modal-form" onSubmit={(evento) => salvarVenda(evento, "proximo")}>
-              <label>
-                Loja
-                <select value={lancamento.loja_id} onChange={(evento) => mudarSlot("loja_id", evento.target.value)}>
-                  {lojas.map((loja) => <option key={loja.id} value={loja.id}>{loja.codigo} — {loja.nome}</option>)}
-                </select>
-              </label>
+            <form className="form-stack modal-form" onSubmit={(evento) => salvarVenda(evento, "continuar")}>
+              <div className="slot-selection">
+                <div className="slot-selector-group">
+                  <div className="slot-selector-title">
+                    <strong>Período</strong>
+                    <small>Verde = todas as lojas lançadas</small>
+                  </div>
+                  <div className="period-card-grid">
+                    {periodos.map((periodo) => {
+                      const preenchidas = lojas.filter((loja) =>
+                        vendaDoSlot(lancamento.data, loja.id, periodo)
+                      ).length;
+                      const completo = lojas.length > 0 && preenchidas === lojas.length;
+                      const parcial = preenchidas > 0 && !completo;
+                      const selecionado = lancamento.periodo === periodo;
 
-              <label>
-                Período
-                <select value={lancamento.periodo} onChange={(evento) => mudarSlot("periodo", evento.target.value)}>
-                  <option value="manha">Manhã</option>
-                  <option value="noite">Noite</option>
-                </select>
-              </label>
+                      return (
+                        <button
+                          type="button"
+                          className={`slot-period-card ${
+                            completo ? "is-complete" : parcial ? "is-partial" : ""
+                          } ${selecionado ? "is-selected" : ""}`}
+                          onClick={() => mudarSlot("periodo", periodo)}
+                          aria-pressed={selecionado}
+                          key={periodo}
+                        >
+                          <strong>{periodo === "manha" ? "Manhã" : "Noite"}</strong>
+                          <span>{preenchidas} de {lojas.length} lojas preenchidas</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-              <div className="slot-status">
-                <span className={`status-pill ${slotAtual ? "filled" : "unfilled"}`}>
-                  {slotAtual ? "Já preenchido — pode editar" : "Pendente"}
+                <div className="slot-selector-group">
+                  <div className="slot-selector-title">
+                    <strong>Loja</strong>
+                    <small>Toque para lançar ou editar</small>
+                  </div>
+                  <div className="store-card-grid">
+                    {lojas.map((loja) => {
+                      const venda = vendaDoSlot(
+                        lancamento.data,
+                        loja.id,
+                        lancamento.periodo
+                      );
+                      const selecionada =
+                        Number(lancamento.loja_id) === Number(loja.id);
+
+                      return (
+                        <button
+                          type="button"
+                          className={`slot-store-card ${
+                            venda ? "is-filled" : ""
+                          } ${selecionada ? "is-selected" : ""}`}
+                          onClick={() => mudarSlot("loja_id", String(loja.id))}
+                          aria-pressed={selecionada}
+                          key={loja.id}
+                        >
+                          <i>{venda ? "✓" : "+"}</i>
+                          <strong>{loja.codigo}</strong>
+                          <span>
+                            {venda
+                              ? dinheiro.format(Number(venda.valor_vendido || 0))
+                              : "Pendente"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="slot-current-summary">
+                <strong>
+                  {lojaAtual?.codigo} · {lancamento.periodo === "manha" ? "Manhã" : "Noite"}
+                </strong>
+                <span>
+                  {slotAtual
+                    ? `Lançado: ${dinheiro.format(Number(slotAtual.valor_vendido || 0))}`
+                    : "Pendente"}
                 </span>
               </div>
 
@@ -740,7 +779,7 @@ export default function Home() {
 
               <div className="modal-actions">
                 <button type="button" className="secondary-button" disabled={salvando} onClick={(evento) => salvarVenda(evento, "fechar")}>Salvar e fechar</button>
-                <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar e próximo"}</button>
+                <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar lançamento"}</button>
               </div>
             </form>
           </section>
