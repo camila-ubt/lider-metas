@@ -17,6 +17,7 @@ export default function MetaStatusEnhancer() {
   useEffect(() => {
     let formularioAberto = null;
     let fundoModal = null;
+    let quadroAgendado = false;
 
     function fecharEditor() {
       formularioAberto?.classList.remove("meta-editor-open");
@@ -73,20 +74,16 @@ export default function MetaStatusEnhancer() {
 
       const selects = formulario.querySelectorAll("select");
       const selectLoja = selects[0];
-
       if (!selectLoja) return;
 
       const opcaoLoja = [...selectLoja.options].find((opcao) =>
         opcao.textContent.trim().startsWith(`${codigoLoja} `)
       );
-
       if (opcaoLoja) definirValor(selectLoja, opcaoLoja.value);
 
       window.setTimeout(() => {
-        const telaAtual = localizarTelaMetas();
-        const formularioAtual = telaAtual?.formulario || formulario;
-        const selectsAtuais = formularioAtual.querySelectorAll("select");
-        const selectPeriodo = selectsAtuais[1];
+        const formularioAtual = localizarTelaMetas()?.formulario || formulario;
+        const selectPeriodo = formularioAtual.querySelectorAll("select")[1];
 
         if (selectPeriodo) {
           const opcaoPeriodo = [...selectPeriodo.options].find(
@@ -96,8 +93,8 @@ export default function MetaStatusEnhancer() {
         }
 
         window.setTimeout(() => {
-          const telaMaisAtual = localizarTelaMetas();
-          const formularioFinal = telaMaisAtual?.formulario || formularioAtual;
+          const formularioFinal =
+            localizarTelaMetas()?.formulario || formularioAtual;
           const campoValor = formularioFinal.querySelector(
             'input[inputmode="decimal"]'
           );
@@ -109,6 +106,7 @@ export default function MetaStatusEnhancer() {
     }
 
     function decorarTela() {
+      quadroAgendado = false;
       const tela = localizarTelaMetas();
       if (!tela) return;
 
@@ -134,7 +132,6 @@ export default function MetaStatusEnhancer() {
       cartoes.forEach((cartao) => {
         const configurada =
           cartao.querySelector("span")?.textContent.trim() === "Configurada";
-
         if (configurada) preenchidas += 1;
 
         cartao.classList.add("meta-status-card");
@@ -149,7 +146,11 @@ export default function MetaStatusEnhancer() {
           acao.className = "meta-card-action";
           cartao.appendChild(acao);
         }
-        acao.textContent = configurada ? "Toque para editar" : "Toque para preencher";
+
+        const textoAcao = configurada
+          ? "Toque para editar"
+          : "Toque para preencher";
+        if (acao.textContent !== textoAcao) acao.textContent = textoAcao;
 
         if (cartao.dataset.metaInterativo !== "true") {
           const ativar = () => selecionarCartao(cartao, formulario);
@@ -176,19 +177,27 @@ export default function MetaStatusEnhancer() {
         "all-filled",
         cartoes.length > 0 && preenchidas === cartoes.length
       );
-      resumo.textContent = pendentes
+
+      const textoResumo = pendentes
         ? `${preenchidas} de ${cartoes.length} preenchidas · ${pendentes} pendentes`
         : `Todas as ${cartoes.length} metas estão preenchidas`;
+      if (resumo.textContent !== textoResumo) resumo.textContent = textoResumo;
+    }
+
+    function agendarDecoracao() {
+      if (quadroAgendado) return;
+      quadroAgendado = true;
+      window.requestAnimationFrame(decorarTela);
     }
 
     function tratarEscape(evento) {
       if (evento.key === "Escape") fecharEditor();
     }
 
-    const observador = new MutationObserver(decorarTela);
+    const observador = new MutationObserver(agendarDecoracao);
     observador.observe(document.body, { childList: true, subtree: true });
     document.addEventListener("keydown", tratarEscape);
-    decorarTela();
+    agendarDecoracao();
 
     return () => {
       observador.disconnect();
