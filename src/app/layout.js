@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import FechamentoMensal from "@/components/FechamentoMensal";
 import "./globals.css";
 import "./meta-status.css";
 import "./dashboard-compact.css";
@@ -22,7 +23,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <FechamentoMensal />
+      </body>
     </html>
   );
 }
