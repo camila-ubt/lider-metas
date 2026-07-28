@@ -6,6 +6,7 @@ import "./globals.css";
 import "./meta-status.css";
 import "./dashboard-compact.css";
 import "./lancamento-cards.css";
+import "./fechamento-posicao.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
