@@ -1,23 +1,25 @@
-[class*="FechamentoMensal_launcher"] {
+body > button[class*="launcher"] {
   position: static !important;
   inset: auto !important;
+  right: auto !important;
+  bottom: auto !important;
   z-index: auto !important;
-  display: block;
-  width: min(1180px, calc(100% - 32px));
-  margin: 0 auto 28px;
+  display: block !important;
+  width: min(1180px, calc(100% - 32px)) !important;
+  margin: 0 auto 28px !important;
   border-radius: 18px !important;
   padding: 15px 20px !important;
   box-shadow: 0 12px 30px rgba(63, 39, 91, 0.16) !important;
 }
 
 body:not(:has(nav.tabs button:first-child.active))
-  [class*="FechamentoMensal_launcher"] {
+  > button[class*="launcher"] {
   display: none !important;
 }
 
 @media (max-width: 520px) {
-  [class*="FechamentoMensal_launcher"] {
-    width: calc(100% - 24px);
-    margin-bottom: 22px;
+  body > button[class*="launcher"] {
+    width: calc(100% - 24px) !important;
+    margin: 0 auto 22px !important;
   }
 }
