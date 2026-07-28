@@ -1,0 +1,552 @@
+.wrapper {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto 28px;
+  color: #2c2135;
+}
+
+.mainHeader {
+  margin-bottom: 14px;
+  border: 1px solid #e4dbea;
+  border-radius: 22px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f6effb 0%, #ffffff 72%);
+  box-shadow: 0 12px 34px rgba(57, 39, 73, 0.08);
+}
+
+.mainHeader p {
+  margin: 0 0 5px;
+  color: #7650a7;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.mainHeader h2 {
+  margin: 0;
+  font-size: clamp(22px, 4vw, 31px);
+}
+
+.mainHeader span {
+  display: block;
+  margin-top: 6px;
+  color: #776b80;
+  font-size: 13px;
+}
+
+.blocks {
+  display: grid;
+  gap: 12px;
+}
+
+.collapse,
+.fullBlock {
+  overflow: hidden;
+  border: 1px solid #e4dbea;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(57, 39, 73, 0.06);
+}
+
+.collapse summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 17px 19px;
+  cursor: pointer;
+  list-style: none;
+  background: linear-gradient(135deg, #faf7fc 0%, #fff 80%);
+}
+
+.collapse summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapse summary > div {
+  display: grid;
+  gap: 3px;
+}
+
+.collapse summary strong {
+  font-size: 16px;
+}
+
+.collapse summary span {
+  color: #7b7083;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.collapse summary i {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eee7f5;
+  color: #684393;
+  font-size: 22px;
+  font-style: normal;
+  transition: transform 0.2s ease;
+}
+
+.collapse[open] summary i {
+  transform: rotate(180deg);
+}
+
+.blockContent {
+  display: grid;
+  gap: 15px;
+  border-top: 1px solid #eee7f2;
+  padding: 18px 19px 20px;
+}
+
+.fullBlockHeader {
+  padding: 17px 19px 12px;
+}
+
+.fullBlockHeader h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.fullBlockHeader p {
+  margin: 4px 0 0;
+  color: #756a80;
+  font-size: 12px;
+}
+
+.metricGrid,
+.periodHeading,
+.trendGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metricGrid article,
+.periodHeading > div,
+.trendGrid article {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  border: 1px solid #e7deec;
+  border-radius: 15px;
+  padding: 13px;
+  background: #faf8fb;
+}
+
+.metricGrid span,
+.periodHeading span,
+.trendGrid span,
+.highlightGrid span,
+.projectionExplain span {
+  color: #756a80;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.metricGrid strong,
+.periodHeading strong,
+.trendGrid strong {
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.metricGrid small {
+  color: #756a80;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.highlightGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.highlightGrid article {
+  display: grid;
+  gap: 6px;
+  border-radius: 17px;
+  padding: 15px;
+}
+
+.highlightGrid strong {
+  font-size: 17px;
+}
+
+.highlightGrid p,
+.periodReading p,
+.trendGrid p,
+.projectionExplain p,
+.explanation {
+  margin: 0;
+  color: #5f5567;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.positiveCard {
+  border: 1px solid #b8dcc3;
+  background: #eef8f1;
+}
+
+.attentionCard {
+  border: 1px solid #ead89d;
+  background: #fff9e9;
+}
+
+.inlineFacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inlineFacts span {
+  border-radius: 999px;
+  padding: 8px 11px;
+  background: #f1ebf6;
+  color: #5f4c6b;
+  font-size: 11px;
+}
+
+.periodReading {
+  display: grid;
+  gap: 8px;
+}
+
+.periodReading p {
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f8f5fa;
+}
+
+.actionNote {
+  border-left: 4px solid #7650a7;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.filters select {
+  min-width: 0;
+  border: 1px solid #ddd3e5;
+  border-radius: 12px;
+  padding: 10px 11px;
+  background: #fff;
+  color: #3c3045;
+  font: inherit;
+  font-size: 12px;
+}
+
+.historyChartBox {
+  overflow: hidden;
+}
+
+.historyChartBox svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.gridLine {
+  stroke: #eee8f4;
+  stroke-width: 1;
+}
+
+.axisLabel {
+  fill: #8b7e94;
+  font-size: 10px;
+}
+
+.historyLineOne,
+.historyLineTwo,
+.historyLineThree {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.historyLineOne {
+  stroke: #bbb0c7;
+}
+
+.historyLineTwo {
+  stroke: #9878b4;
+}
+
+.historyLineThree {
+  stroke: #5f3c91;
+}
+
+.historyLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #756a80;
+  font-size: 11px;
+}
+
+.historyLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.historyLegend i {
+  width: 18px;
+  height: 4px;
+  border-radius: 999px;
+}
+
+.historyLegend i.historyLineOne {
+  background: #bbb0c7;
+}
+
+.historyLegend i.historyLineTwo {
+  background: #9878b4;
+}
+
+.historyLegend i.historyLineThree {
+  background: #5f3c91;
+}
+
+.explanation,
+.infoText,
+.warningText {
+  border-radius: 12px;
+  padding: 11px 12px;
+}
+
+.explanation,
+.infoText {
+  background: #f4eff8;
+  color: #604873;
+}
+
+.warningText {
+  margin: 0;
+  background: #fff7df;
+  color: #765714;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.projectionExplain {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.projectionExplain article {
+  display: grid;
+  gap: 6px;
+  border: 1px solid #e4dbea;
+  border-radius: 15px;
+  padding: 14px;
+  background: #faf8fb;
+}
+
+.projectionExplain strong {
+  color: #5f3c91;
+  font-size: 17px;
+}
+
+.probabilityList {
+  display: grid;
+  gap: 10px;
+}
+
+.probabilityRow {
+  display: grid;
+  gap: 6px;
+}
+
+.probabilityRow > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.probabilityRow span {
+  color: #6d6075;
+  font-weight: 800;
+}
+
+.probabilityTrack {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eee8f3;
+}
+
+.probabilityTrack i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7650a7, #a77bca);
+}
+
+.actionsList {
+  display: grid;
+  gap: 8px;
+}
+
+.actionsList article {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: start;
+  gap: 9px;
+  border-radius: 13px;
+  padding: 10px;
+  background: #f8f5fa;
+}
+
+.actionsList span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #7650a7;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.actionsList p {
+  margin: 4px 0 0;
+  color: #51475a;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.loading,
+.error {
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.loading {
+  background: #f4eff8;
+  color: #684393;
+  font-weight: 800;
+}
+
+.error {
+  background: #fdecec;
+  color: #963434;
+}
+
+.reportWrapper {
+  width: 100%;
+  margin: 22px 0 0;
+}
+
+.reportWrapper .mainHeader {
+  box-shadow: none;
+}
+
+.reportWrapper .fullBlock {
+  box-shadow: none;
+  break-inside: avoid;
+}
+
+@media (max-width: 760px) {
+  .metricGrid,
+  .periodHeading,
+  .trendGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .wrapper {
+    width: calc(100% - 24px);
+    margin-bottom: 22px;
+  }
+
+  .mainHeader {
+    padding: 17px 15px;
+  }
+
+  .collapse summary {
+    padding: 15px 14px;
+  }
+
+  .collapse summary strong {
+    font-size: 14px;
+  }
+
+  .collapse summary span {
+    font-size: 11px;
+  }
+
+  .blockContent {
+    padding: 14px;
+  }
+
+  .highlightGrid,
+  .projectionExplain {
+    grid-template-columns: 1fr;
+  }
+
+  .metricGrid article,
+  .periodHeading > div,
+  .trendGrid article {
+    padding: 11px;
+  }
+
+  .metricGrid strong,
+  .periodHeading strong,
+  .trendGrid strong {
+    font-size: 14px;
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .historyLegend {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .reportWrapper {
+    width: 100%;
+  }
+}
+
+@media print {
+  .reportWrapper {
+    display: block !important;
+    width: 100% !important;
+    margin: 18px 0 0 !important;
+  }
+
+  .reportWrapper .mainHeader,
+  .reportWrapper .fullBlock {
+    border-color: #d7d0dc;
+    box-shadow: none !important;
+  }
+
+  .reportWrapper .fullBlock {
+    margin-bottom: 12px;
+  }
+
+  .reportWrapper .blockContent {
+    display: grid !important;
+  }
+
+  .reportWrapper .filters {
+    display: none !important;
+  }
+}
