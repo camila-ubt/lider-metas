@@ -1,0 +1,23 @@
+/* Painel: mantém apenas acompanhamento rápido e análise complementar. */
+section[class*="DashboardEstavelV2_dashboard"]
+  > div[class*="DashboardEstavelV2_twoColumns"] {
+  display: none !important;
+}
+
+/* O resumo gerencial avançado repetia os indicadores do topo do Painel. */
+section[class*="AnaliseGerencial_wrapper"]:not([class*="AnaliseGerencial_reportWrapper"])
+  div[class*="AnaliseGerencial_blocks"]
+  > details:first-of-type {
+  display: none !important;
+}
+
+/*
+ * Fechamento: o histórico simples e os insights antigos foram substituídos
+ * pela análise gerencial completa, que também é impressa no PDF.
+ */
+div[class*="FechamentoMensal_report"]
+  > section[class*="FechamentoMensal_reportSection"]:nth-of-type(5),
+div[class*="FechamentoMensal_report"]
+  > section[class*="FechamentoMensal_reportSection"]:nth-of-type(6) {
+  display: none !important;
+}
