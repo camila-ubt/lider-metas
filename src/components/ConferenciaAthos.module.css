@@ -1,0 +1,313 @@
+.wrapper {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto 28px;
+}
+
+.panel {
+  overflow: hidden;
+  border: 1px solid #e6deec;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgba(57, 39, 73, 0.08);
+}
+
+.toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 0;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #faf7fc 0%, #fff 72%);
+  color: #2d2037;
+  text-align: left;
+}
+
+.toggle div {
+  display: grid;
+  gap: 4px;
+}
+
+.toggle span {
+  color: #7650a7;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.toggle strong {
+  font-size: 16px;
+}
+
+.toggle i {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eee7f5;
+  color: #684393;
+  font-size: 24px;
+  font-style: normal;
+  transition: transform 0.18s ease;
+}
+
+.arrowOpen {
+  transform: rotate(180deg);
+}
+
+.content {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid #eee7f2;
+  padding: 18px 20px 20px;
+}
+
+.intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.intro > div {
+  display: grid;
+  gap: 3px;
+}
+
+.intro strong {
+  color: #2d2037;
+  font-size: 15px;
+}
+
+.intro span {
+  color: #7d7185;
+  font-size: 12px;
+}
+
+.intro b {
+  color: #5f3c91;
+  font-size: 14px;
+  text-align: right;
+}
+
+.storeFilter {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.storeFilter button {
+  border: 1px solid #ddd3e5;
+  border-radius: 12px;
+  padding: 10px 8px;
+  background: #f8f5fa;
+  color: #665b6f;
+  font-weight: 900;
+}
+
+.storeFilter .activeStore {
+  border-color: #7650a7;
+  background: #7650a7;
+  color: #fff;
+  box-shadow: 0 7px 18px rgba(118, 80, 167, 0.22);
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #736779;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.summary span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.summary i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.completeDot {
+  background: #58ad73;
+}
+
+.partialDot {
+  background: #d4a52e;
+}
+
+.tableWrap {
+  overflow: hidden;
+  border: 1px solid #e7dfea;
+  border-radius: 16px;
+}
+
+.tableHeader,
+.row,
+.totalRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.8fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.tableHeader {
+  padding: 10px 14px;
+  background: #f2edf6;
+  color: #675a70;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.tableHeader span:last-child,
+.row > b,
+.totalRow strong {
+  text-align: right;
+}
+
+.rows {
+  max-height: 50dvh;
+  overflow-y: auto;
+}
+
+.row {
+  min-height: 54px;
+  border-top: 1px solid #eee8f0;
+  padding: 9px 14px;
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.row > div {
+  display: grid;
+  gap: 2px;
+}
+
+.row strong {
+  color: #34273d;
+  font-size: 13px;
+}
+
+.row small {
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.row > b {
+  color: #34273d;
+  font-size: 14px;
+}
+
+.completeRow {
+  background: #edf8f0;
+}
+
+.completeRow small {
+  color: #398153;
+}
+
+.partialRow {
+  background: #fff8e5;
+}
+
+.partialRow small {
+  color: #9a761a;
+}
+
+.pendingRow {
+  background: #fbfafc;
+}
+
+.pendingRow small {
+  color: #9a8ea1;
+}
+
+.totalRow {
+  border-top: 1px solid #ded4e5;
+  padding: 13px 14px;
+  background: #f7f2fa;
+  color: #5f3c91;
+}
+
+.totalRow span {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.totalRow strong {
+  font-size: 15px;
+}
+
+.loading,
+.error {
+  margin: 0;
+  border-radius: 12px;
+  padding: 11px 12px;
+  font-size: 12px;
+}
+
+.loading {
+  background: #f4eff8;
+  color: #694592;
+}
+
+.error {
+  background: #fdecec;
+  color: #973333;
+}
+
+@media (max-width: 520px) {
+  .wrapper {
+    width: calc(100% - 24px);
+    margin-bottom: 22px;
+  }
+
+  .toggle {
+    padding: 15px 14px;
+  }
+
+  .toggle strong {
+    font-size: 14px;
+  }
+
+  .content {
+    padding: 14px;
+  }
+
+  .intro {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .intro b {
+    text-align: left;
+  }
+
+  .tableHeader,
+  .row,
+  .totalRow {
+    grid-template-columns: minmax(0, 1fr) minmax(105px, 0.9fr);
+    gap: 8px;
+  }
+
+  .row {
+    min-height: 50px;
+    padding: 8px 11px;
+  }
+
+  .row > b {
+    font-size: 13px;
+  }
+}
