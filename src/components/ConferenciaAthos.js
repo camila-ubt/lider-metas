@@ -203,6 +203,7 @@ export default function ConferenciaAthos() {
       };
     });
 
+    linhas.reverse();
     return { linhas, total, completos, parciais, pendentes };
   }, [lojaId, mes, vendas]);
 
