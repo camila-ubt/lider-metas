@@ -8,6 +8,7 @@ import "./meta-status.css";
 import "./dashboard-compact.css";
 import "./lancamento-cards.css";
 import "./fechamento-posicao.css";
+import "./relatorio-enxuto.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
