@@ -1,0 +1,23 @@
+[class*="FechamentoMensal_launcher"] {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  display: block;
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto 28px;
+  border-radius: 18px !important;
+  padding: 15px 20px !important;
+  box-shadow: 0 12px 30px rgba(63, 39, 91, 0.16) !important;
+}
+
+body:not(:has(nav.tabs button:first-child.active))
+  [class*="FechamentoMensal_launcher"] {
+  display: none !important;
+}
+
+@media (max-width: 520px) {
+  [class*="FechamentoMensal_launcher"] {
+    width: calc(100% - 24px);
+    margin-bottom: 22px;
+  }
+}
