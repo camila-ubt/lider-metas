@@ -1,23 +1,25 @@
-/* Painel: mantém apenas acompanhamento rápido e análise complementar. */
-section[class*="DashboardEstavelV2_dashboard"]
-  > div[class*="DashboardEstavelV2_twoColumns"] {
+/* Painel: remove apenas o comparativo histórico e os insights antigos. */
+section[class*="dashboard"]
+  > div[class*="twoColumns"]:last-of-type {
   display: none !important;
 }
 
-/* O resumo gerencial avançado repetia os indicadores do topo do Painel. */
-section[class*="AnaliseGerencial_wrapper"]:not([class*="AnaliseGerencial_reportWrapper"])
-  div[class*="AnaliseGerencial_blocks"]
+/* O resumo avançado repetia os indicadores já exibidos no topo do Painel. */
+section[class*="wrapper"]:not([class*="reportWrapper"])
+  div[class*="blocks"]
   > details:first-of-type {
   display: none !important;
 }
 
 /*
- * Fechamento: o histórico simples e os insights antigos foram substituídos
- * pela análise gerencial completa, que também é impressa no PDF.
+ * Fechamento: o histórico simples e os insights antigos são substituídos
+ * pela leitura gerencial completa, que também entra na impressão/PDF.
  */
-div[class*="FechamentoMensal_report"]
-  > section[class*="FechamentoMensal_reportSection"]:nth-of-type(5),
-div[class*="FechamentoMensal_report"]
-  > section[class*="FechamentoMensal_reportSection"]:nth-of-type(6) {
+#fechamento-impressao
+  div[class*="report"]
+  > section[class*="reportSection"]:nth-of-type(5),
+#fechamento-impressao
+  div[class*="report"]
+  > section[class*="reportSection"]:nth-of-type(6) {
   display: none !important;
 }
