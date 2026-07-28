@@ -150,7 +150,9 @@ export default function ConferenciaAthos() {
   }, [autenticado, visivel, mes, supabase]);
 
   const resumo = useMemo(() => {
-    if (!mes || !lojaId) return { linhas: [], total: 0, completos: 0, parciais: 0 };
+    if (!mes || !lojaId) {
+      return { linhas: [], total: 0, completos: 0, parciais: 0, pendentes: 0 };
+    }
 
     const [ano, numeroMes] = mes.split("-").map(Number);
     const hoje = new Date();
@@ -169,6 +171,7 @@ export default function ConferenciaAthos() {
     let total = 0;
     let completos = 0;
     let parciais = 0;
+    let pendentes = 0;
 
     const linhas = Array.from({ length: ultimoDiaExibido }, (_, indice) => {
       const dia = indice + 1;
@@ -188,6 +191,7 @@ export default function ConferenciaAthos() {
       total += valor;
       if (preenchidos === 2) completos += 1;
       if (preenchidos === 1) parciais += 1;
+      if (preenchidos === 0) pendentes += 1;
 
       return {
         data,
@@ -199,7 +203,7 @@ export default function ConferenciaAthos() {
       };
     });
 
-    return { linhas, total, completos, parciais };
+    return { linhas, total, completos, parciais, pendentes };
   }, [lojaId, mes, vendas]);
 
   if (!autenticado || !visivel) return null;
@@ -257,6 +261,7 @@ export default function ConferenciaAthos() {
                 <div className={styles.summary}>
                   <span><i className={styles.completeDot} /> {resumo.completos} dias completos</span>
                   <span><i className={styles.partialDot} /> {resumo.parciais} parciais</span>
+                  <span><i style={{ background: "#c7c0cc" }} /> {resumo.pendentes} pendentes</span>
                 </div>
 
                 <div className={styles.tableWrap}>
