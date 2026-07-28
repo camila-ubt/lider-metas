@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import FechamentoMensal from "@/components/FechamentoMensal";
 import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
+import AnaliseGerencial from "@/components/AnaliseGerencial";
 import "./globals.css";
 import "./meta-status.css";
 import "./dashboard-compact.css";
@@ -29,8 +30,10 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <ConferenciaAthos />
+        <AnaliseGerencial modo="painel" />
         <MascaraMoeda />
         <FechamentoMensal />
+        <AnaliseGerencial modo="fechamento" />
       </body>
     </html>
   );
