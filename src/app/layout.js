@@ -10,6 +10,7 @@ import "./dashboard-compact.css";
 import "./lancamento-cards.css";
 import "./fechamento-posicao.css";
 import "./relatorio-enxuto.css";
+import "./fechamento-impressao.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
