@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import FechamentoMensal from "@/components/FechamentoMensal";
+import MascaraMoeda from "@/components/MascaraMoeda";
 import "./globals.css";
 import "./meta-status.css";
 import "./dashboard-compact.css";
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
+        <MascaraMoeda />
         <FechamentoMensal />
       </body>
     </html>
