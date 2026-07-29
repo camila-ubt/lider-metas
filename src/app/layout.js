@@ -5,6 +5,7 @@ import ConferenciaAthos from "@/components/ConferenciaAthos";
 import AnaliseGerencial from "@/components/AnaliseGerencial";
 import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
 import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
+import AjusteProbabilidades from "@/components/AjusteProbabilidades";
 import "./globals.css";
 import "./meta-status.css";
 import "./dashboard-compact.css";
@@ -12,6 +13,7 @@ import "./lancamento-cards.css";
 import "./fechamento-posicao.css";
 import "./relatorio-enxuto.css";
 import "./fechamento-impressao.css";
+import "./analise-ajustes.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +42,7 @@ export default function RootLayout({ children }) {
         <AlvoAnaliseFechamento />
         <ResumoLojasFechamento />
         <AnaliseGerencial modo="fechamento" />
+        <AjusteProbabilidades />
       </body>
     </html>
   );
