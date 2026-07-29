@@ -185,11 +185,11 @@ export default function ResumoLojasFechamento() {
               {linhas.map((loja) => (
                 <tr key={loja.id}>
                   <th>{loja.codigo}</th>
-                  <td>{dinheiro.format(loja.total)}</td>
-                  <td>{percentual.format(loja.percentual)}%</td>
-                  <td>{dinheiro.format(loja.manha)}</td>
-                  <td>{dinheiro.format(loja.noite)}</td>
-                  <td>{dinheiro.format(loja.projecao)}</td>
+                  <td data-label="Total">{dinheiro.format(loja.total)}</td>
+                  <td data-label="% da Meta">{percentual.format(loja.percentual)}%</td>
+                  <td data-label="Manhã">{dinheiro.format(loja.manha)}</td>
+                  <td data-label="Noite">{dinheiro.format(loja.noite)}</td>
+                  <td data-label="Projeção">{dinheiro.format(loja.projecao)}</td>
                 </tr>
               ))}
             </tbody>
