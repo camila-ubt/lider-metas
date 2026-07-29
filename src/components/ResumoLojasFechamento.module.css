@@ -1,0 +1,148 @@
+.card {
+  overflow: hidden;
+  border: 1px solid #e4dbea;
+  border-radius: 20px;
+  background: #fff;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.header {
+  padding: 17px 19px 14px;
+}
+
+.header p {
+  margin: 0 0 4px;
+  color: #7650a7;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.header h3 {
+  margin: 0;
+  color: #2c2135;
+  font-size: 20px;
+}
+
+.header span {
+  display: block;
+  margin-top: 4px;
+  color: #756a80;
+  font-size: 12px;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-top: 1px solid #eee7f2;
+}
+
+.tableWrap table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.tableWrap th,
+.tableWrap td {
+  padding: 12px 13px;
+  border-bottom: 1px solid #eee7f2;
+  color: #3b3043;
+  font-size: 12px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tableWrap thead th {
+  background: #f7f3fa;
+  color: #6b5b75;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tableWrap th:first-child,
+.tableWrap td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left;
+  background: #fff;
+}
+
+.tableWrap thead th:first-child {
+  z-index: 2;
+  background: #f7f3fa;
+}
+
+.tableWrap tbody th {
+  color: #5f3c91;
+  font-size: 13px;
+}
+
+.tableWrap tbody tr:last-child th,
+.tableWrap tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.message,
+.error {
+  margin: 0 19px 18px;
+  border-radius: 12px;
+  padding: 11px 12px;
+  font-size: 12px;
+}
+
+.message {
+  background: #f4eff8;
+  color: #684393;
+}
+
+.error {
+  background: #fdecec;
+  color: #963434;
+}
+
+@media (max-width: 520px) {
+  .header {
+    padding: 15px 14px 12px;
+  }
+
+  .tableWrap table {
+    min-width: 660px;
+  }
+
+  .tableWrap th,
+  .tableWrap td {
+    padding: 10px 11px;
+    font-size: 11px;
+  }
+}
+
+@media print {
+  .tableWrap {
+    overflow: visible !important;
+  }
+
+  .tableWrap table {
+    min-width: 0 !important;
+    table-layout: fixed;
+  }
+
+  .tableWrap th,
+  .tableWrap td {
+    position: static !important;
+    padding: 7px 6px;
+    font-size: 9px;
+    white-space: normal;
+  }
+
+  .header {
+    padding: 12px 10px 9px;
+  }
+
+  .header h3 {
+    font-size: 16px;
+  }
+}
