@@ -37,13 +37,15 @@ function localizarAcoes(relatorio) {
   );
 }
 
-function ocultarSecoesAntigas(relatorio) {
-  Array.from(relatorio.querySelectorAll("h3")).forEach((titulo) => {
-    const texto = titulo.textContent?.trim();
-    if (texto !== "Mesmo mês, até o mesmo dia" && texto !== "Insights do fechamento") {
-      return;
-    }
+function ocultarSecoesRepetidas(relatorio) {
+  const titulosOcultos = new Set([
+    "Resultado por loja",
+    "Mesmo mês, até o mesmo dia",
+    "Insights do fechamento",
+  ]);
 
+  Array.from(relatorio.querySelectorAll("h3")).forEach((titulo) => {
+    if (!titulosOcultos.has(titulo.textContent?.trim())) return;
     const secao = titulo.closest("section");
     if (secao) secao.hidden = true;
   });
@@ -57,27 +59,43 @@ function ocultarResumoDuplicado(alvo) {
   });
 }
 
+function criarSlot(relatorio, id, classe, antesDe) {
+  let alvo = relatorio.querySelector(`#${id}`);
+  if (alvo) return alvo;
+
+  alvo = document.createElement("div");
+  alvo.id = id;
+  alvo.className = classe;
+
+  if (antesDe) relatorio.insertBefore(alvo, antesDe);
+  else relatorio.appendChild(alvo);
+  return alvo;
+}
+
 export default function AlvoAnaliseFechamento() {
   useEffect(() => {
     function organizarPrevia() {
       const relatorio = localizarRelatorio();
       if (!relatorio) return;
 
-      ocultarSecoesAntigas(relatorio);
+      ocultarSecoesRepetidas(relatorio);
       relatorio.classList.remove("FechamentoMensal_report");
 
-      let alvo = relatorio.querySelector("#analise-gerencial-fechamento");
-      if (!alvo) {
-        alvo = document.createElement("div");
-        alvo.id = "analise-gerencial-fechamento";
-        alvo.className = "FechamentoMensal_report analise-fechamento-slot";
+      const acoes = localizarAcoes(relatorio);
+      const alvoAnalise = criarSlot(
+        relatorio,
+        "analise-gerencial-fechamento",
+        "FechamentoMensal_report analise-fechamento-slot",
+        acoes
+      );
+      criarSlot(
+        relatorio,
+        "resumo-lojas-fechamento",
+        "resumo-lojas-fechamento-slot",
+        alvoAnalise
+      );
 
-        const acoes = localizarAcoes(relatorio);
-        if (acoes) relatorio.insertBefore(alvo, acoes);
-        else relatorio.appendChild(alvo);
-      }
-
-      ocultarResumoDuplicado(alvo);
+      ocultarResumoDuplicado(alvoAnalise);
     }
 
     organizarPrevia();
