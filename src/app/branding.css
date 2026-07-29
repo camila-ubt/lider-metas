@@ -1,0 +1,7 @@
+.brand-mark {
+  background: url("/lider-metas-icon.svg") center / contain no-repeat;
+  color: transparent;
+  font-size: 0;
+  letter-spacing: 0;
+  box-shadow: 0 9px 24px rgba(95, 60, 145, 0.2);
+}
