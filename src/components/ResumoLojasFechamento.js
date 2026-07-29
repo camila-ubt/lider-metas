@@ -47,6 +47,39 @@ function mesSelecionado() {
   return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function niveisDaLoja(loja) {
+  const niveis = [
+    { nome: "Meta", valor: loja.meta },
+    { nome: "Super", valor: loja.meta * 1.2 },
+    { nome: "Mega", valor: loja.meta * 1.3 },
+  ];
+
+  if (!(loja.meta > 0)) {
+    return niveis.map((nivel) => ({
+      ...nivel,
+      estado: "futuro",
+      texto: "Sem meta",
+    }));
+  }
+
+  const indiceAtual = niveis.findIndex((nivel) => loja.total < nivel.valor);
+
+  return niveis.map((nivel, indice) => {
+    const batida = loja.total >= nivel.valor;
+    const atual = !batida && indice === indiceAtual;
+
+    return {
+      ...nivel,
+      estado: batida ? "batida" : atual ? "atual" : "futuro",
+      texto: batida
+        ? "Batida"
+        : atual
+          ? `Faltam ${dinheiro.format(Math.max(nivel.valor - loja.total, 0))}`
+          : "Próxima",
+    };
+  });
+}
+
 export default function ResumoLojasFechamento() {
   const supabase = useMemo(() => createClient(), []);
   const [alvo, setAlvo] = useState(null);
@@ -162,7 +195,7 @@ export default function ResumoLojasFechamento() {
       <div className={styles.header}>
         <p>Resumo por loja</p>
         <h3>Resultado consolidado</h3>
-        <span>Total, Meta, períodos e projeção em uma única visão.</span>
+        <span>Total, períodos, projeção e níveis alcançados em uma única visão.</span>
       </div>
 
       {carregando && <div className={styles.message}>Calculando resumo...</div>}
@@ -179,6 +212,7 @@ export default function ResumoLojasFechamento() {
                 <th>Manhã</th>
                 <th>Noite</th>
                 <th>Projeção</th>
+                <th>Níveis</th>
               </tr>
             </thead>
             <tbody>
@@ -190,6 +224,25 @@ export default function ResumoLojasFechamento() {
                   <td data-label="Manhã">{dinheiro.format(loja.manha)}</td>
                   <td data-label="Noite">{dinheiro.format(loja.noite)}</td>
                   <td data-label="Projeção">{dinheiro.format(loja.projecao)}</td>
+                  <td data-label="Níveis" className={styles.levelsCell}>
+                    <div className={styles.levelsVisual}>
+                      {niveisDaLoja(loja).map((nivel) => (
+                        <div
+                          className={`${styles.levelChip} ${
+                            nivel.estado === "batida"
+                              ? styles.levelDone
+                              : nivel.estado === "atual"
+                                ? styles.levelCurrent
+                                : styles.levelFuture
+                          }`}
+                          key={nivel.nome}
+                        >
+                          <strong>{nivel.nome}</strong>
+                          <span>{nivel.texto}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
