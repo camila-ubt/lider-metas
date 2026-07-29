@@ -1,10 +1,9 @@
-/* Painel: remove apenas o comparativo histórico e os insights antigos. */
-section[class*="dashboard"]
-  > div[class*="twoColumns"]:last-of-type {
+/* Painel: o ranking interativo substitui os comparativos repetidos. */
+section[class*="dashboard"] > div[class*="twoColumns"] {
   display: none !important;
 }
 
-/* O resumo avançado repetia os indicadores já exibidos no topo do Painel. */
+/* O resumo avançado repete os indicadores já exibidos no topo do Painel. */
 section[class*="wrapper"]:not([class*="reportWrapper"])
   div[class*="blocks"]
   > details:first-of-type {
@@ -12,8 +11,8 @@ section[class*="wrapper"]:not([class*="reportWrapper"])
 }
 
 /*
- * Fechamento: o histórico simples e os insights antigos são substituídos
- * pela leitura gerencial completa, que também entra na impressão/PDF.
+ * Fechamento: os blocos antigos são substituídos pelo resumo compacto
+ * e pela leitura gerencial completa, ambos incluídos no PDF.
  */
 #fechamento-impressao
   div[class*="report"]
