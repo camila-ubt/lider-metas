@@ -7,6 +7,7 @@ import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
 import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
 import AjusteProbabilidades from "@/components/AjusteProbabilidades";
 import FeedbackTurnos from "@/components/FeedbackTurnos";
+import RemoverLancamento from "@/components/RemoverLancamento";
 import "./globals.css";
 import "./branding.css";
 import "./meta-status.css";
@@ -62,6 +63,7 @@ export default function RootLayout({ children }) {
         <AnaliseGerencial modo="fechamento" />
         <AjusteProbabilidades />
         <FeedbackTurnos />
+        <RemoverLancamento />
       </body>
     </html>
   );
