@@ -1,0 +1,8 @@
+/* Mantém apenas a faixa estatística; a explicação genérica de projeção foi removida. */
+div[class*="projectionExplain"] {
+  grid-template-columns: 1fr !important;
+}
+
+div[class*="projectionExplain"] > article:first-child {
+  display: none !important;
+}
