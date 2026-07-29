@@ -28,13 +28,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  applicationName: "Metas Líder",
   title: "Líder Metas",
   description: "Acompanhamento de metas das lojas CB, AA e AB",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Metas Líder",
+    statusBarStyle: "default",
+  },
   icons: {
     icon: [{ url: "/lider-metas-icon.svg", type: "image/svg+xml" }],
     shortcut: "/lider-metas-icon.svg",
     apple: "/lider-metas-icon.svg",
   },
+};
+
+export const viewport = {
+  themeColor: "#7650a7",
 };
 
 export default function RootLayout({ children }) {
