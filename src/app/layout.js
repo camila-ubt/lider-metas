@@ -6,6 +6,7 @@ import AnaliseGerencial from "@/components/AnaliseGerencial";
 import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
 import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
 import AjusteProbabilidades from "@/components/AjusteProbabilidades";
+import FeedbackTurnos from "@/components/FeedbackTurnos";
 import "./globals.css";
 import "./meta-status.css";
 import "./dashboard-compact.css";
@@ -43,6 +44,7 @@ export default function RootLayout({ children }) {
         <ResumoLojasFechamento />
         <AnaliseGerencial modo="fechamento" />
         <AjusteProbabilidades />
+        <FeedbackTurnos />
       </body>
     </html>
   );
