@@ -104,38 +104,147 @@
   color: #963434;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 680px) {
   .header {
     padding: 15px 14px 12px;
   }
 
-  .tableWrap table {
-    min-width: 660px;
+  .tableWrap {
+    overflow: visible;
+    padding: 12px;
   }
 
-  .tableWrap th,
-  .tableWrap td {
-    padding: 10px 11px;
-    font-size: 11px;
+  .tableWrap table,
+  .tableWrap tbody,
+  .tableWrap tr {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tableWrap thead {
+    display: none;
+  }
+
+  .tableWrap tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .tableWrap tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    overflow: hidden;
+    border: 1px solid #e5ddec;
+    border-radius: 16px;
+    background: #fff;
+  }
+
+  .tableWrap tbody th {
+    position: static;
+    grid-column: 1 / -1;
+    padding: 11px 12px;
+    border-bottom: 1px solid #e9e1ee;
+    background: #f7f3fa;
+    color: #5f3c91;
+    font-size: 15px;
+    text-align: left;
+  }
+
+  .tableWrap tbody td {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+    padding: 10px 12px;
+    border-right: 1px solid #eee7f2;
+    border-bottom: 1px solid #eee7f2;
+    color: #34283d;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.25;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .tableWrap tbody td:nth-child(3),
+  .tableWrap tbody td:nth-child(5) {
+    border-right: 0;
+  }
+
+  .tableWrap tbody td:nth-child(6) {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .tableWrap tbody td::before {
+    content: attr(data-label);
+    color: #786c80;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+}
+
+@media (max-width: 380px) {
+  .tableWrap tbody tr {
+    grid-template-columns: 1fr;
+  }
+
+  .tableWrap tbody th,
+  .tableWrap tbody td,
+  .tableWrap tbody td:nth-child(6) {
+    grid-column: 1;
+    border-right: 0;
   }
 }
 
 @media print {
   .tableWrap {
     overflow: visible !important;
+    padding: 0 !important;
   }
 
   .tableWrap table {
+    display: table !important;
     min-width: 0 !important;
     table-layout: fixed;
   }
 
+  .tableWrap thead {
+    display: table-header-group !important;
+  }
+
+  .tableWrap tbody {
+    display: table-row-group !important;
+  }
+
+  .tableWrap tr {
+    display: table-row !important;
+  }
+
   .tableWrap th,
   .tableWrap td {
+    display: table-cell !important;
     position: static !important;
     padding: 7px 6px;
+    border: 0;
+    border-bottom: 1px solid #eee7f2;
     font-size: 9px;
     white-space: normal;
+    text-align: right;
+  }
+
+  .tableWrap th:first-child,
+  .tableWrap td:first-child {
+    text-align: left;
+  }
+
+  .tableWrap td::before {
+    display: none !important;
+    content: none !important;
   }
 
   .header {
