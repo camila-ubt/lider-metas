@@ -46,10 +46,15 @@ function mesEncerrado() {
 
   const [ano, mes] = campo.value.split("-").map(Number);
   const hoje = new Date();
-  return (
+  const mesAnterior =
     ano < hoje.getFullYear() ||
-    (ano === hoje.getFullYear() && mes < hoje.getMonth() + 1)
-  );
+    (ano === hoje.getFullYear() && mes < hoje.getMonth() + 1);
+
+  if (mesAnterior) return true;
+
+  const mesAtual = ano === hoje.getFullYear() && mes === hoje.getMonth() + 1;
+  const ultimoDia = new Date(ano, mes, 0).getDate();
+  return mesAtual && hoje.getDate() >= ultimoDia;
 }
 
 function preencherParagrafo(paragrafo, rotulo, texto) {
@@ -77,15 +82,15 @@ function orientacaoDoPeriodo({ periodo, desempenho, destaque, atencao, encerrado
   }
 
   if (desempenho < 100) {
-    return `na reunião da ${periodo}, comparar ${atencao.codigo} com ${destaque.codigo}, identificar diferenças observáveis e definir um teste prático para recuperar a Meta nos dias restantes.`;
+    return `comparar ${atencao.codigo} com ${destaque.codigo}, identificar diferenças observáveis e definir um teste prático para recuperar a Meta nos dias restantes.`;
   }
   if (desempenho < 120) {
-    return `na reunião da ${periodo}, identificar com ${destaque.codigo} quais abordagens, produtos, exposições ou condições de atendimento estiveram presentes nos melhores dias, mantendo o acompanhamento para avançar em direção à Supermeta.`;
+    return `identificar com ${destaque.codigo} quais abordagens, produtos, exposições ou condições de atendimento estiveram presentes nos melhores dias e manter o acompanhamento para avançar em direção à Supermeta.`;
   }
   if (desempenho < 130) {
-    return `na reunião da ${periodo}, documentar com ${destaque.codigo} o que esteve presente nos melhores dias e avaliar o que pode ser replicado para avançar em direção à Megameta.`;
+    return `documentar com ${destaque.codigo} o que esteve presente nos melhores dias e avaliar o que pode ser replicado para avançar em direção à Megameta.`;
   }
-  return `na reunião da ${periodo}, documentar com ${destaque.codigo} as práticas observáveis dos melhores dias e preservar o padrão que levou à Megameta.`;
+  return `documentar com ${destaque.codigo} as práticas observáveis dos melhores dias e preservar o padrão que levou à Megameta.`;
 }
 
 function dadosDoBloco(bloco) {
@@ -148,40 +153,48 @@ function aprimorarBloco(dados, encerrado) {
   );
 }
 
-function criarItemAcao(texto) {
+function nomePeriodo(periodo) {
+  return periodo === "manhã" ? "Manhã" : "Noite";
+}
+
+function criarItemAcao(periodo, texto) {
   const artigo = document.createElement("article");
-  artigo.dataset.acaoTurno = "true";
+  artigo.dataset.acaoTurno = periodo;
 
   const numero = document.createElement("span");
   const paragrafo = document.createElement("p");
-  paragrafo.textContent = texto;
+  paragrafo.textContent = `${nomePeriodo(periodo)}: ${texto}`;
 
   artigo.append(numero, paragrafo);
   return artigo;
 }
 
-function ajustarAcoesConsolidadas(dadosPeriodos, encerrado) {
+function ajustarAcoesConsolidadas(wrapper, dadosPeriodos, encerrado) {
   const blocoAcoes = Array.from(
-    document.querySelectorAll('article[class*="fullBlock"], details[class*="collapse"]')
+    wrapper.querySelectorAll('article[class*="fullBlock"], details[class*="collapse"]')
   ).find((bloco) => tituloDoBloco(bloco) === "Ações sugeridas");
 
   const lista = blocoAcoes?.querySelector('div[class*="actionsList"]');
   if (!lista || dadosPeriodos.length < 2) return;
 
-  const assinatura = JSON.stringify(
-    dadosPeriodos.map((dados) => [
+  const assinatura = JSON.stringify([
+    "v4",
+    ...dadosPeriodos.map((dados) => [
       dados.periodo,
       dados.desempenho,
       dados.destaque.codigo,
       dados.atencao.codigo,
       encerrado,
-    ])
-  );
+    ]),
+  ]);
   if (lista.dataset.feedbackTurnos === assinatura) return;
 
   Array.from(lista.querySelectorAll(":scope > article")).forEach((artigo) => {
     const texto = artigo.querySelector("p")?.textContent?.trim() || "";
-    if (artigo.dataset.acaoTurno === "true" || /^Na (manhã|noite),/i.test(texto)) {
+    if (
+      artigo.dataset.acaoTurno ||
+      /^(Na reunião da |Na )?(manhã|noite)[,:]/i.test(texto)
+    ) {
       artigo.remove();
     }
   });
@@ -194,7 +207,7 @@ function ajustarAcoesConsolidadas(dadosPeriodos, encerrado) {
       atencao: dados.atencao,
       encerrado,
     });
-    lista.append(criarItemAcao(texto.charAt(0).toUpperCase() + texto.slice(1)));
+    lista.append(criarItemAcao(dados.periodo, texto));
   });
 
   Array.from(lista.querySelectorAll(":scope > article")).forEach((artigo, indice) => {
@@ -205,16 +218,22 @@ function ajustarAcoesConsolidadas(dadosPeriodos, encerrado) {
   lista.dataset.feedbackTurnos = assinatura;
 }
 
-function aprimorarFeedbacks() {
-  const encerrado = mesEncerrado();
+function aprimorarAnalise(wrapper, encerrado) {
   const dadosPeriodos = Array.from(
-    document.querySelectorAll('article[class*="fullBlock"], details[class*="collapse"]')
+    wrapper.querySelectorAll('article[class*="fullBlock"], details[class*="collapse"]')
   )
     .map(dadosDoBloco)
     .filter(Boolean);
 
   dadosPeriodos.forEach((dados) => aprimorarBloco(dados, encerrado));
-  ajustarAcoesConsolidadas(dadosPeriodos, encerrado);
+  ajustarAcoesConsolidadas(wrapper, dadosPeriodos, encerrado);
+}
+
+function aprimorarFeedbacks() {
+  const encerrado = mesEncerrado();
+  document
+    .querySelectorAll('section[class*="wrapper"]')
+    .forEach((wrapper) => aprimorarAnalise(wrapper, encerrado));
 }
 
 export default function FeedbackTurnos() {
@@ -229,13 +248,22 @@ export default function FeedbackTurnos() {
       });
     }
 
+    function prepararImpressao() {
+      aprimorarFeedbacks();
+    }
+
     agendar();
     document.addEventListener("change", agendar, true);
+    document.addEventListener("click", agendar, true);
+    window.addEventListener("beforeprint", prepararImpressao);
+
     const observador = new MutationObserver(agendar);
     observador.observe(document.body, { subtree: true, childList: true });
 
     return () => {
       document.removeEventListener("change", agendar, true);
+      document.removeEventListener("click", agendar, true);
+      window.removeEventListener("beforeprint", prepararImpressao);
       observador.disconnect();
       if (quadro !== null) window.cancelAnimationFrame(quadro);
     };
