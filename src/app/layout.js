@@ -4,6 +4,7 @@ import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
 import AnaliseGerencial from "@/components/AnaliseGerencial";
 import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
+import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
 import "./globals.css";
 import "./meta-status.css";
 import "./dashboard-compact.css";
@@ -37,6 +38,7 @@ export default function RootLayout({ children }) {
         <MascaraMoeda />
         <FechamentoMensal />
         <AlvoAnaliseFechamento />
+        <ResumoLojasFechamento />
         <AnaliseGerencial modo="fechamento" />
       </body>
     </html>
