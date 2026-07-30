@@ -124,7 +124,12 @@ export default function FluxoPendenciasLancamento() {
   );
 
   function selecionar(item, existente = false) {
-    setSlot({ data: item.data, periodo: item.periodo, existente });
+    setSlot({
+      id: item.id || null,
+      data: item.data,
+      periodo: item.periodo,
+      existente,
+    });
     setValor(existente ? valorParaEdicao(item.valor_vendido) : "");
     setObservacao(existente ? item.observacao || "" : "");
     setErro("");
@@ -176,6 +181,49 @@ export default function FluxoPendenciasLancamento() {
     setSlot(null);
     setValor("");
     setObservacao("");
+    setAlterou(true);
+    setSalvando(false);
+  }
+
+  async function removerLancamento() {
+    if (!slot?.existente) return;
+
+    const confirmar = window.confirm(
+      `Remover o lançamento de ${formatarData(slot.data)} · ${slot.periodo === "manha" ? "Manhã" : "Noite"}?`
+    );
+    if (!confirmar) return;
+
+    setSalvando(true);
+    setErro("");
+
+    let consulta = supabase.from("vendas_diarias").delete();
+    if (slot.id) {
+      consulta = consulta.eq("id", slot.id);
+    } else {
+      consulta = consulta
+        .eq("data", slot.data)
+        .eq("loja_id", Number(lojaId))
+        .eq("periodo", slot.periodo);
+    }
+
+    const { error } = await consulta;
+    if (error) {
+      setErro(error.message);
+      setSalvando(false);
+      return;
+    }
+
+    setVendas((atual) => atual.filter(
+      (item) => !(
+        item.data === slot.data &&
+        Number(item.loja_id) === Number(lojaId) &&
+        item.periodo === slot.periodo
+      )
+    ));
+    setSlot(null);
+    setValor("");
+    setObservacao("");
+    setAba("pendentes");
     setAlterou(true);
     setSalvando(false);
   }
@@ -281,7 +329,16 @@ export default function FluxoPendenciasLancamento() {
               <textarea rows="3" placeholder="Opcional" value={observacao} onChange={(e) => setObservacao(e.target.value)} />
             </label>
 
-            <button type="submit" className="salvar" disabled={salvando}>{salvando ? "Salvando..." : slot.existente ? "Salvar correção" : "Salvar e remover da lista"}</button>
+            <div className={`fluxo-acoes-form ${slot.existente ? "com-remover" : ""}`}>
+              {slot.existente && (
+                <button type="button" className="remover" disabled={salvando} onClick={removerLancamento}>
+                  Remover lançamento
+                </button>
+              )}
+              <button type="submit" className="salvar" disabled={salvando}>
+                {salvando ? "Salvando..." : slot.existente ? "Salvar correção" : "Salvar e remover da lista"}
+              </button>
+            </div>
           </form>
         )}
 
@@ -297,8 +354,8 @@ export default function FluxoPendenciasLancamento() {
         .fluxo-lojas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}.fluxo-lojas button{border:1px solid #ddd3e8;background:#faf8fc;border-radius:16px;padding:13px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}.fluxo-lojas button.ativo{border-color:#7650a7;background:#f1eafa;box-shadow:0 0 0 2px rgba(118,80,167,.12)}.fluxo-lojas span{display:grid;place-items:center;min-width:28px;height:28px;border-radius:999px;background:#fff;font-weight:800}
         .fluxo-abas{display:grid;grid-template-columns:1fr 1fr;background:#f3eff6;border-radius:14px;padding:4px;margin-bottom:16px}.fluxo-abas button{border:0;background:transparent;border-radius:11px;padding:10px;font-weight:800;color:#6e6673;cursor:pointer}.fluxo-abas button.ativo{background:#fff;color:#7650a7;box-shadow:0 2px 8px rgba(40,20,55,.1)}
         .fluxo-lista-titulo{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.fluxo-lista-titulo span{font-size:13px;color:#6e6673}.fluxo-lista{display:grid;gap:9px}.fluxo-lista>button{border:1px solid #e5ddec;background:#fff;border-radius:16px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;text-align:left;cursor:pointer}.fluxo-lista>button:hover{background:#faf7fd;border-color:#bca9d1}.fluxo-lista>button div{display:grid;gap:3px}.fluxo-lista>button span{font-size:13px;color:#6e6673}.fluxo-lista>button b{font-size:13px;color:#7650a7}.fluxo-vazio{padding:30px;text-align:center;border-radius:16px;background:#eef9f1;color:#24723b;font-weight:800}.fluxo-vazio.neutro{background:#f5f2f7;color:#6e6673}
-        .fluxo-form{display:grid;gap:14px}.fluxo-form .voltar{justify-self:start;border:0;background:transparent;color:#7650a7;font-weight:700;cursor:pointer;padding:0}.fluxo-resumo{display:flex;justify-content:space-between;background:#f5f1f8;border-radius:16px;padding:14px}.fluxo-form label{display:grid;gap:7px;font-weight:700}.fluxo-form input,.fluxo-form textarea{width:100%;box-sizing:border-box;border:1px solid #d9cfdf;border-radius:14px;padding:13px;font:inherit}.caixa-fechado{border:1px dashed #c7b7d6;background:#faf8fc;border-radius:14px;padding:12px;font-weight:700;cursor:pointer}.salvar{border:0;background:#7650a7;color:white;border-radius:14px;padding:14px;font-weight:800;cursor:pointer}.fluxo-erro{margin:14px 0 0;color:#a32929;font-weight:700}
-        @media(max-width:520px){.fluxo-pendencias-modal{padding:16px;border-radius:20px}.fluxo-lojas button{padding:11px 9px}.fluxo-lojas button strong{font-size:13px}.fluxo-lista>button b{max-width:50%;text-align:right}}
+        .fluxo-form{display:grid;gap:14px}.fluxo-form .voltar{justify-self:start;border:0;background:transparent;color:#7650a7;font-weight:700;cursor:pointer;padding:0}.fluxo-resumo{display:flex;justify-content:space-between;background:#f5f1f8;border-radius:16px;padding:14px}.fluxo-form label{display:grid;gap:7px;font-weight:700}.fluxo-form input,.fluxo-form textarea{width:100%;box-sizing:border-box;border:1px solid #d9cfdf;border-radius:14px;padding:13px;font:inherit}.caixa-fechado{border:1px dashed #c7b7d6;background:#faf8fc;border-radius:14px;padding:12px;font-weight:700;cursor:pointer}.fluxo-acoes-form{display:grid;gap:10px}.fluxo-acoes-form.com-remover{grid-template-columns:1fr 1.4fr}.salvar{border:0;background:#7650a7;color:white;border-radius:14px;padding:14px;font-weight:800;cursor:pointer}.remover{border:1px solid #d78b8b;background:#fff5f5;color:#a32929;border-radius:14px;padding:14px;font-weight:800;cursor:pointer}.salvar:disabled,.remover:disabled{opacity:.6;cursor:wait}.fluxo-erro{margin:14px 0 0;color:#a32929;font-weight:700}
+        @media(max-width:520px){.fluxo-pendencias-modal{padding:16px;border-radius:20px}.fluxo-lojas button{padding:11px 9px}.fluxo-lojas button strong{font-size:13px}.fluxo-lista>button b{max-width:50%;text-align:right}.fluxo-acoes-form.com-remover{grid-template-columns:1fr}.remover{order:2}}
       `}</style>
     </div>
   );
