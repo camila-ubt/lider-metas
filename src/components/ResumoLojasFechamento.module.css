@@ -239,39 +239,75 @@
   }
 
   .periodGrid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding: 10px;
+  }
+
+  .periodCard {
+    gap: 6px;
+    padding: 9px;
+  }
+
+  .periodHeader {
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .periodHeader strong,
+  .periodHeader b {
+    font-size: 11px;
+  }
+
+  .periodValue {
+    font-size: 14px;
+  }
+
+  .periodCard small {
+    font-size: 8px;
+  }
+
+  .levelsVisual {
+    gap: 3px;
   }
 
   .levelChip {
-    padding: 8px 6px;
+    padding: 6px 4px;
   }
 
   .levelChip strong {
-    font-size: 10px;
+    font-size: 8px;
   }
 
   .levelChip span {
-    font-size: 8px;
+    font-size: 6px;
   }
 }
 
 @media (max-width: 380px) {
+  .periodGrid {
+    gap: 5px;
+    padding: 8px;
+  }
+
+  .periodCard {
+    padding: 7px;
+  }
+
   .levelsVisual {
-    gap: 4px;
+    gap: 2px;
   }
 
   .levelChip {
-    padding: 7px 5px;
+    padding: 5px 3px;
   }
 
   .levelChip strong {
-    font-size: 9px;
+    font-size: 7px;
   }
 
   .levelChip span {
-    font-size: 7px;
+    font-size: 6px;
   }
 }
 
