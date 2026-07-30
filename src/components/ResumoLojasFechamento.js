@@ -47,14 +47,14 @@ function mesSelecionado() {
   return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function niveisDaLoja(loja) {
+function niveisDoResultado(vendido, meta) {
   const niveis = [
-    { nome: "Meta", valor: loja.meta },
-    { nome: "Super", valor: loja.meta * 1.2 },
-    { nome: "Mega", valor: loja.meta * 1.3 },
+    { nome: "Meta", valor: meta },
+    { nome: "Super", valor: meta * 1.2 },
+    { nome: "Mega", valor: meta * 1.3 },
   ];
 
-  if (!(loja.meta > 0)) {
+  if (!(meta > 0)) {
     return niveis.map((nivel) => ({
       ...nivel,
       estado: "futuro",
@@ -62,10 +62,10 @@ function niveisDaLoja(loja) {
     }));
   }
 
-  const indiceAtual = niveis.findIndex((nivel) => loja.total < nivel.valor);
+  const indiceAtual = niveis.findIndex((nivel) => vendido < nivel.valor);
 
   return niveis.map((nivel, indice) => {
-    const batida = loja.total >= nivel.valor;
+    const batida = vendido >= nivel.valor;
     const atual = !batida && indice === indiceAtual;
 
     return {
@@ -74,10 +74,48 @@ function niveisDaLoja(loja) {
       texto: batida
         ? "Batida"
         : atual
-          ? `Faltam ${dinheiro.format(Math.max(nivel.valor - loja.total, 0))}`
+          ? `Faltam ${dinheiro.format(Math.max(nivel.valor - vendido, 0))}`
           : "Próxima",
     };
   });
+}
+
+function NiveisVisuais({ vendido, meta }) {
+  return (
+    <div className={styles.levelsVisual}>
+      {niveisDoResultado(vendido, meta).map((nivel) => (
+        <div
+          className={`${styles.levelChip} ${
+            nivel.estado === "batida"
+              ? styles.levelDone
+              : nivel.estado === "atual"
+                ? styles.levelCurrent
+                : styles.levelFuture
+          }`}
+          key={nivel.nome}
+        >
+          <strong>{nivel.nome}</strong>
+          <span>{nivel.texto}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PeriodoResumo({ nome, vendido, meta, projecao }) {
+  const atingimento = meta > 0 ? (vendido / meta) * 100 : 0;
+
+  return (
+    <div className={styles.periodCard}>
+      <div className={styles.periodHeader}>
+        <strong>{nome}</strong>
+        <b>{percentual.format(atingimento)}%</b>
+      </div>
+      <span className={styles.periodValue}>{dinheiro.format(vendido)}</span>
+      <small>Projeção: {dinheiro.format(projecao)}</small>
+      <NiveisVisuais vendido={vendido} meta={meta} />
+    </div>
+  );
 }
 
 export default function ResumoLojasFechamento() {
@@ -93,6 +131,13 @@ export default function ResumoLojasFechamento() {
       const elemento = document.querySelector("#resumo-lojas-fechamento");
       setAlvo(elemento || null);
       if (elemento) setMes(mesSelecionado());
+
+      document.querySelectorAll("p").forEach((paragrafo) => {
+        const texto = paragrafo.textContent || "";
+        if (texto.includes("vendidos") && texto.includes("projeção de")) {
+          paragrafo.style.display = "none";
+        }
+      });
     }
 
     localizar();
@@ -161,9 +206,17 @@ export default function ResumoLojasFechamento() {
         const noite = vendasLoja
           .filter((item) => item.periodo === "noite")
           .reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
-        const meta = metas
-          .filter((item) => Number(item.loja_id) === Number(loja.id))
+        const metasLoja = metas.filter(
+          (item) => Number(item.loja_id) === Number(loja.id)
+        );
+        const metaManha = metasLoja
+          .filter((item) => item.periodo === "manha")
           .reduce((soma, item) => soma + Number(item.valor_meta || 0), 0);
+        const metaNoite = metasLoja
+          .filter((item) => item.periodo === "noite")
+          .reduce((soma, item) => soma + Number(item.valor_meta || 0), 0);
+        const meta = metaManha + metaNoite;
+        const fatorProjecao = diaCorte > 0 ? intervalo.ultimoDia / diaCorte : 0;
 
         return {
           ...loja,
@@ -171,9 +224,12 @@ export default function ResumoLojasFechamento() {
           manha,
           noite,
           meta,
+          metaManha,
+          metaNoite,
           percentual: meta > 0 ? (total / meta) * 100 : 0,
-          projecao:
-            diaCorte > 0 ? (total / diaCorte) * intervalo.ultimoDia : 0,
+          projecao: total * fatorProjecao,
+          projecaoManha: manha * fatorProjecao,
+          projecaoNoite: noite * fatorProjecao,
         };
       });
 
@@ -202,51 +258,47 @@ export default function ResumoLojasFechamento() {
       {erro && <div className={styles.error}>{erro}</div>}
 
       {!carregando && !erro && (
-        <div className={styles.tableWrap}>
-          <table>
-            <thead>
-              <tr>
-                <th>Loja</th>
-                <th>Total</th>
-                <th>% Meta</th>
-                <th>Manhã</th>
-                <th>Noite</th>
-                <th>Projeção</th>
-                <th>Níveis</th>
-              </tr>
-            </thead>
-            <tbody>
-              {linhas.map((loja) => (
-                <tr key={loja.id}>
-                  <th>{loja.codigo}</th>
-                  <td data-label="Total">{dinheiro.format(loja.total)}</td>
-                  <td data-label="% da Meta">{percentual.format(loja.percentual)}%</td>
-                  <td data-label="Manhã">{dinheiro.format(loja.manha)}</td>
-                  <td data-label="Noite">{dinheiro.format(loja.noite)}</td>
-                  <td data-label="Projeção">{dinheiro.format(loja.projecao)}</td>
-                  <td data-label="Níveis" className={styles.levelsCell}>
-                    <div className={styles.levelsVisual}>
-                      {niveisDaLoja(loja).map((nivel) => (
-                        <div
-                          className={`${styles.levelChip} ${
-                            nivel.estado === "batida"
-                              ? styles.levelDone
-                              : nivel.estado === "atual"
-                                ? styles.levelCurrent
-                                : styles.levelFuture
-                          }`}
-                          key={nivel.nome}
-                        >
-                          <strong>{nivel.nome}</strong>
-                          <span>{nivel.texto}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className={styles.storeList}>
+          {linhas.map((loja) => (
+            <article className={styles.storeCard} key={loja.id}>
+              <h4>{loja.codigo}</h4>
+
+              <div className={styles.storeOverview}>
+                <div>
+                  <span>Total</span>
+                  <strong>{dinheiro.format(loja.total)}</strong>
+                </div>
+                <div>
+                  <span>% da Meta</span>
+                  <strong>{percentual.format(loja.percentual)}%</strong>
+                </div>
+                <div className={styles.projectionBox}>
+                  <span>Projeção</span>
+                  <strong>{dinheiro.format(loja.projecao)}</strong>
+                </div>
+              </div>
+
+              <div className={styles.storeLevels}>
+                <span>Níveis da loja</span>
+                <NiveisVisuais vendido={loja.total} meta={loja.meta} />
+              </div>
+
+              <div className={styles.periodGrid}>
+                <PeriodoResumo
+                  nome="Manhã"
+                  vendido={loja.manha}
+                  meta={loja.metaManha}
+                  projecao={loja.projecaoManha}
+                />
+                <PeriodoResumo
+                  nome="Noite"
+                  vendido={loja.noite}
+                  meta={loja.metaNoite}
+                  projecao={loja.projecaoNoite}
+                />
+              </div>
+            </article>
+          ))}
         </div>
       )}
     </section>,
