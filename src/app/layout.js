@@ -9,6 +9,7 @@ import AjusteProbabilidades from "@/components/AjusteProbabilidades";
 import FeedbackTurnos from "@/components/FeedbackTurnos";
 import RemoverLancamento from "@/components/RemoverLancamento";
 import AjusteDiasEquivalentes from "@/components/AjusteDiasEquivalentes";
+import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
 import "./globals.css";
 import "./branding.css";
 import "./meta-status.css";
@@ -66,6 +67,7 @@ export default function RootLayout({ children }) {
         <FeedbackTurnos />
         <RemoverLancamento />
         <AjusteDiasEquivalentes />
+        <FluxoPendenciasLancamento />
       </body>
     </html>
   );
