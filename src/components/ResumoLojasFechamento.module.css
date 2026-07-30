@@ -9,6 +9,7 @@
 
 .header {
   padding: 17px 19px 14px;
+  border-bottom: 1px solid #eee7f2;
 }
 
 .header p {
@@ -33,79 +34,130 @@
   font-size: 12px;
 }
 
-.tableWrap {
-  overflow-x: auto;
-  border-top: 1px solid #eee7f2;
+.storeList {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
 }
 
-.tableWrap table {
-  width: 100%;
-  min-width: 940px;
-  border-collapse: collapse;
-}
-
-.tableWrap th,
-.tableWrap td {
-  padding: 12px 13px;
-  border-bottom: 1px solid #eee7f2;
-  color: #3b3043;
-  font-size: 12px;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.tableWrap thead th {
-  background: #f7f3fa;
-  color: #6b5b75;
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.tableWrap th:first-child,
-.tableWrap td:first-child {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  text-align: left;
+.storeCard {
+  overflow: hidden;
+  border: 1px solid #e5ddec;
+  border-radius: 18px;
   background: #fff;
 }
 
-.tableWrap thead th:first-child {
-  z-index: 2;
+.storeCard h4 {
+  margin: 0;
+  padding: 13px 16px;
+  border-bottom: 1px solid #e9e1ee;
   background: #f7f3fa;
+  color: #5f3c91;
+  font-size: 17px;
 }
 
-.tableWrap tbody th {
+.storeOverview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid #eee7f2;
+}
+
+.storeOverview > div {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  padding: 13px 15px;
+  border-right: 1px solid #eee7f2;
+}
+
+.storeOverview > div:last-child {
+  border-right: 0;
+}
+
+.storeOverview span,
+.storeLevels > span {
+  color: #786c80;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.storeOverview strong {
+  color: #34283d;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.storeLevels {
+  display: grid;
+  gap: 8px;
+  padding: 13px 15px;
+  border-bottom: 1px solid #eee7f2;
+}
+
+.periodGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+  background: #fcfbfd;
+}
+
+.periodCard {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+  border: 1px solid #e4dbea;
+  border-radius: 15px;
+  padding: 13px;
+  background: #fff;
+}
+
+.periodHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.periodHeader strong {
+  color: #34283d;
+  font-size: 14px;
+}
+
+.periodHeader b {
   color: #5f3c91;
   font-size: 13px;
 }
 
-.tableWrap tbody tr:last-child th,
-.tableWrap tbody tr:last-child td {
-  border-bottom: 0;
+.periodValue {
+  color: #34283d;
+  font-size: 17px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
-.levelsCell {
-  min-width: 270px;
+.periodCard small {
+  color: #786c80;
+  font-size: 10px;
 }
 
 .levelsVisual {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 5px;
+  gap: 6px;
 }
 
 .levelChip {
   min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: 3px;
   border: 1px solid #e3dbe9;
-  border-radius: 10px;
-  padding: 7px 8px;
+  border-radius: 11px;
+  padding: 8px;
   background: #faf8fb;
   text-align: left;
-  white-space: normal;
 }
 
 .levelChip strong {
@@ -147,7 +199,7 @@
 
 .message,
 .error {
-  margin: 0 19px 18px;
+  margin: 16px;
   border-radius: 12px;
   padding: 11px 12px;
   font-size: 12px;
@@ -168,187 +220,84 @@
     padding: 15px 14px 12px;
   }
 
-  .tableWrap {
-    overflow: visible;
+  .storeList {
+    gap: 11px;
     padding: 12px;
   }
 
-  .tableWrap table,
-  .tableWrap tbody,
-  .tableWrap tr {
-    display: block;
-    width: 100%;
-    min-width: 0;
+  .storeOverview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .tableWrap thead {
-    display: none;
+  .storeOverview > div:nth-child(2) {
+    border-right: 0;
   }
 
-  .tableWrap tbody {
-    display: grid;
+  .projectionBox {
+    grid-column: 1 / -1;
+    border-top: 1px solid #eee7f2;
+  }
+
+  .periodGrid {
+    grid-template-columns: 1fr;
     gap: 10px;
-  }
-
-  .tableWrap tbody tr {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    overflow: hidden;
-    border: 1px solid #e5ddec;
-    border-radius: 16px;
-    background: #fff;
-  }
-
-  .tableWrap tbody th {
-    position: static;
-    grid-column: 1 / -1;
-    padding: 11px 12px;
-    border-bottom: 1px solid #e9e1ee;
-    background: #f7f3fa;
-    color: #5f3c91;
-    font-size: 15px;
-    text-align: left;
-  }
-
-  .tableWrap tbody td {
-    min-width: 0;
-    display: grid;
-    gap: 3px;
-    padding: 10px 12px;
-    border-right: 1px solid #eee7f2;
-    border-bottom: 1px solid #eee7f2;
-    color: #34283d;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1.25;
-    text-align: left;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .tableWrap tbody td:nth-child(3),
-  .tableWrap tbody td:nth-child(5) {
-    border-right: 0;
-  }
-
-  .tableWrap tbody td:nth-child(6),
-  .tableWrap tbody td:nth-child(7) {
-    grid-column: 1 / -1;
-    border-right: 0;
-  }
-
-  .tableWrap tbody td:nth-child(7) {
-    border-bottom: 0;
-  }
-
-  .tableWrap tbody td::before {
-    content: attr(data-label);
-    color: #786c80;
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .levelsCell {
-    min-width: 0;
-    gap: 7px !important;
-  }
-
-  .levelsVisual {
-    width: 100%;
-    gap: 6px;
+    padding: 12px;
   }
 
   .levelChip {
-    padding: 8px;
+    padding: 8px 6px;
   }
 
   .levelChip strong {
-    font-size: 11px;
+    font-size: 10px;
   }
 
   .levelChip span {
-    font-size: 9px;
+    font-size: 8px;
   }
 }
 
 @media (max-width: 380px) {
-  .tableWrap tbody tr {
-    grid-template-columns: 1fr;
-  }
-
-  .tableWrap tbody th,
-  .tableWrap tbody td,
-  .tableWrap tbody td:nth-child(6),
-  .tableWrap tbody td:nth-child(7) {
-    grid-column: 1;
-    border-right: 0;
-  }
-
   .levelsVisual {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .levelChip {
+    padding: 7px 5px;
+  }
+
+  .levelChip strong {
+    font-size: 9px;
+  }
+
+  .levelChip span {
+    font-size: 7px;
   }
 }
 
 @media print {
-  .tableWrap {
-    overflow: visible !important;
-    padding: 0 !important;
+  .card,
+  .storeCard,
+  .periodCard {
+    box-shadow: none;
   }
 
-  .tableWrap table {
-    display: table !important;
-    min-width: 0 !important;
-    table-layout: fixed;
+  .storeList {
+    gap: 8px;
+    padding: 8px;
   }
 
-  .tableWrap thead {
-    display: table-header-group !important;
+  .storeCard h4,
+  .storeOverview > div,
+  .storeLevels,
+  .periodCard {
+    padding: 7px;
   }
 
-  .tableWrap tbody {
-    display: table-row-group !important;
-  }
-
-  .tableWrap tr {
-    display: table-row !important;
-  }
-
-  .tableWrap th,
-  .tableWrap td {
-    display: table-cell !important;
-    position: static !important;
-    padding: 7px 5px;
-    border: 0;
-    border-bottom: 1px solid #eee7f2;
-    font-size: 8px;
-    white-space: normal;
-    text-align: right;
-    vertical-align: middle;
-  }
-
-  .tableWrap th:first-child,
-  .tableWrap td:first-child {
-    text-align: left;
-  }
-
-  .tableWrap th:last-child,
-  .tableWrap td:last-child {
-    width: 31%;
-  }
-
-  .tableWrap td::before {
-    display: none !important;
-    content: none !important;
-  }
-
-  .levelsCell {
-    min-width: 0 !important;
-  }
-
-  .levelsVisual {
-    gap: 2px;
+  .periodGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 7px;
   }
 
   .levelChip {
