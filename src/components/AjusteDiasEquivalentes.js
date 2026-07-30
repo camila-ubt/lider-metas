@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 function numeroMoeda(texto) {
   const encontrado = String(texto || "").match(/R\$\s*([\d.]+,\d{2})/);
@@ -15,26 +16,95 @@ function formatarDias(valor) {
   });
 }
 
-function diasEquivalentesRestantes(mesSelecionado) {
+function inicioMes(valor) {
+  return `${valor}-01`;
+}
+
+function diasEquivalentesRestantes(mesSelecionado, periodosAtivos) {
   if (!mesSelecionado) return 0;
 
+  const periodos = periodosAtivos.length ? periodosAtivos : ["manha", "noite"];
   const [ano, mes] = mesSelecionado.split("-").map(Number);
   const agora = new Date();
   const anoAtual = agora.getFullYear();
   const mesAtual = agora.getMonth() + 1;
   const totalDias = new Date(ano, mes, 0).getDate();
+  const pesoDia = periodos.length * 0.5;
 
   if (ano < anoAtual || (ano === anoAtual && mes < mesAtual)) return 0;
-  if (ano > anoAtual || (ano === anoAtual && mes > mesAtual)) return totalDias;
+  if (ano > anoAtual || (ano === anoAtual && mes > mesAtual)) {
+    return totalDias * pesoDia;
+  }
 
   const diasCompletosDepoisDeHoje = Math.max(totalDias - agora.getDate(), 0);
   const hora = agora.getHours() + agora.getMinutes() / 60;
-  const restanteHoje = hora < 16 ? 1 : hora < 22 ? 0.5 : 0;
+  let restanteHoje = 0;
 
-  return diasCompletosDepoisDeHoje + restanteHoje;
+  if (periodos.includes("manha") && hora < 16) restanteHoje += 0.5;
+  if (periodos.includes("noite") && hora < 22) restanteHoje += 0.5;
+
+  return diasCompletosDepoisDeHoje * pesoDia + restanteHoje;
 }
 
 export default function AjusteDiasEquivalentes() {
+  const supabase = useMemo(() => createClient(), []);
+  const [mes, setMes] = useState("");
+  const [periodosAtivos, setPeriodosAtivos] = useState(["manha", "noite"]);
+
+  useEffect(() => {
+    function sincronizarMes() {
+      setMes(document.querySelector('input[type="month"]')?.value || "");
+    }
+
+    sincronizarMes();
+    document.addEventListener("click", sincronizarMes, true);
+    document.addEventListener("change", sincronizarMes, true);
+
+    return () => {
+      document.removeEventListener("click", sincronizarMes, true);
+      document.removeEventListener("change", sincronizarMes, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mes) return undefined;
+    let cancelado = false;
+
+    async function carregarPerfilTurnos() {
+      const { data, error } = await supabase
+        .from("metas_mensais")
+        .select("periodo,valor_meta")
+        .eq("mes", inicioMes(mes));
+
+      if (cancelado || error) return;
+
+      const ativos = [...new Set(
+        (data || [])
+          .filter((meta) => Number(meta.valor_meta || 0) > 0)
+          .map((meta) => meta.periodo)
+          .filter((periodo) => periodo === "manha" || periodo === "noite")
+      )];
+
+      setPeriodosAtivos(ativos.length ? ativos : ["manha", "noite"]);
+    }
+
+    carregarPerfilTurnos();
+
+    const canal = supabase
+      .channel(`dias-equivalentes-${mes}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "metas_mensais" },
+        carregarPerfilTurnos
+      )
+      .subscribe();
+
+    return () => {
+      cancelado = true;
+      supabase.removeChannel(canal);
+    };
+  }, [mes, supabase]);
+
   useEffect(() => {
     let agendamento;
 
@@ -53,7 +123,7 @@ export default function AjusteDiasEquivalentes() {
         );
         const falta = numeroMoeda(textoFalta?.textContent);
         const mesSelecionado = document.querySelector('input[type="month"]')?.value;
-        const dias = diasEquivalentesRestantes(mesSelecionado);
+        const dias = diasEquivalentesRestantes(mesSelecionado, periodosAtivos);
 
         const titulo = cardNecessario.querySelector("span");
         const valor = cardNecessario.querySelector("strong");
@@ -88,7 +158,7 @@ export default function AjusteDiasEquivalentes() {
       document.removeEventListener("change", atualizar, true);
       observador.disconnect();
     };
-  }, []);
+  }, [periodosAtivos]);
 
   return null;
 }
