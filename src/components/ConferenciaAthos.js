@@ -149,6 +149,43 @@ export default function ConferenciaAthos() {
     };
   }, [autenticado, visivel, mes, supabase]);
 
+  useEffect(() => {
+    if (!autenticado || !visivel || !mes) return undefined;
+
+    let temporizadores = [];
+    let desmontado = false;
+
+    async function atualizarVendas() {
+      const { data, error } = await supabase
+        .from("vendas_diarias")
+        .select("data,loja_id,periodo,valor_vendido")
+        .gte("data", inicioMes(mes))
+        .lte("data", fimMes(mes))
+        .order("data", { ascending: true });
+
+      if (!desmontado && !error) setVendas(data || []);
+    }
+
+    function atualizarAposLancamento(evento) {
+      const formulario = evento.target;
+      if (!(formulario instanceof HTMLFormElement)) return;
+      if (!formulario.closest(".sale-modal")) return;
+
+      temporizadores.forEach(clearTimeout);
+      temporizadores = [350, 900].map((tempo) =>
+        setTimeout(atualizarVendas, tempo)
+      );
+    }
+
+    document.addEventListener("submit", atualizarAposLancamento, true);
+
+    return () => {
+      desmontado = true;
+      temporizadores.forEach(clearTimeout);
+      document.removeEventListener("submit", atualizarAposLancamento, true);
+    };
+  }, [autenticado, visivel, mes, supabase]);
+
   const resumo = useMemo(() => {
     if (!mes || !lojaId) {
       return { linhas: [], total: 0, completos: 0, parciais: 0, pendentes: 0 };
@@ -239,6 +276,10 @@ export default function ConferenciaAthos() {
               {lojaSelecionada && (
                 <b>{lojaSelecionada.codigo} · {dinheiro.format(resumo.total)}</b>
               )}
+            </div>
+
+            <div className={styles.loading}>
+              Para conferir no Athos, acesse: <strong>Relatórios → Vendas → Vendas → Demonstrativo de vendas</strong>. Selecione <strong>Venda bruta diária</strong>, informe o período desde o dia 1º e toque em <strong>Visualizar</strong>.
             </div>
 
             <div className={styles.storeFilter} aria-label="Filtrar loja">
