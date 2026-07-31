@@ -15,6 +15,7 @@ import "./branding.css";
 import "./meta-status.css";
 import "./dashboard-compact.css";
 import "./lancamento-cards.css";
+import "./fluxo-pendencias.css";
 import "./fechamento-posicao.css";
 import "./relatorio-enxuto.css";
 import "./fechamento-impressao.css";
