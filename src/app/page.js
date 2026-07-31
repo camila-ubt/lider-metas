@@ -767,16 +767,6 @@ export default function Home() {
                 Marcar caixa não aberto
               </button>
 
-              <label>
-                Observação
-                <textarea
-                  rows="3"
-                  value={lancamento.observacao}
-                  onChange={(evento) => setLancamento({ ...lancamento, observacao: evento.target.value })}
-                  placeholder="Opcional"
-                />
-              </label>
-
               <div className="modal-actions">
                 <button type="button" className="secondary-button" disabled={salvando} onClick={(evento) => salvarVenda(evento, "fechar")}>Salvar e fechar</button>
                 <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar lançamento"}</button>
