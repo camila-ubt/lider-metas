@@ -3,6 +3,7 @@ import FechamentoMensal from "@/components/FechamentoMensal";
 import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
 import AnaliseGerencial from "@/components/AnaliseGerencial";
+import PainelReuniao from "@/components/PainelReuniao";
 import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
 import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
 import AjusteProbabilidades from "@/components/AjusteProbabilidades";
@@ -58,6 +59,7 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <ConferenciaAthos />
+        <PainelReuniao />
         <AnaliseGerencial modo="painel" />
         <MascaraMoeda />
         <FechamentoMensal />
