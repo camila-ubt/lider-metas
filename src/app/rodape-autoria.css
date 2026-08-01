@@ -1,0 +1,27 @@
+.rodape-autoria {
+  width: min(1250px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 8px 16px 28px;
+  color: #756a80;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.rodape-autoria strong {
+  color: #5f3c91;
+  font-weight: 800;
+}
+
+@media (max-width: 560px) {
+  .rodape-autoria {
+    padding: 6px 14px calc(24px + env(safe-area-inset-bottom));
+    font-size: 11px;
+  }
+}
+
+@media print {
+  .rodape-autoria {
+    display: none !important;
+  }
+}
