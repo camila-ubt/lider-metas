@@ -14,6 +14,7 @@ import OrdenarGraficoPainel from "@/components/OrdenarGraficoPainel";
 import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
 import ManualUsuario from "@/components/ManualUsuario";
 import PesquisaManual from "@/components/PesquisaManual";
+import CorrecaoAbaManual from "@/components/CorrecaoAbaManual";
 import "./globals.css";
 import "./branding.css";
 import "./meta-status.css";
@@ -81,6 +82,7 @@ export default function RootLayout({ children }) {
         <DetalhesMetasRanking />
         <ManualUsuario />
         <PesquisaManual />
+        <CorrecaoAbaManual />
       </body>
     </html>
   );
