@@ -13,6 +13,7 @@ import ConfiguracaoHorarios from "@/components/ConfiguracaoHorarios";
 import OrdenarGraficoPainel from "@/components/OrdenarGraficoPainel";
 import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
 import ManualUsuario from "@/components/ManualUsuario";
+import PesquisaManual from "@/components/PesquisaManual";
 import "./globals.css";
 import "./branding.css";
 import "./meta-status.css";
@@ -79,6 +80,7 @@ export default function RootLayout({ children }) {
         <OrdenarGraficoPainel />
         <DetalhesMetasRanking />
         <ManualUsuario />
+        <PesquisaManual />
       </body>
     </html>
   );
