@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  minutosDoHorario,
+  useHorariosPeriodos,
+} from "@/lib/horariosPeriodos";
 
 const periodos = ["manha", "noite"];
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -26,6 +30,21 @@ function dataFinalDasPendencias(dataInicial) {
 
   if (dataInicial > hoje) return dataInicial;
   return hoje < ultimoDiaDoMes ? hoje : ultimoDiaDoMes;
+}
+
+function periodoJaEncerrou(data, periodo, horarios) {
+  const hoje = hojeLocal();
+  if (data < hoje) return true;
+  if (data > hoje) return false;
+
+  const agora = new Date();
+  const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+  const fimManha = minutosDoHorario(horarios.manhaFim);
+  const fimNoite = minutosDoHorario(horarios.noiteFim);
+
+  return periodo === "manha"
+    ? minutosAgora >= fimManha
+    : minutosAgora >= fimNoite;
 }
 
 function proximaData(data) {
@@ -66,7 +85,7 @@ function lancamentosDaLoja(vendas, data, lojaId) {
     .sort((a, b) => b.periodo.localeCompare(a.periodo));
 }
 
-function pendenciasDaLoja(vendas, dataInicial, lojaId) {
+function pendenciasDaLoja(vendas, dataInicial, lojaId, horarios) {
   if (!dataInicial || !lojaId) return [];
 
   const resultado = [];
@@ -75,6 +94,8 @@ function pendenciasDaLoja(vendas, dataInicial, lojaId) {
 
   while (data <= dataFinal) {
     periodos.forEach((periodo) => {
+      if (!periodoJaEncerrou(data, periodo, horarios)) return;
+
       const existe = vendas.some(
         (venda) =>
           venda.data === data &&
@@ -95,6 +116,7 @@ function pendenciasDaLoja(vendas, dataInicial, lojaId) {
 
 export default function FluxoPendenciasLancamento() {
   const supabase = useMemo(() => createClient(), []);
+  const horarios = useHorariosPeriodos();
   const [aberto, setAberto] = useState(false);
   const [dataSelecionada, setDataSelecionada] = useState("");
   const [lojas, setLojas] = useState([]);
@@ -196,6 +218,7 @@ export default function FluxoPendenciasLancamento() {
       vendasDoIntervalo,
       data,
       lojaSolicitada,
+      horarios,
     );
 
     setLojas(listaLojas);
@@ -212,8 +235,8 @@ export default function FluxoPendenciasLancamento() {
   }
 
   const pendencias = useMemo(
-    () => pendenciasDaLoja(vendas, dataSelecionada, lojaId),
-    [dataSelecionada, lojaId, vendas],
+    () => pendenciasDaLoja(vendas, dataSelecionada, lojaId, horarios),
+    [dataSelecionada, lojaId, vendas, horarios],
   );
 
   const lancados = useMemo(
@@ -223,7 +246,12 @@ export default function FluxoPendenciasLancamento() {
 
   function selecionarLoja(id) {
     const novoId = String(id);
-    const faltantes = pendenciasDaLoja(vendas, dataSelecionada, novoId);
+    const faltantes = pendenciasDaLoja(
+      vendas,
+      dataSelecionada,
+      novoId,
+      horarios,
+    );
     setLojaId(novoId);
     setSlot(null);
     setAba((atual) =>
@@ -393,6 +421,7 @@ export default function FluxoPendenciasLancamento() {
                   vendas,
                   dataSelecionada,
                   loja.id,
+                  horarios,
                 ).length;
 
                 return (
@@ -435,7 +464,7 @@ export default function FluxoPendenciasLancamento() {
                     <strong>{lojaAtual?.nome || lojaAtual?.codigo}</strong>
                     <span>
                       {aba === "pendentes"
-                        ? `Pendências desde ${formatarData(dataSelecionada)}`
+                        ? `Somente períodos já encerrados desde ${formatarData(dataSelecionada)}`
                         : `Somente ${formatarData(dataSelecionada)}`}
                     </span>
                   </div>
@@ -443,7 +472,7 @@ export default function FluxoPendenciasLancamento() {
                   {aba === "pendentes" ? (
                     pendencias.length === 0 ? (
                       <div className="fluxo-vazio">
-                        ✓ Nenhuma pendência a partir desta data
+                        ✓ Nenhuma pendência em períodos já encerrados
                       </div>
                     ) : (
                       pendencias.map((item) => (
