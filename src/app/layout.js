@@ -1,17 +1,11 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import FechamentoMensal from "@/components/FechamentoMensal";
+import FechamentoPainelNovo from "@/components/FechamentoPainelNovo";
 import PersistenciaNavegacao from "@/components/PersistenciaNavegacao";
 import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
-import AnaliseGerencial from "@/components/AnaliseGerencial";
 import InteligenciaGerencial from "@/components/InteligenciaGerencial";
 import PainelReuniao from "@/components/PainelReuniao";
-import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
-import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
-import AjusteProbabilidades from "@/components/AjusteProbabilidades";
-import FeedbackTurnos from "@/components/FeedbackTurnos";
 import RemoverLancamento from "@/components/RemoverLancamento";
-import AjusteDiasEquivalentes from "@/components/AjusteDiasEquivalentes";
 import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
 import "./globals.css";
 import "./branding.css";
@@ -19,10 +13,6 @@ import "./meta-status.css";
 import "./dashboard-compact.css";
 import "./lancamento-cards.css";
 import "./fluxo-pendencias.css";
-import "./fechamento-posicao.css";
-import "./relatorio-enxuto.css";
-import "./fechamento-impressao.css";
-import "./analise-ajustes.css";
 import "./inteligencia-gerencial.css";
 import "./persistencia-navegacao.css";
 
@@ -67,14 +57,8 @@ export default function RootLayout({ children }) {
         <PainelReuniao />
         <InteligenciaGerencial />
         <MascaraMoeda />
-        <FechamentoMensal />
-        <AlvoAnaliseFechamento />
-        <ResumoLojasFechamento />
-        <AnaliseGerencial modo="fechamento" />
-        <AjusteProbabilidades />
-        <FeedbackTurnos />
+        <FechamentoPainelNovo />
         <RemoverLancamento />
-        <AjusteDiasEquivalentes />
         <FluxoPendenciasLancamento />
       </body>
     </html>
