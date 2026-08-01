@@ -61,8 +61,7 @@
     box-shadow: none !important;
   }
 
-  body.fechamento-print-active #fechamento-impressao [data-print-hide="true"],
-  body.fechamento-print-active #fechamento-impressao button {
+  body.fechamento-print-active #fechamento-impressao [data-print-hide="true"] {
     display: none !important;
   }
 
