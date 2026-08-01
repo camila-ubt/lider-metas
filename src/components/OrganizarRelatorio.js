@@ -2,48 +2,66 @@
 
 import { useEffect } from "react";
 
+function texto(elemento) {
+  return elemento?.textContent?.replace(/\s+/g, " ").trim() || "";
+}
+
+function achar(seletor, trecho) {
+  return Array.from(document.querySelectorAll(seletor)).find((elemento) =>
+    texto(elemento).toLowerCase().includes(trecho.toLowerCase()),
+  );
+}
+
 function cardMaisProximo(elemento) {
   let atual = elemento;
   while (atual && atual !== document.body) {
-    const texto = atual.textContent || "";
     const estilo = getComputedStyle(atual);
     if (
       atual.tagName === "SECTION" ||
       atual.tagName === "ARTICLE" ||
-      (estilo.borderRadius !== "0px" && texto.length > 40)
-    ) return atual;
+      (estilo.borderRadius !== "0px" && texto(atual).length > 40)
+    ) {
+      return atual;
+    }
     atual = atual.parentElement;
   }
   return elemento?.parentElement || null;
 }
 
-function achar(seletor, texto) {
-  return Array.from(document.querySelectorAll(seletor)).find((el) =>
-    (el.textContent || "").trim().toLowerCase().includes(texto.toLowerCase()),
-  );
+function inserirDepois(elemento, referencia) {
+  const pai = referencia?.parentElement;
+  if (!elemento || !referencia || !pai) return false;
+  if (referencia.nextSibling === elemento) return true;
+  pai.insertBefore(elemento, referencia.nextSibling);
+  return true;
 }
 
 export default function OrganizarRelatorio() {
   useEffect(() => {
     function organizar() {
-      const tituloGrafico = achar("h1,h2,h3,h4,p,span", "EVOLUÇÃO ACUMULADA");
-      const grafico = tituloGrafico ? cardMaisProximo(tituloGrafico) : null;
-      const inteligencia = document.querySelector(".inteligencia-gerencial-unificada");
-      const previa = achar("button,a", "Prévia / fechamento");
+      const cabecalhoAntigo = achar("section,article,div", "LEITURA GERENCIAL AVANÇADA");
+      const cardCabecalho = cabecalhoAntigo ? cardMaisProximo(cabecalhoAntigo) : null;
+      if (cardCabecalho) cardCabecalho.style.display = "none";
 
-      if (grafico && inteligencia && !grafico.dataset.movidoParaFinal) {
-        const destino = inteligencia.parentElement;
-        if (destino) {
-          if (previa && previa.parentElement === destino) destino.insertBefore(grafico, previa);
-          else if (inteligencia.nextSibling) destino.insertBefore(grafico, inteligencia.nextSibling);
-          else destino.appendChild(grafico);
-          grafico.dataset.movidoParaFinal = "true";
-        }
-      }
+      const rankingTitulo = achar("h1,h2,h3,h4,p,span,strong", "RANKING INTERATIVO");
+      const ranking = rankingTitulo ? cardMaisProximo(rankingTitulo) : null;
+
+      const roteiro = document.querySelector("section[class*='wrap']");
+
+      const tituloGrafico = achar("h1,h2,h3,h4,p,span,strong", "EVOLUÇÃO ACUMULADA");
+      const grafico = tituloGrafico ? cardMaisProximo(tituloGrafico) : null;
+
+      const inteligenciaResumo = achar("summary,strong,h2,h3", "Inteligência gerencial");
+      const inteligencia = inteligenciaResumo?.closest("details") || cardMaisProximo(inteligenciaResumo);
+
+      if (ranking && roteiro) inserirDepois(roteiro, ranking);
+      if (roteiro && grafico) inserirDepois(grafico, roteiro);
+      if (grafico && inteligencia) inserirDepois(inteligencia, grafico);
 
       const tituloNota = achar("h2,h3,h4", "Por que essa nota?");
       const blocoNota = tituloNota ? cardMaisProximo(tituloNota) : null;
-      const textoNota = achar("span,div", "Nota parcial") || achar("span,div", "Nota final do mês");
+      const textoNota =
+        achar("span,div", "Nota parcial") || achar("span,div", "Nota final do mês");
       const botaoNota = textoNota?.parentElement;
 
       if (blocoNota && botaoNota && !botaoNota.dataset.notaInterativa) {
