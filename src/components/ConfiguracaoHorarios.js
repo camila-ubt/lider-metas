@@ -56,20 +56,23 @@ export default function ConfiguracaoHorarios() {
   useEffect(() => {
     let ativo = true;
 
-    async function carregar() {
-      const { data } = await supabase.auth.getSession();
-      if (!ativo || !data.session) return;
-
+    function aplicarSessao(sessao) {
+      if (!ativo || !sessao) return;
       const salvos = normalizarHorariosPeriodos(
-        data.session.user.user_metadata?.horarios_periodos,
+        sessao.user.user_metadata?.horarios_periodos,
       );
       setHorarios(salvos);
       publicarHorariosPeriodos(salvos);
     }
 
-    carregar();
+    supabase.auth.getSession().then(({ data }) => aplicarSessao(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_evento, sessao) => aplicarSessao(sessao),
+    );
+
     return () => {
       ativo = false;
+      listener.subscription.unsubscribe();
     };
   }, [supabase]);
 
