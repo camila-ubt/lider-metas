@@ -21,16 +21,20 @@ function fimMes(mes) {
   return `${ano}-${String(numeroMes).padStart(2, "0")}-${String(new Date(ano, numeroMes, 0).getDate()).padStart(2, "0")}`;
 }
 
-function inicioHistorico(mes) {
+function intervaloMesmoMes(mes, anosAtras) {
   const [ano, numeroMes] = mes.split("-").map(Number);
-  const data = new Date(ano, numeroMes - 4, 1);
-  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-01`;
+  const anoHistorico = ano - anosAtras;
+  const mm = String(numeroMes).padStart(2, "0");
+  const ultimoDia = String(new Date(anoHistorico, numeroMes, 0).getDate()).padStart(2, "0");
+  return { inicio: `${anoHistorico}-${mm}-01`, fim: `${anoHistorico}-${mm}-${ultimoDia}` };
 }
 
-function fimHistorico(mes) {
+function intervaloUltimosTresMeses(mes) {
   const [ano, numeroMes] = mes.split("-").map(Number);
-  const data = new Date(ano, numeroMes - 1, 0);
-  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+  const inicio = new Date(ano, numeroMes - 4, 1);
+  const fim = new Date(ano, numeroMes - 1, 0);
+  const formatar = (data) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+  return { inicio: formatar(inicio), fim: formatar(fim) };
 }
 
 function hojeLocal() {
@@ -67,12 +71,39 @@ function mediaDiaria(lista) {
   return dias ? total / dias : 0;
 }
 
-function leituraHistorica(atual, historica) {
-  if (!(historica > 0)) return { variacao: null, texto: "Sem histórico suficiente para comparação." };
-  const variacao = ((atual - historica) / historica) * 100;
-  if (variacao >= 5) return { variacao, texto: `${percentual.format(variacao)}% acima da própria média histórica.` };
-  if (variacao <= -5) return { variacao, texto: `${percentual.format(Math.abs(variacao))}% abaixo da própria média histórica.` };
-  return { variacao, texto: "Dentro do padrão histórico do próprio turno." };
+function referenciaHistorica(sazonal, recente) {
+  const porAno = new Map();
+  sazonal.forEach((item) => {
+    const ano = item.data.slice(0, 4);
+    if (!porAno.has(ano)) porAno.set(ano, []);
+    porAno.get(ano).push(item);
+  });
+  const mediasAnuais = [...porAno.entries()]
+    .map(([ano, itens]) => ({ ano, media: mediaDiaria(itens) }))
+    .filter((item) => item.media > 0);
+
+  if (mediasAnuais.length) {
+    return {
+      media: mediasAnuais.reduce((soma, item) => soma + item.media, 0) / mediasAnuais.length,
+      origem: `mesmo mês de ${mediasAnuais.map((item) => item.ano).join(" e ")}`,
+      sazonal: true,
+    };
+  }
+
+  const mediaRecente = mediaDiaria(recente);
+  return {
+    media: mediaRecente,
+    origem: mediaRecente > 0 ? "últimos 3 meses (referência temporária)" : "sem histórico suficiente",
+    sazonal: false,
+  };
+}
+
+function leituraHistorica(atual, referencia) {
+  if (!(referencia.media > 0)) return { variacao: null, texto: "Sem histórico suficiente para comparação." };
+  const variacao = ((atual - referencia.media) / referencia.media) * 100;
+  if (variacao >= 5) return { variacao, texto: `${percentual.format(variacao)}% acima do padrão do ${referencia.origem}.` };
+  if (variacao <= -5) return { variacao, texto: `${percentual.format(Math.abs(variacao))}% abaixo do padrão do ${referencia.origem}.` };
+  return { variacao, texto: `Dentro do padrão do ${referencia.origem}.` };
 }
 
 export default function PainelReuniao() {
@@ -81,7 +112,8 @@ export default function PainelReuniao() {
   const [mes, setMes] = useState("");
   const [lojas, setLojas] = useState([]);
   const [vendas, setVendas] = useState([]);
-  const [historico, setHistorico] = useState([]);
+  const [historicoSazonal, setHistoricoSazonal] = useState([]);
+  const [historicoRecente, setHistoricoRecente] = useState([]);
   const [metas, setMetas] = useState([]);
 
   useEffect(() => {
@@ -117,16 +149,23 @@ export default function PainelReuniao() {
   useEffect(() => {
     if (!visivel || !mes) return undefined;
     let ativo = true;
+    const ano1 = intervaloMesmoMes(mes, 1);
+    const ano2 = intervaloMesmoMes(mes, 2);
+    const recentes = intervaloUltimosTresMeses(mes);
+
     Promise.all([
       supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
       supabase.from("vendas_diarias").select("*").gte("data", `${mes}-01`).lte("data", fimMes(mes)),
-      supabase.from("vendas_diarias").select("data,loja_id,periodo,valor_vendido").gte("data", inicioHistorico(mes)).lte("data", fimHistorico(mes)),
+      supabase.from("vendas_diarias").select("data,loja_id,periodo,valor_vendido").gte("data", ano1.inicio).lte("data", ano1.fim),
+      supabase.from("vendas_diarias").select("data,loja_id,periodo,valor_vendido").gte("data", ano2.inicio).lte("data", ano2.fim),
+      supabase.from("vendas_diarias").select("data,loja_id,periodo,valor_vendido").gte("data", recentes.inicio).lte("data", recentes.fim),
       supabase.from("metas_mensais").select("*").eq("mes", `${mes}-01`),
-    ]).then(([lojasResp, vendasResp, historicoResp, metasResp]) => {
+    ]).then(([lojasResp, vendasResp, hist1Resp, hist2Resp, recenteResp, metasResp]) => {
       if (!ativo) return;
       setLojas(lojasResp.data || []);
       setVendas(vendasResp.data || []);
-      setHistorico(historicoResp.data || []);
+      setHistoricoSazonal([...(hist1Resp.data || []), ...(hist2Resp.data || [])]);
+      setHistoricoRecente(recenteResp.data || []);
       setMetas(metasResp.data || []);
     });
     return () => { ativo = false; };
@@ -146,10 +185,11 @@ export default function PainelReuniao() {
 
     const turnos = ["manha", "noite"].map((periodo) => {
       const vendasTurno = vendas.filter((item) => item.periodo === periodo);
-      const historicoTurno = historico.filter((item) => item.periodo === periodo);
+      const sazonalTurno = historicoSazonal.filter((item) => item.periodo === periodo);
+      const recenteTurno = historicoRecente.filter((item) => item.periodo === periodo);
       const atual = mediaDiaria(vendasTurno);
-      const mediaHistorica = mediaDiaria(historicoTurno);
-      const leitura = leituraHistorica(atual, mediaHistorica);
+      const referencia = referenciaHistorica(sazonalTurno, recenteTurno);
+      const leitura = leituraHistorica(atual, referencia);
 
       const lojasTurno = lojas.map((loja) => {
         const vendido = vendasTurno.filter((item) => Number(item.loja_id) === Number(loja.id)).reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
@@ -157,14 +197,7 @@ export default function PainelReuniao() {
         return { ...loja, vendido, meta, percentual: meta > 0 ? (vendido / meta) * 100 : 0 };
       }).sort((a, b) => b.percentual - a.percentual);
 
-      return {
-        periodo,
-        atual,
-        mediaHistorica,
-        leitura,
-        puxando: lojasTurno[0],
-        atencao: lojasTurno[lojasTurno.length - 1],
-      };
+      return { periodo, atual, mediaHistorica: referencia.media, origemHistorica: referencia.origem, leitura, puxando: lojasTurno[0], atencao: lojasTurno[lojasTurno.length - 1] };
     });
 
     const destaque = ranking[0];
@@ -184,7 +217,7 @@ export default function PainelReuniao() {
     if (atingido === "Megameta") nota += 1;
 
     return { totalVendido, totalMeta, alvo, atingido, ranking, destaque, atencao, turnos, nota: Math.min(10, Math.max(0, nota)), diferencaLojas };
-  }, [lojas, vendas, historico, metas]);
+  }, [lojas, vendas, historicoSazonal, historicoRecente, metas]);
 
   if (!visivel || !mes || !resumo.totalMeta) return null;
 
@@ -199,18 +232,19 @@ export default function PainelReuniao() {
       ? `Hoje é o último dia do mês. A operação está em ${percentual.format((resumo.totalVendido / resumo.totalMeta) * 100)}% da Meta e precisa de ${dinheiro.format(faltaProximo)} para alcançar a ${resumo.alvo.nome}.`
       : `A operação está em ${percentual.format((resumo.totalVendido / resumo.totalMeta) * 100)}% da Meta e segue rumo à ${resumo.alvo.nome}. Faltam ${dinheiro.format(faltaProximo)}.`;
 
+  const turnosAbaixo = resumo.turnos.filter((turno) => turno.leitura.variacao !== null && turno.leitura.variacao < -5);
   const acoes = contexto === "encerrado"
     ? [
         `Definir um plano para a ${resumo.atencao?.codigo} reduzir a diferença para as demais lojas no próximo mês.`,
         `Levar para o próximo ciclo as práticas da ${resumo.destaque?.codigo}, destaque do mês.`,
-        ...resumo.turnos.filter((turno) => turno.leitura.variacao !== null && turno.leitura.variacao < -5).map((turno) => `Revisar o resultado da ${turno.periodo === "manha" ? "manhã" : "noite"}, que fechou abaixo da própria média histórica.`),
+        ...turnosAbaixo.map((turno) => `Revisar o resultado da ${turno.periodo === "manha" ? "manhã" : "noite"}, que fechou abaixo do padrão do mesmo mês em anos anteriores.`),
       ].slice(0, 3)
     : [
         resumo.atencao?.percentual < 100
           ? `Recuperar a ${resumo.atencao.codigo}: faltam ${dinheiro.format(Math.max(resumo.atencao.meta - resumo.atencao.vendido, 0))} para a Meta.`
           : `Direcionar esforço para a ${resumo.atencao?.codigo} alcançar ${resumo.atencao?.proximo.nome}; faltam ${dinheiro.format(faltaAtencao)}.`,
         `Replicar com a equipe as práticas da ${resumo.destaque?.codigo}, líder do mês.`,
-        ...resumo.turnos.filter((turno) => turno.leitura.variacao !== null && turno.leitura.variacao < -5).map((turno) => `Acompanhar a ${turno.periodo === "manha" ? "manhã" : "noite"}: está abaixo da própria média histórica.`),
+        ...turnosAbaixo.map((turno) => `Acompanhar a ${turno.periodo === "manha" ? "manhã" : "noite"}: está abaixo do padrão do mesmo mês em anos anteriores.`),
       ].slice(0, 3);
 
   const justificativas = [
@@ -238,7 +272,7 @@ export default function PainelReuniao() {
         <article className={styles.atencao}>
           <h3>Corrigir</h3>
           <p><b>{resumo.atencao?.codigo}</b> tem o menor desempenho proporcional do ranking.</p>
-          <p>Os turnos só entram como atenção quando ficam abaixo da própria média histórica.</p>
+          <p>Os turnos só entram como atenção quando ficam abaixo do próprio padrão sazonal.</p>
         </article>
       </div>
 
@@ -249,7 +283,7 @@ export default function PainelReuniao() {
             <article key={turno.periodo}>
               <header><strong>{turno.periodo === "manha" ? "Manhã" : "Noite"}</strong><span>{turno.leitura.texto}</span></header>
               <p>Média atual: <b>{dinheiro.format(turno.atual)}</b> por dia</p>
-              <p>Média histórica: <b>{dinheiro.format(turno.mediaHistorica)}</b> por dia</p>
+              <p>Referência ({turno.origemHistorica}): <b>{dinheiro.format(turno.mediaHistorica)}</b> por dia</p>
               <div className={styles.turnoLojas}>
                 <p><span>Puxando o resultado</span><b>{turno.puxando?.codigo} · {percentual.format(turno.puxando?.percentual || 0)}%</b></p>
                 <p><span>Precisa de atenção</span><b>{turno.atencao?.codigo} · {percentual.format(turno.atencao?.percentual || 0)}%</b></p>
