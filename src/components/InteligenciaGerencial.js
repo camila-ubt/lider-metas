@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
-  PERIODOS,
   acumuladoPorDia,
   anoDaData,
   caminhoGrafico,
@@ -18,18 +17,22 @@ import {
   somar,
   textoTendencia,
 } from "@/lib/analiseGerencial";
+import {
+  contextoDoMes,
+  fraseSemBase,
+  nivelDoResultado,
+  percentualDoResultado,
+} from "@/lib/contextoMes";
 import styles from "./AnaliseGerencial.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
 });
-
 const compacto = new Intl.NumberFormat("pt-BR", {
   notation: "compact",
   maximumFractionDigits: 1,
 });
-
 const percentual = new Intl.NumberFormat("pt-BR", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
@@ -49,7 +52,6 @@ const nomesMeses = [
   "novembro",
   "dezembro",
 ];
-
 const nomesSemana = [
   "domingo",
   "segunda-feira",
@@ -61,19 +63,17 @@ const nomesSemana = [
 ];
 
 function mesDaTela() {
-  const campo = document.querySelector('.top-actions input[type="month"]');
-  if (campo?.value) return campo.value;
-
-  const alternativa = document.querySelector('input[type="month"]');
-  if (alternativa?.value) return alternativa.value;
-
-  const hoje = new Date();
-  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+  return (
+    document.querySelector('.top-actions input[type="month"]')?.value ||
+    document.querySelector('input[type="month"]')?.value ||
+    ""
+  );
 }
 
 function painelAtivo() {
-  const primeiro = document.querySelector("nav.tabs button:first-child");
-  return Boolean(primeiro?.classList.contains("active"));
+  return Boolean(
+    document.querySelector("nav.tabs button:first-child")?.classList.contains("active"),
+  );
 }
 
 function variacao(atual, anterior) {
@@ -81,12 +81,10 @@ function variacao(atual, anterior) {
   return ((atual - anterior) / anterior) * 100;
 }
 
-function porcentagem(valor, base) {
-  return base > 0 ? (valor / base) * 100 : 0;
-}
-
-function esperar(tempo) {
-  return new Promise((resolve) => setTimeout(resolve, tempo));
+function listaNatural(lista) {
+  if (!lista.length) return "nenhum";
+  if (lista.length === 1) return lista[0];
+  return `${lista.slice(0, -1).join(", ")} e ${lista.at(-1)}`;
 }
 
 function GraficoHistorico({ series, diaCorte }) {
@@ -172,7 +170,7 @@ function BarraProbabilidade({ nome, valor }) {
         <strong>{nome}</strong>
         <span>
           {valor === null
-            ? "Sem dados suficientes"
+            ? "Base estatística em formação"
             : `${percentual.format(exibido)}%`}
         </span>
       </div>
@@ -199,17 +197,12 @@ export default function InteligenciaGerencial() {
 
   useEffect(() => {
     let ativo = true;
-
     supabase.auth.getSession().then(({ data }) => {
       if (ativo) setAutenticado(Boolean(data.session));
     });
-
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_evento, sessao) => {
-        setAutenticado(Boolean(sessao));
-      },
+      (_evento, sessao) => setAutenticado(Boolean(sessao)),
     );
-
     return () => {
       ativo = false;
       listener.subscription.unsubscribe();
@@ -230,11 +223,9 @@ export default function InteligenciaGerencial() {
     sincronizar();
     document.addEventListener("change", sincronizar, true);
     document.addEventListener("click", sincronizar, true);
-
     const observador = new MutationObserver(sincronizar);
     observador.observe(document.body, {
       subtree: true,
-      childList: true,
       attributes: true,
       attributeFilter: ["class", "value"],
     });
@@ -251,28 +242,9 @@ export default function InteligenciaGerencial() {
     if (!autenticado || !visivel || !mes) return undefined;
 
     let cancelado = false;
-
-    async function consultarAtual(inicio, fim) {
-      return supabase
-        .from("vendas_diarias")
-        .select("*")
-        .gte("data", inicio)
-        .lte("data", fim)
-        .order("data", { ascending: true });
-    }
-
     async function carregar() {
       setCarregando(true);
       setErro("");
-
-      const { data: sessao } = await supabase.auth.getSession();
-      if (!sessao.session) {
-        if (!cancelado) {
-          setErro("A sessão expirou. Entre novamente para atualizar a análise.");
-          setCarregando(false);
-        }
-        return;
-      }
 
       const [ano, numeroMes] = mes.split("-").map(Number);
       const atual = intervaloMes(ano, numeroMes);
@@ -281,36 +253,33 @@ export default function InteligenciaGerencial() {
         ...intervaloMes(anoHistorico, numeroMes),
       }));
 
-      let vendasResp = await consultarAtual(atual.inicio, atual.fim);
-
-      // A consulta é repetida uma vez quando volta vazia para evitar a leitura
-      // antes da sessão do navegador terminar de sincronizar.
-      if (!vendasResp.error && (vendasResp.data || []).length === 0) {
-        await esperar(250);
-        vendasResp = await consultarAtual(atual.inicio, atual.fim);
-      }
-
-      const [lojasResp, metasResp, ...historicosResp] = await Promise.all([
-        supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
-        supabase
-          .from("metas_mensais")
-          .select("*")
-          .eq("mes", `${mes}-01`),
-        ...anteriores.map((item) =>
+      const [lojasResp, vendasResp, metasResp, ...historicosResp] =
+        await Promise.all([
+          supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
           supabase
             .from("vendas_diarias")
             .select("*")
-            .gte("data", item.inicio)
-            .lte("data", item.fim)
+            .gte("data", atual.inicio)
+            .lte("data", atual.fim)
             .order("data", { ascending: true }),
-        ),
-      ]);
+          supabase
+            .from("metas_mensais")
+            .select("*")
+            .eq("mes", `${mes}-01`),
+          ...anteriores.map((item) =>
+            supabase
+              .from("vendas_diarias")
+              .select("*")
+              .gte("data", item.inicio)
+              .lte("data", item.fim)
+              .order("data", { ascending: true }),
+          ),
+        ]);
 
       if (cancelado) return;
-
       const falha = [
-        vendasResp,
         lojasResp,
+        vendasResp,
         metasResp,
         ...historicosResp,
       ].find((resposta) => resposta.error);
@@ -323,19 +292,19 @@ export default function InteligenciaGerencial() {
         setVendas(vendasResp.data || []);
         setMetas(metasResp.data || []);
         setHistoricos(historicosResp.flatMap((resposta) => resposta.data || []));
-        setFiltroLoja((filtroAtual) => {
-          const existe = lojasCarregadas.some(
-            (loja) => String(loja.id) === String(filtroAtual),
-          );
-          return filtroAtual === "geral" || existe ? filtroAtual : "geral";
-        });
+        setFiltroLoja((atualFiltro) =>
+          atualFiltro === "geral" ||
+          lojasCarregadas.some(
+            (loja) => String(loja.id) === String(atualFiltro),
+          )
+            ? atualFiltro
+            : "geral",
+        );
       }
-
       setCarregando(false);
     }
 
     carregar();
-
     return () => {
       cancelado = true;
     };
@@ -344,25 +313,16 @@ export default function InteligenciaGerencial() {
   const analise = useMemo(() => {
     if (!mes) return null;
 
-    const [ano, numeroMes] = mes.split("-").map(Number);
-    const hoje = new Date();
-    const intervalo = intervaloMes(ano, numeroMes);
-    const mesAtual =
-      ano === hoje.getFullYear() && numeroMes === hoje.getMonth() + 1;
-    const mesPassado =
-      ano < hoje.getFullYear() ||
-      (ano === hoje.getFullYear() && numeroMes < hoje.getMonth() + 1);
-    const diaCorte = mesAtual
-      ? Math.min(hoje.getDate(), intervalo.ultimoDia)
-      : mesPassado
-        ? intervalo.ultimoDia
-        : 0;
-    const diasRestantes = Math.max(intervalo.ultimoDia - diaCorte, 0);
+    const contexto = contextoDoMes(mes);
     const vendasConsideradas = vendas.filter(
-      (venda) => diaDaData(venda.data) <= diaCorte,
+      (venda) => diaDaData(venda.data) <= contexto.diaCorte,
     );
     const totalVendido = somar(vendasConsideradas);
     const totalMeta = somar(metas, "valor_meta");
+    const temMeta = totalMeta > 0;
+    const temVendas = vendasConsideradas.length > 0;
+    const percentualGeral = percentualDoResultado(totalVendido, totalMeta);
+    const nivelGeral = nivelDoResultado(totalVendido, totalMeta);
 
     const mapaDias = new Map();
     vendasConsideradas.forEach((venda) => {
@@ -374,10 +334,10 @@ export default function InteligenciaGerencial() {
       registro.slots.add(`${Number(venda.loja_id)}|${venda.periodo}`);
     });
 
-    const esperadoPorDia = lojas.length * PERIODOS.length;
     const diasObservados = Array.from(mapaDias.entries()).sort(([a], [b]) =>
       a.localeCompare(b),
     );
+    const esperadoPorDia = lojas.length * 2;
     const diasCompletos = diasObservados.filter(
       ([, item]) => esperadoPorDia > 0 && item.slots.size >= esperadoPorDia,
     );
@@ -388,37 +348,47 @@ export default function InteligenciaGerencial() {
     const mediaDiaria = baseEstatistica.length ? media(baseEstatistica) : 0;
     const desvioDiario = desvioPadrao(baseEstatistica);
     const projecaoOperacional =
-      diaCorte > 0 ? (totalVendido / diaCorte) * intervalo.ultimoDia : 0;
+      contexto.diaCorte > 0
+        ? (totalVendido / contexto.diaCorte) * contexto.ultimoDia
+        : 0;
     const faixa = faixaEstimada({
       atual: totalVendido,
       mediaDiaria,
       desvioDiario,
-      diasRestantes,
+      diasRestantes: contexto.diasRestantes,
     });
 
-    function calcularChance(alvo) {
-      if (!(alvo > 0)) return null;
-      if (diasRestantes <= 0) return totalVendido >= alvo ? 100 : 0;
-      if (baseEstatistica.length < 3) return null;
+    function chance(alvo) {
+      if (
+        contexto.tipo === "futuro" ||
+        contexto.tipo === "encerrado" ||
+        !(alvo > 0) ||
+        baseEstatistica.length < 3
+      ) {
+        return null;
+      }
       return probabilidadeAtingir({
         atual: totalVendido,
         alvo,
         mediaDiaria,
         desvioDiario,
-        diasRestantes,
+        diasRestantes: contexto.diasRestantes,
       });
     }
 
     const probabilidades = {
-      meta: calcularChance(totalMeta),
-      super: calcularChance(totalMeta * 1.2),
-      mega: calcularChance(totalMeta * 1.3),
+      meta: chance(totalMeta),
+      super: chance(totalMeta * 1.2),
+      mega: chance(totalMeta * 1.3),
     };
 
     const lojasResumo = lojas.map((loja) => {
       const vendasLoja = vendasConsideradas.filter(
         (venda) => Number(venda.loja_id) === Number(loja.id),
       );
+      const meta = metas
+        .filter((item) => Number(item.loja_id) === Number(loja.id))
+        .reduce((total, item) => total + Number(item.valor_meta || 0), 0);
       const mapaLoja = new Map();
       vendasLoja.forEach((venda) => {
         mapaLoja.set(
@@ -426,20 +396,25 @@ export default function InteligenciaGerencial() {
           (mapaLoja.get(venda.data) || 0) + Number(venda.valor_vendido || 0),
         );
       });
-      const valores = Array.from(mapaLoja.values());
+      const vendido = somar(vendasLoja);
       return {
         ...loja,
-        vendido: somar(vendasLoja),
-        consistencia: coeficienteVariacao(valores),
+        vendido,
+        meta,
+        percentual: percentualDoResultado(vendido, meta),
+        nivel: nivelDoResultado(vendido, meta),
+        consistencia: coeficienteVariacao(Array.from(mapaLoja.values())),
       };
     });
 
-    const lojasComConsistencia = lojasResumo
+    const consistentes = lojasResumo
       .filter((loja) => loja.consistencia !== null)
       .sort((a, b) => a.consistencia - b.consistencia);
-    const maisConsistente = lojasComConsistencia[0] || null;
-    const maisOscilante =
-      lojasComConsistencia[lojasComConsistencia.length - 1] || null;
+    const maisConsistente = consistentes[0] || null;
+    const maisOscilante = consistentes.at(-1) || null;
+    const ranking = [...lojasResumo].sort(
+      (a, b) => (b.percentual ?? -1) - (a.percentual ?? -1),
+    );
 
     const ultimosValores = valoresObservados.slice(-10);
     const tendencia = regressaoLinear(ultimosValores);
@@ -462,105 +437,128 @@ export default function InteligenciaGerencial() {
       }))
       .filter((item) => item.quantidade >= 2)
       .sort((a, b) => b.media - a.media);
-    const diaForte = mediasSemana[0] || null;
-    const diaFraco = mediasSemana[mediasSemana.length - 1] || null;
 
-    const anos = [ano - 2, ano - 1, ano];
-    const serieGeral = anos.map((anoSerie) => {
-      const lista =
-        anoSerie === ano
-          ? vendasConsideradas
-          : historicos.filter(
-              (venda) =>
-                anoDaData(venda.data) === anoSerie &&
-                diaDaData(venda.data) <= diaCorte,
-            );
-      return {
-        ano: anoSerie,
-        total: somar(lista),
-        vendas: lista,
-      };
-    });
-
-    const atualSerie = serieGeral.find((item) => item.ano === ano);
-    const anteriorSerie = serieGeral.find((item) => item.ano === ano - 1);
-    const mudanca = variacao(atualSerie?.total || 0, anteriorSerie?.total || 0);
+    const serieGeral = [contexto.ano - 2, contexto.ano - 1, contexto.ano].map(
+      (anoSerie) => {
+        const lista =
+          anoSerie === contexto.ano
+            ? vendasConsideradas
+            : historicos.filter(
+                (venda) =>
+                  anoDaData(venda.data) === anoSerie &&
+                  diaDaData(venda.data) <= contexto.diaCorte,
+              );
+        return { ano: anoSerie, total: somar(lista), vendas: lista };
+      },
+    );
+    const anterior =
+      serieGeral.find((item) => item.ano === contexto.ano - 1)?.total || 0;
+    const mudancaHistorica = variacao(totalVendido, anterior);
     const ordenada = [...serieGeral].sort((a, b) => b.total - a.total);
-    const posicao = ordenada.findIndex((item) => item.ano === ano) + 1;
+    const posicaoHistorica =
+      ordenada.findIndex((item) => item.ano === contexto.ano) + 1;
+
+    const atingiram = ranking
+      .filter((loja) => (loja.percentual ?? -1) >= 100)
+      .map((loja) => loja.codigo);
+    const abaixo = ranking
+      .filter((loja) => loja.meta > 0 && (loja.percentual ?? 0) < 100)
+      .map((loja) => loja.codigo);
 
     const insights = [];
-    if (posicao === 1 && serieGeral.some((item) => item.ano !== ano && item.total > 0)) {
+    if (contexto.tipo === "futuro") {
       insights.push(
-        `${nomesMeses[numeroMes - 1][0].toUpperCase()}${nomesMeses[numeroMes - 1].slice(1)} foi o melhor resultado dos últimos 3 anos.`,
+        temMeta
+          ? `As metas do próximo mês já somam ${dinheiro.format(totalMeta)}.`
+          : "As metas ainda precisam ser cadastradas antes da abertura do mês.",
       );
-    } else if (
-      posicao === serieGeral.length &&
-      serieGeral.some((item) => item.ano !== ano && item.total > 0)
-    ) {
       insights.push(
-        `${nomesMeses[numeroMes - 1][0].toUpperCase()}${nomesMeses[numeroMes - 1].slice(1)} apresenta o menor resultado da série de 3 anos.`,
+        "Projeções e tendências começarão a ser calculadas após os primeiros lançamentos.",
       );
-    } else if (mudanca !== null) {
+    } else if (contexto.tipo === "encerrado") {
       insights.push(
-        `O resultado está ${percentual.format(Math.abs(mudanca))}% ${
-          mudanca >= 0 ? "acima" : "abaixo"
-        } do mesmo período do ano anterior.`,
+        temMeta
+          ? `O mês encerrou em ${percentual.format(percentualGeral || 0)}% da Meta, com resultado final de ${nivelGeral}.`
+          : `O mês encerrou com ${dinheiro.format(totalVendido)}, sem metas cadastradas para comparação.`,
       );
-    }
-
-    if (ultimosValores.length >= 2) {
+      if (atingiram.length) {
+        insights.push(`${listaNatural(atingiram)} atingiram pelo menos a Meta.`);
+      }
+      if (abaixo.length) {
+        insights.push(`${listaNatural(abaixo)} encerraram abaixo da Meta.`);
+      }
+      if (mudancaHistorica !== null) {
+        insights.push(
+          `O resultado final ficou ${percentual.format(Math.abs(mudancaHistorica))}% ${
+            mudancaHistorica >= 0 ? "acima" : "abaixo"
+          } do mesmo mês do ano anterior.`,
+        );
+      }
+    } else if (!temMeta || !temVendas) {
+      insights.push(fraseSemBase(contexto.tipo, temMeta, temVendas));
+    } else {
+      if (posicaoHistorica === 1 && serieGeral.some((item) => item.ano !== contexto.ano && item.total > 0)) {
+        insights.push(
+          `${nomesMeses[contexto.numeroMes - 1][0].toUpperCase()}${nomesMeses[contexto.numeroMes - 1].slice(1)} apresenta o melhor resultado dos últimos 3 anos até este momento.`,
+        );
+      } else if (mudancaHistorica !== null) {
+        insights.push(
+          `O resultado está ${percentual.format(Math.abs(mudancaHistorica))}% ${
+            mudancaHistorica >= 0 ? "acima" : "abaixo"
+          } do mesmo período do ano anterior.`,
+        );
+      }
       insights.push(`O ritmo recente está ${nomeTendencia}.`);
-    }
-
-    if (maisConsistente) {
-      insights.push(
-        `${maisConsistente.codigo} apresenta a maior consistência entre as lojas.`,
-      );
-    }
-
-    if (probabilidades.super !== null) {
-      insights.push(
-        `A probabilidade de Supermeta é de ${percentual.format(
-          probabilidades.super,
-        )}%.`,
-      );
+      if (maisConsistente) {
+        insights.push(
+          `${maisConsistente.codigo} apresenta a maior consistência entre as lojas.`,
+        );
+      }
+      if (probabilidades.super !== null) {
+        insights.push(
+          `A probabilidade de Supermeta é de ${percentual.format(probabilidades.super)}%.`,
+        );
+      } else {
+        insights.push(
+          "Continue alimentando os lançamentos: a base estatística ainda está sendo formada.",
+        );
+      }
     }
 
     return {
-      ano,
-      numeroMes,
-      tituloMes: `${nomesMeses[numeroMes - 1]} de ${ano}`,
-      diaCorte,
-      totalDias: intervalo.ultimoDia,
+      contexto,
+      tituloMes: `${nomesMeses[contexto.numeroMes - 1]} de ${contexto.ano}`,
       totalVendido,
       totalMeta,
+      temMeta,
+      temVendas,
+      percentualGeral,
+      nivelGeral,
       projecaoOperacional,
       faixa,
       probabilidades,
-      diasCompletos: diasCompletos.length,
       diasObservados: diasObservados.length,
+      diasCompletos: diasCompletos.length,
       baseEstatistica: baseEstatistica.length,
-      mediaDiaria,
       desvioDiario,
       tendencia: {
         ...tendencia,
         nome: nomeTendencia,
         quantidade: ultimosValores.length,
       },
-      diaForte,
-      diaFraco,
+      diaForte: mediasSemana[0] || null,
+      diaFraco: mediasSemana.at(-1) || null,
       maisConsistente,
       maisOscilante,
+      ranking,
       serieGeral,
-      mudanca,
-      posicao,
+      mudancaHistorica,
       insights: insights.slice(0, 4),
     };
   }, [mes, vendas, metas, lojas, historicos]);
 
   const historicoFiltrado = useMemo(() => {
     if (!analise) return [];
-
     return analise.serieGeral.map((serie) => {
       const lista = serie.vendas.filter((venda) => {
         if (
@@ -574,14 +572,13 @@ export default function InteligenciaGerencial() {
         }
         return true;
       });
-
       return {
         ano: serie.ano,
         total: somar(lista),
         valores: acumuladoPorDia(
           lista,
-          analise.diaCorte,
-          analise.diaCorte,
+          analise.contexto.diaCorte,
+          analise.contexto.diaCorte,
         ),
       };
     });
@@ -589,180 +586,233 @@ export default function InteligenciaGerencial() {
 
   if (!autenticado || !visivel) return null;
 
+  const futuro = analise?.contexto.tipo === "futuro";
+  const encerrado = analise?.contexto.tipo === "encerrado";
   const atualHistorico = historicoFiltrado.find(
-    (item) => item.ano === analise?.ano,
+    (item) => item.ano === analise?.contexto.ano,
   )?.total;
   const anteriorHistorico = historicoFiltrado.find(
-    (item) => item.ano === analise?.ano - 1,
+    (item) => item.ano === analise?.contexto.ano - 1,
   )?.total;
   const mudancaFiltrada = variacao(
     atualHistorico || 0,
     anteriorHistorico || 0,
   );
-  const resumoHistorico =
-    mudancaFiltrada === null
-      ? "Ainda não há base suficiente para comparar com o ano anterior."
-      : `${analise?.tituloMes} está ${percentual.format(
-          Math.abs(mudancaFiltrada),
-        )}% ${mudancaFiltrada >= 0 ? "acima" : "abaixo"} do mesmo período de ${
-          analise.ano - 1
-        }.`;
+
+  let resumoHistorico = "A comparação começará quando o mês tiver lançamentos.";
+  if (analise?.temVendas && mudancaFiltrada !== null) {
+    resumoHistorico = `${analise.tituloMes} está ${percentual.format(
+      Math.abs(mudancaFiltrada),
+    )}% ${mudancaFiltrada >= 0 ? "acima" : "abaixo"} do mesmo ${
+      encerrado ? "mês" : "período"
+    } de ${analise.contexto.ano - 1}.`;
+  } else if (analise?.temVendas) {
+    resumoHistorico = "Há vendas no mês selecionado, mas não existe base do ano anterior para comparação.";
+  }
 
   return (
     <details className="inteligencia-gerencial-unificada">
       <summary>
         <div>
           <strong>🧠 Inteligência Gerencial</strong>
-          <span>Projeções, tendências e comparativos históricos.</span>
+          <span>
+            {futuro
+              ? "Planejamento do próximo período."
+              : encerrado
+                ? "Conclusões e comparativos do mês encerrado."
+                : "Projeções, tendências e comparativos do mês em andamento."}
+          </span>
         </div>
         <i aria-hidden="true">⌄</i>
       </summary>
 
       <div className="inteligencia-gerencial-conteudo">
         {carregando && (
-          <div className={styles.loading}>
-            Calculando indicadores e comparações...
-          </div>
+          <div className={styles.loading}>Preparando a leitura do mês...</div>
         )}
-
         {erro && <div className={styles.error}>{erro}</div>}
 
         {!carregando && !erro && analise && (
           <>
             <section className="inteligencia-gerencial-secao">
               <h3>📊 Comparativo histórico</h3>
-              <div className={styles.filters}>
-                <select
-                  value={filtroLoja}
-                  onChange={(evento) => setFiltroLoja(evento.target.value)}
-                  aria-label="Filtrar loja no histórico"
-                >
-                  <option value="geral">Todas as lojas</option>
-                  {lojas.map((loja) => (
-                    <option value={loja.id} key={loja.id}>
-                      {loja.codigo}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={filtroPeriodo}
-                  onChange={(evento) => setFiltroPeriodo(evento.target.value)}
-                  aria-label="Filtrar período no histórico"
-                >
-                  <option value="todos">Todos os períodos</option>
-                  <option value="manha">Manhã</option>
-                  <option value="noite">Noite</option>
-                </select>
-              </div>
-              <GraficoHistorico
-                series={historicoFiltrado}
-                diaCorte={analise.diaCorte}
-              />
+              {!futuro && analise.temVendas ? (
+                <>
+                  <div className={styles.filters}>
+                    <select
+                      value={filtroLoja}
+                      onChange={(evento) => setFiltroLoja(evento.target.value)}
+                      aria-label="Filtrar loja no histórico"
+                    >
+                      <option value="geral">Todas as lojas</option>
+                      {lojas.map((loja) => (
+                        <option value={loja.id} key={loja.id}>
+                          {loja.codigo}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={filtroPeriodo}
+                      onChange={(evento) => setFiltroPeriodo(evento.target.value)}
+                      aria-label="Filtrar período no histórico"
+                    >
+                      <option value="todos">Todos os períodos</option>
+                      <option value="manha">Manhã</option>
+                      <option value="noite">Noite</option>
+                    </select>
+                  </div>
+                  <GraficoHistorico
+                    series={historicoFiltrado}
+                    diaCorte={analise.contexto.diaCorte}
+                  />
+                </>
+              ) : null}
               <p className={styles.explanation}>{resumoHistorico}</p>
             </section>
 
             <section className="inteligencia-gerencial-secao">
-              <h3>📈 Projeção estatística</h3>
-              <div className={styles.projectionExplain}>
-                <article>
-                  <span>Resultado atual</span>
-                  <strong>{dinheiro.format(analise.totalVendido)}</strong>
-                  <p>
-                    Projeção pelo ritmo médio: {dinheiro.format(
-                      analise.projecaoOperacional,
-                    )}.
-                  </p>
-                </article>
-                <article>
-                  <span>Faixa estatística aproximada</span>
-                  <strong>
-                    {dinheiro.format(analise.faixa.minimo)} a{" "}
-                    {dinheiro.format(analise.faixa.maximo)}
-                  </strong>
-                  <p>
-                    Referência baseada na variação diária. Não é garantia e não
-                    considera clima, turismo, campanhas ou mudanças de equipe.
-                  </p>
-                </article>
-              </div>
+              <h3>
+                {encerrado
+                  ? "📈 Resultado estatístico final"
+                  : futuro
+                    ? "📈 Planejamento estatístico"
+                    : "📈 Projeção estatística"}
+              </h3>
 
-              <div className={styles.probabilityList}>
-                <BarraProbabilidade
-                  nome="Meta"
-                  valor={analise.probabilidades.meta}
-                />
-                <BarraProbabilidade
-                  nome="Supermeta"
-                  valor={analise.probabilidades.super}
-                />
-                <BarraProbabilidade
-                  nome="Megameta"
-                  valor={analise.probabilidades.mega}
-                />
-              </div>
+              {futuro || !analise.temMeta || !analise.temVendas ? (
+                <p className={styles.infoText}>
+                  {fraseSemBase(
+                    analise.contexto.tipo,
+                    analise.temMeta,
+                    analise.temVendas,
+                  )}
+                </p>
+              ) : encerrado ? (
+                <div className={styles.projectionExplain}>
+                  <article>
+                    <span>Resultado final</span>
+                    <strong>{dinheiro.format(analise.totalVendido)}</strong>
+                    <p>
+                      {percentual.format(analise.percentualGeral || 0)}% da Meta · {analise.nivelGeral}.
+                    </p>
+                  </article>
+                  <article>
+                    <span>Leitura da variação diária</span>
+                    <strong>{analise.diasObservados} dias com lançamentos</strong>
+                    <p>
+                      Desvio diário observado de {dinheiro.format(analise.desvioDiario)}. Como o mês encerrou, não há mais projeção nem probabilidade futura.
+                    </p>
+                  </article>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.projectionExplain}>
+                    <article>
+                      <span>Resultado atual</span>
+                      <strong>{dinheiro.format(analise.totalVendido)}</strong>
+                      <p>
+                        Projeção pelo ritmo médio: {dinheiro.format(
+                          analise.projecaoOperacional,
+                        )}.
+                      </p>
+                    </article>
+                    <article>
+                      <span>Faixa estatística aproximada</span>
+                      <strong>
+                        {dinheiro.format(analise.faixa.minimo)} a {" "}
+                        {dinheiro.format(analise.faixa.maximo)}
+                      </strong>
+                      <p>
+                        Faixa de referência, não garantia. O resultado ainda pode mudar com clima, turismo, campanhas e comportamento da equipe.
+                      </p>
+                    </article>
+                  </div>
 
-              <p
-                className={
-                  analise.baseEstatistica >= 3
-                    ? styles.infoText
-                    : styles.warningText
-                }
-              >
-                {analise.baseEstatistica >= 3
-                  ? `Estimativa calculada com ${analise.baseEstatistica} dias na base estatística e desvio diário de ${dinheiro.format(
-                      analise.desvioDiario,
-                    )}.`
-                  : `Amostra ainda pequena: há ${analise.diasObservados} dias com lançamentos. As probabilidades devem ser interpretadas com cautela.`}
-              </p>
+                  <div className={styles.probabilityList}>
+                    <BarraProbabilidade
+                      nome="Meta"
+                      valor={analise.probabilidades.meta}
+                    />
+                    <BarraProbabilidade
+                      nome="Supermeta"
+                      valor={analise.probabilidades.super}
+                    />
+                    <BarraProbabilidade
+                      nome="Megameta"
+                      valor={analise.probabilidades.mega}
+                    />
+                  </div>
+
+                  <p
+                    className={
+                      analise.baseEstatistica >= 3
+                        ? styles.infoText
+                        : styles.warningText
+                    }
+                  >
+                    {analise.baseEstatistica >= 3
+                      ? `Estimativa calculada com ${analise.baseEstatistica} dias na base estatística. Continue mantendo os lançamentos atualizados para acompanhar a evolução.`
+                      : `A base ainda está sendo formada: há ${analise.diasObservados} dias com lançamentos. Continue preenchendo o mês para aumentar a confiabilidade das probabilidades.`}
+                  </p>
+                </>
+              )}
             </section>
 
             <section className="inteligencia-gerencial-secao">
-              <h3>📉 Tendências</h3>
-              <div className={styles.trendGrid}>
-                <article>
-                  <span>Tendência recente</span>
-                  <strong>{analise.tendencia.nome}</strong>
-                  <p>
-                    Variação linear estimada de{" "}
-                    {dinheiro.format(Math.abs(analise.tendencia.inclinacao))} por
-                    dia nos últimos {analise.tendencia.quantidade} dias com
-                    lançamentos.
-                  </p>
-                </article>
-                <article>
-                  <span>Dia mais forte</span>
-                  <strong>{analise.diaForte?.nome || "Sem amostra"}</strong>
-                  <p>
-                    {analise.diaForte
-                      ? `Média de ${dinheiro.format(analise.diaForte.media)}.`
-                      : "São necessárias ao menos duas ocorrências do mesmo dia da semana."}
-                  </p>
-                </article>
-                <article>
-                  <span>Dia mais fraco</span>
-                  <strong>{analise.diaFraco?.nome || "Sem amostra"}</strong>
-                  <p>
-                    {analise.diaFraco
-                      ? `Média de ${dinheiro.format(analise.diaFraco.media)}.`
-                      : "São necessárias ao menos duas ocorrências do mesmo dia da semana."}
-                  </p>
-                </article>
-                <article>
-                  <span>Regularidade</span>
-                  <strong>
-                    {analise.maisConsistente?.codigo || "Sem amostra"}
-                  </strong>
-                  <p>
-                    {analise.maisConsistente
-                      ? `Menor oscilação proporcional. ${
-                          analise.maisOscilante?.codigo
-                            ? `${analise.maisOscilante.codigo} apresentou a maior variação.`
-                            : ""
-                        }`
-                      : "Ainda não há dias suficientes por loja."}
-                  </p>
-                </article>
-              </div>
+              <h3>{encerrado ? "📉 Tendências observadas no mês" : "📉 Tendências"}</h3>
+
+              {futuro || !analise.temVendas ? (
+                <p className={styles.infoText}>
+                  {futuro
+                    ? "As tendências começarão a ser calculadas após a abertura e os primeiros lançamentos do mês."
+                    : "Ainda não há lançamentos suficientes para identificar ritmo, dias fortes ou regularidade das lojas."}
+                </p>
+              ) : (
+                <div className={styles.trendGrid}>
+                  <article>
+                    <span>{encerrado ? "Tendência do período" : "Tendência recente"}</span>
+                    <strong>{analise.tendencia.nome}</strong>
+                    <p>
+                      Variação linear de {dinheiro.format(
+                        Math.abs(analise.tendencia.inclinacao),
+                      )} por dia nos últimos {analise.tendencia.quantidade} dias observados.
+                    </p>
+                  </article>
+                  <article>
+                    <span>Dia mais forte</span>
+                    <strong>{analise.diaForte?.nome || "Base em formação"}</strong>
+                    <p>
+                      {analise.diaForte
+                        ? `Média de ${dinheiro.format(analise.diaForte.media)}.`
+                        : "São necessárias ao menos duas ocorrências do mesmo dia da semana."}
+                    </p>
+                  </article>
+                  <article>
+                    <span>Dia mais fraco</span>
+                    <strong>{analise.diaFraco?.nome || "Base em formação"}</strong>
+                    <p>
+                      {analise.diaFraco
+                        ? `Média de ${dinheiro.format(analise.diaFraco.media)}.`
+                        : "São necessárias ao menos duas ocorrências do mesmo dia da semana."}
+                    </p>
+                  </article>
+                  <article>
+                    <span>Regularidade</span>
+                    <strong>
+                      {analise.maisConsistente?.codigo || "Base em formação"}
+                    </strong>
+                    <p>
+                      {analise.maisConsistente
+                        ? `Menor oscilação proporcional. ${
+                            analise.maisOscilante?.codigo
+                              ? `${analise.maisOscilante.codigo} teve a maior variação.`
+                              : ""
+                          }`
+                        : "Ainda não há dias suficientes por loja."}
+                    </p>
+                  </article>
+                </div>
+              )}
             </section>
 
             <section className="inteligencia-gerencial-secao">
@@ -771,7 +821,11 @@ export default function InteligenciaGerencial() {
                 {(analise.insights.length
                   ? analise.insights
                   : [
-                      "Os insights serão gerados assim que houver dados suficientes no mês selecionado.",
+                      fraseSemBase(
+                        analise.contexto.tipo,
+                        analise.temMeta,
+                        analise.temVendas,
+                      ),
                     ]
                 ).map((insight) => (
                   <article key={insight}>
