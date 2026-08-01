@@ -30,6 +30,7 @@ import "./persistencia-navegacao.css";
 import "./fechamento-print-fix.css";
 import "./fechamento-botao-final.css";
 import "./mobile-tabs.css";
+import "./rodape-autoria.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -67,6 +68,16 @@ export default function RootLayout({ children }) {
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
+        <footer className="rodape-autoria">
+          Produzido por{" "}
+          <a
+            href="https://github.com/camila-ubt"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            @camila-ubt
+          </a>
+        </footer>
         <PersistenciaNavegacao />
         <ConferenciaAthos />
         <PainelReuniao />
