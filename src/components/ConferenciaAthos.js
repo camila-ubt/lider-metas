@@ -16,14 +16,14 @@ function inicioMes(valor) {
 function fimMes(valor) {
   const [ano, mes] = valor.split("-").map(Number);
   return `${ano}-${String(mes).padStart(2, "0")}-${String(
-    new Date(ano, mes, 0).getDate()
+    new Date(ano, mes, 0).getDate(),
   ).padStart(2, "0")}`;
 }
 
 function dataLocal(ano, mes, dia) {
   return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(
     2,
-    "0"
+    "0",
   )}`;
 }
 
@@ -36,7 +36,7 @@ function mesDaTela() {
 
 function abaLancamentosAtiva() {
   const botao = Array.from(document.querySelectorAll("nav.tabs button")).find(
-    (item) => item.textContent?.trim() === "Lançar vendas"
+    (item) => item.textContent?.trim() === "Lançar vendas",
   );
   return Boolean(botao?.classList.contains("active"));
 }
@@ -104,7 +104,11 @@ export default function ConferenciaAthos() {
       setErro("");
 
       const [lojasResp, vendasResp] = await Promise.all([
-        supabase.from("lojas").select("id,codigo,nome,ordem").eq("ativa", true).order("ordem"),
+        supabase
+          .from("lojas")
+          .select("id,codigo,nome,ordem")
+          .eq("ativa", true)
+          .order("ordem"),
         supabase
           .from("vendas_diarias")
           .select("data,loja_id,periodo,valor_vendido")
@@ -124,7 +128,7 @@ export default function ConferenciaAthos() {
         setVendas(vendasResp.data || []);
         setLojaId((atual) => {
           const aindaExiste = lojasCarregadas.some(
-            (loja) => String(loja.id) === String(atual)
+            (loja) => String(loja.id) === String(atual),
           );
           return aindaExiste ? atual : String(lojasCarregadas[0]?.id || "");
         });
@@ -139,7 +143,7 @@ export default function ConferenciaAthos() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "vendas_diarias" },
-        carregar
+        carregar,
       )
       .subscribe();
 
@@ -173,7 +177,7 @@ export default function ConferenciaAthos() {
 
       temporizadores.forEach(clearTimeout);
       temporizadores = [350, 900].map((tempo) =>
-        setTimeout(atualizarVendas, tempo)
+        setTimeout(atualizarVendas, tempo),
       );
     }
 
@@ -215,14 +219,14 @@ export default function ConferenciaAthos() {
       const data = dataLocal(ano, numeroMes, dia);
       const vendasDia = vendas.filter(
         (venda) =>
-          venda.data === data && Number(venda.loja_id) === Number(lojaId)
+          venda.data === data && Number(venda.loja_id) === Number(lojaId),
       );
       const manha = vendasDia.find((venda) => venda.periodo === "manha");
       const noite = vendasDia.find((venda) => venda.periodo === "noite");
       const preenchidos = Number(Boolean(manha)) + Number(Boolean(noite));
       const valor = vendasDia.reduce(
         (soma, venda) => soma + Number(venda.valor_vendido || 0),
-        0
+        0,
       );
 
       total += valor;
@@ -236,7 +240,11 @@ export default function ConferenciaAthos() {
         valor,
         preenchidos,
         status:
-          preenchidos === 2 ? "Completo" : preenchidos === 1 ? "Parcial" : "Pendente",
+          preenchidos === 2
+            ? "Completo"
+            : preenchidos === 1
+              ? "Parcial"
+              : "Pendente",
       };
     });
 
@@ -244,10 +252,22 @@ export default function ConferenciaAthos() {
     return { linhas, total, completos, parciais, pendentes };
   }, [lojaId, mes, vendas]);
 
+  function abrirEdicaoDoDia(data) {
+    window.dispatchEvent(
+      new CustomEvent("lider-metas:abrir-lancamentos-dia", {
+        detail: {
+          data,
+          lojaId: Number(lojaId),
+          aba: "lancados",
+        },
+      }),
+    );
+  }
+
   if (!autenticado || !visivel) return null;
 
   const lojaSelecionada = lojas.find(
-    (loja) => Number(loja.id) === Number(lojaId)
+    (loja) => Number(loja.id) === Number(lojaId),
   );
 
   return (
@@ -274,7 +294,9 @@ export default function ConferenciaAthos() {
                 <span>Manhã + noite do mês selecionado no topo.</span>
               </div>
               {lojaSelecionada && (
-                <b>{lojaSelecionada.codigo} · {dinheiro.format(resumo.total)}</b>
+                <b>
+                  {lojaSelecionada.codigo} · {dinheiro.format(resumo.total)}
+                </b>
               )}
             </div>
 
@@ -286,7 +308,9 @@ export default function ConferenciaAthos() {
               {lojas.map((loja) => (
                 <button
                   type="button"
-                  className={Number(loja.id) === Number(lojaId) ? styles.activeStore : ""}
+                  className={
+                    Number(loja.id) === Number(lojaId) ? styles.activeStore : ""
+                  }
                   onClick={() => setLojaId(String(loja.id))}
                   key={loja.id}
                 >
@@ -295,21 +319,30 @@ export default function ConferenciaAthos() {
               ))}
             </div>
 
-            {carregando && <p className={styles.loading}>Atualizando conferência...</p>}
+            {carregando && (
+              <p className={styles.loading}>Atualizando conferência...</p>
+            )}
             {erro && <p className={styles.error}>{erro}</p>}
 
             {!carregando && !erro && (
               <>
                 <div className={styles.summary}>
-                  <span><i className={styles.completeDot} /> {resumo.completos} dias completos</span>
-                  <span><i className={styles.partialDot} /> {resumo.parciais} parciais</span>
-                  <span><i style={{ background: "#c7c0cc" }} /> {resumo.pendentes} pendentes</span>
+                  <span>
+                    <i className={styles.completeDot} /> {resumo.completos} dias completos
+                  </span>
+                  <span>
+                    <i className={styles.partialDot} /> {resumo.parciais} parciais
+                  </span>
+                  <span>
+                    <i style={{ background: "#c7c0cc" }} /> {resumo.pendentes} pendentes
+                  </span>
                 </div>
 
                 <div className={styles.tableWrap}>
                   <div className={styles.tableHeader}>
                     <span>Data</span>
                     <span>Total</span>
+                    <span aria-hidden="true" />
                   </div>
 
                   <div className={styles.rows}>
@@ -325,10 +358,31 @@ export default function ConferenciaAthos() {
                         key={linha.data}
                       >
                         <div>
-                          <strong>{String(linha.dia).padStart(2, "0")}/{mes.slice(5, 7)}</strong>
+                          <strong>
+                            {String(linha.dia).padStart(2, "0")}/{mes.slice(5, 7)}
+                          </strong>
                           <small>{linha.status}</small>
                         </div>
                         <b>{dinheiro.format(linha.valor)}</b>
+                        <button
+                          type="button"
+                          className={styles.editDay}
+                          onClick={() => abrirEdicaoDoDia(linha.data)}
+                          aria-label={`Editar lançamentos de ${String(linha.dia).padStart(2, "0")}/${mes.slice(5, 7)}`}
+                          title="Editar lançamentos deste dia"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                            aria-hidden="true"
+                          >
+                            <path
+                              d="M4 20h4.2L19 9.2 14.8 5 4 15.8V20Zm2-3.4 8.8-8.8 1.4 1.4-8.8 8.8H6v-1.4ZM17.6 3.6a1.4 1.4 0 0 1 2 0l.8.8a1.4 1.4 0 0 1 0 2l-1.8 1.8-2.8-2.8 1.8-1.8Z"
+                              fill="currentColor"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     ))}
                   </div>
