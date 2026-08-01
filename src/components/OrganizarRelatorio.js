@@ -12,10 +12,36 @@ function acharTextoExato(seletor, valor) {
   );
 }
 
+function cardVisualDo(marcador) {
+  if (!marcador) return null;
+
+  let atual = marcador.parentElement;
+  let fallback = marcador.closest("section, article");
+
+  while (atual && atual !== document.body) {
+    const estilo = getComputedStyle(atual);
+    const raio = parseFloat(estilo.borderTopLeftRadius || "0");
+    const conteudo = texto(atual);
+
+    if (
+      raio >= 12 &&
+      conteudo.length >= 40 &&
+      conteudo.length <= 5000 &&
+      atual.parentElement &&
+      atual.parentElement !== document.body
+    ) {
+      return atual;
+    }
+
+    atual = atual.parentElement;
+  }
+
+  return fallback;
+}
+
 function acharCardPorTitulo(titulo) {
   const marcador = acharTextoExato("h1,h2,h3,h4,p,span,strong", titulo);
-  if (!marcador) return null;
-  return marcador.closest("section, article");
+  return cardVisualDo(marcador);
 }
 
 function inserirDepois(elemento, referencia) {
@@ -30,11 +56,8 @@ export default function OrganizarRelatorio() {
 
     function organizar() {
       const ranking = acharCardPorTitulo("RANKING INTERATIVO");
-      const roteiro = Array.from(document.querySelectorAll("section")).find((secao) =>
-        Array.from(secao.querySelectorAll("p")).some(
-          (paragrafo) => texto(paragrafo) === "ROTEIRO DA REUNIÃO",
-        ),
-      );
+      const marcadorRoteiro = acharTextoExato("p", "ROTEIRO DA REUNIÃO");
+      const roteiro = marcadorRoteiro?.closest("section");
       const grafico = acharCardPorTitulo("EVOLUÇÃO ACUMULADA");
       const inteligencia = document.querySelector("details.inteligencia-gerencial-unificada");
 
@@ -84,7 +107,7 @@ export default function OrganizarRelatorio() {
 
     function atualizar() {
       clearTimeout(agendado);
-      agendado = setTimeout(organizar, 120);
+      agendado = setTimeout(organizar, 150);
     }
 
     atualizar();
