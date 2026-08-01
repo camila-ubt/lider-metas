@@ -15,6 +15,7 @@ import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
 import ManualUsuario from "@/components/ManualUsuario";
 import PesquisaManual from "@/components/PesquisaManual";
 import CorrecaoAbaManual from "@/components/CorrecaoAbaManual";
+import RodapeAutoria from "@/components/RodapeAutoria";
 import "./globals.css";
 import "./branding.css";
 import "./meta-status.css";
@@ -68,16 +69,6 @@ export default function RootLayout({ children }) {
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
-        <footer className="rodape-autoria">
-          Produzido por{" "}
-          <a
-            href="https://github.com/camila-ubt"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            @camila-ubt
-          </a>
-        </footer>
         <PersistenciaNavegacao />
         <ConferenciaAthos />
         <PainelReuniao />
@@ -94,6 +85,7 @@ export default function RootLayout({ children }) {
         <ManualUsuario />
         <PesquisaManual />
         <CorrecaoAbaManual />
+        <RodapeAutoria />
       </body>
     </html>
   );
