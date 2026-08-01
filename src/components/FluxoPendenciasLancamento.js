@@ -9,6 +9,17 @@ const dinheiro = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
+function hojeLocal() {
+  const data = new Date();
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+}
+
+function proximaData(data) {
+  const atual = new Date(`${data}T12:00:00`);
+  atual.setDate(atual.getDate() + 1);
+  return `${atual.getFullYear()}-${String(atual.getMonth() + 1).padStart(2, "0")}-${String(atual.getDate()).padStart(2, "0")}`;
+}
+
 function formatarData(data) {
   if (!data) return "";
   return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR", {
@@ -41,22 +52,36 @@ function lancamentosDaLoja(vendas, data, lojaId) {
     .sort((a, b) => b.periodo.localeCompare(a.periodo));
 }
 
-function pendenciasDaLoja(vendas, data, lojaId) {
-  return periodos
-    .filter(
-      (periodo) =>
-        !vendas.some(
-          (venda) =>
-            venda.data === data &&
-            Number(venda.loja_id) === Number(lojaId) &&
-            venda.periodo === periodo,
-        ),
-    )
-    .map((periodo) => ({
-      data,
-      periodo,
-      existente: false,
-    }));
+function pendenciasDaLoja(vendas, dataInicial, lojaId) {
+  if (!dataInicial || !lojaId) return [];
+
+  const resultado = [];
+  const hoje = hojeLocal();
+  const dataFinal = dataInicial > hoje ? dataInicial : hoje;
+  let data = dataInicial;
+
+  while (data <= dataFinal) {
+    periodos.forEach((periodo) => {
+      const existe = vendas.some(
+        (venda) =>
+          venda.data === data &&
+          Number(venda.loja_id) === Number(lojaId) &&
+          venda.periodo === periodo,
+      );
+
+      if (!existe) {
+        resultado.push({
+          data,
+          periodo,
+          existente: false,
+        });
+      }
+    });
+
+    data = proximaData(data);
+  }
+
+  return resultado;
 }
 
 export default function FluxoPendenciasLancamento() {
@@ -107,12 +132,17 @@ export default function FluxoPendenciasLancamento() {
     setValor("");
     setCaixaNaoAberto(false);
 
+    const hoje = hojeLocal();
+    const dataFinal = data > hoje ? data : hoje;
+
     const [lojasResposta, vendasResposta] = await Promise.all([
       supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
       supabase
         .from("vendas_diarias")
         .select("*")
-        .eq("data", data)
+        .gte("data", data)
+        .lte("data", dataFinal)
+        .order("data", { ascending: true })
         .order("periodo", { ascending: true }),
     ]);
 
@@ -127,36 +157,30 @@ export default function FluxoPendenciasLancamento() {
     }
 
     const listaLojas = lojasResposta.data || [];
-    const vendasDoDia = (vendasResposta.data || []).filter(
-      (venda) => venda.data === data,
+    const vendasDoIntervalo = (vendasResposta.data || []).filter(
+      (venda) => venda.data >= data && venda.data <= dataFinal,
     );
     const primeiraLoja = String(listaLojas[0]?.id || "");
     const pendenciasPrimeiraLoja = pendenciasDaLoja(
-      vendasDoDia,
+      vendasDoIntervalo,
       data,
       primeiraLoja,
     );
 
     setLojas(listaLojas);
-    setVendas(vendasDoDia);
+    setVendas(vendasDoIntervalo);
     setLojaId(primeiraLoja);
     setAba(pendenciasPrimeiraLoja.length ? "pendentes" : "lancados");
     setCarregando(false);
   }
 
   const pendencias = useMemo(
-    () =>
-      dataSelecionada && lojaId
-        ? pendenciasDaLoja(vendas, dataSelecionada, lojaId)
-        : [],
+    () => pendenciasDaLoja(vendas, dataSelecionada, lojaId),
     [dataSelecionada, lojaId, vendas],
   );
 
   const lancados = useMemo(
-    () =>
-      dataSelecionada && lojaId
-        ? lancamentosDaLoja(vendas, dataSelecionada, lojaId)
-        : [],
+    () => lancamentosDaLoja(vendas, dataSelecionada, lojaId),
     [dataSelecionada, lojaId, vendas],
   );
 
@@ -171,7 +195,7 @@ export default function FluxoPendenciasLancamento() {
   function selecionar(item, existente = false) {
     setSlot({
       id: item.id || null,
-      data: dataSelecionada,
+      data: item.data,
       periodo: item.periodo,
       existente,
     });
@@ -193,13 +217,14 @@ export default function FluxoPendenciasLancamento() {
 
     setSalvando(true);
     setErro("");
+    const dataDoLancamento = slot.data;
     const { data: sessao } = await supabase.auth.getSession();
 
     const { data, error } = await supabase
       .from("vendas_diarias")
       .upsert(
         {
-          data: dataSelecionada,
+          data: dataDoLancamento,
           loja_id: Number(lojaId),
           periodo: slot.periodo,
           valor_vendido: numero,
@@ -222,8 +247,8 @@ export default function FluxoPendenciasLancamento() {
       ...atual.filter(
         (item) =>
           !(
-            item.data === dataSelecionada &&
-            Number(item.loja_id) === Number(lojaId) &&
+            item.data === data.data &&
+            Number(item.loja_id) === Number(data.loja_id) &&
             item.periodo === data.periodo
           ),
       ),
@@ -232,7 +257,7 @@ export default function FluxoPendenciasLancamento() {
     setSlot(null);
     setValor("");
     setCaixaNaoAberto(false);
-    setAba("lancados");
+    setAba(dataDoLancamento === dataSelecionada ? "lancados" : "pendentes");
     setSalvando(false);
   }
 
@@ -240,7 +265,7 @@ export default function FluxoPendenciasLancamento() {
     if (!slot?.existente) return;
     if (
       !window.confirm(
-        `Remover o lançamento de ${formatarData(dataSelecionada)}?`,
+        `Remover o lançamento de ${formatarData(slot.data)}?`,
       )
     ) {
       return;
@@ -253,7 +278,7 @@ export default function FluxoPendenciasLancamento() {
     consulta = slot.id
       ? consulta.eq("id", slot.id)
       : consulta
-          .eq("data", dataSelecionada)
+          .eq("data", slot.data)
           .eq("loja_id", Number(lojaId))
           .eq("periodo", slot.periodo);
 
@@ -269,7 +294,7 @@ export default function FluxoPendenciasLancamento() {
       atual.filter(
         (item) =>
           !(
-            item.data === dataSelecionada &&
+            item.data === slot.data &&
             Number(item.loja_id) === Number(lojaId) &&
             item.periodo === slot.periodo
           ),
@@ -303,8 +328,12 @@ export default function FluxoPendenciasLancamento() {
       >
         <header>
           <div>
-            <p>LANÇAMENTOS DO DIA</p>
-            <h2>{formatarData(dataSelecionada)}</h2>
+            <p>{aba === "pendentes" ? "PENDÊNCIAS" : "LANÇAMENTOS DO DIA"}</p>
+            <h2>
+              {aba === "pendentes"
+                ? `A partir de ${formatarData(dataSelecionada)}`
+                : formatarData(dataSelecionada)}
+            </h2>
           </div>
           <button
             type="button"
@@ -316,7 +345,7 @@ export default function FluxoPendenciasLancamento() {
         </header>
 
         {carregando ? (
-          <div className="fluxo-vazio neutro">Carregando o dia selecionado...</div>
+          <div className="fluxo-vazio neutro">Carregando lançamentos...</div>
         ) : (
           <>
             <div className="fluxo-lojas">
@@ -365,23 +394,27 @@ export default function FluxoPendenciasLancamento() {
                 <div className="fluxo-lista">
                   <div className="fluxo-lista-titulo">
                     <strong>{lojaAtual?.nome || lojaAtual?.codigo}</strong>
-                    <span>Somente {formatarData(dataSelecionada)}</span>
+                    <span>
+                      {aba === "pendentes"
+                        ? `Pendências desde ${formatarData(dataSelecionada)}`
+                        : `Somente ${formatarData(dataSelecionada)}`}
+                    </span>
                   </div>
 
                   {aba === "pendentes" ? (
                     pendencias.length === 0 ? (
                       <div className="fluxo-vazio">
-                        ✓ Dia conferido — tudo OK
+                        ✓ Nenhuma pendência a partir desta data
                       </div>
                     ) : (
                       pendencias.map((item) => (
                         <button
                           type="button"
-                          key={item.periodo}
+                          key={`${item.data}-${item.periodo}`}
                           onClick={() => selecionar(item)}
                         >
                           <div>
-                            <strong>{formatarData(dataSelecionada)}</strong>
+                            <strong>{formatarData(item.data)}</strong>
                             <span>
                               {item.periodo === "manha" ? "Manhã" : "Noite"}
                             </span>
@@ -428,7 +461,7 @@ export default function FluxoPendenciasLancamento() {
 
                 <div className="fluxo-resumo">
                   <strong>
-                    {lojaAtual?.codigo} · {formatarData(dataSelecionada)}
+                    {lojaAtual?.codigo} · {formatarData(slot.data)}
                   </strong>
                   <span>{slot.periodo === "manha" ? "Manhã" : "Noite"}</span>
                 </div>
