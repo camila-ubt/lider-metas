@@ -1,0 +1,19 @@
+/* O acesso ao fechamento faz parte do fluxo da página, não fica flutuando. */
+body > button[class*="launcher"] {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  display: block !important;
+  width: min(1180px, calc(100% - 32px)) !important;
+  margin: 24px auto 40px !important;
+  padding: 15px 20px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 28px rgba(63, 39, 91, 0.16) !important;
+}
+
+@media (max-width: 620px) {
+  body > button[class*="launcher"] {
+    width: calc(100% - 24px) !important;
+    margin: 20px auto 28px !important;
+  }
+}
