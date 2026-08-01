@@ -14,10 +14,26 @@ function texto(elemento) {
 
 function encontrarBloco(titulo) {
   return Array.from(document.querySelectorAll("details")).find((item) => {
-    if (item.closest(".inteligencia-gerencial-unificada")) return false;
+    if (item.classList.contains("inteligencia-gerencial-unificada")) return false;
     const resumo = item.querySelector(":scope > summary strong, :scope > summary h3, :scope > summary");
     return texto(resumo).startsWith(titulo);
   });
+}
+
+function encontrarGrafico() {
+  const marcador = Array.from(document.querySelectorAll("h2, h3, strong, p, span")).find((item) => {
+    const conteudo = texto(item).toLowerCase();
+    return conteudo.includes("evolução acumulada") || conteudo.includes("evolucao acumulada");
+  });
+
+  if (!marcador) return null;
+
+  let bloco = marcador;
+  while (bloco.parentElement && bloco.parentElement !== document.body) {
+    if (["SECTION", "ARTICLE"].includes(bloco.tagName)) return bloco;
+    bloco = bloco.parentElement;
+  }
+  return marcador.parentElement;
 }
 
 function ocultarCabecalhoAntigo() {
@@ -40,18 +56,7 @@ function ocultarCabecalhoAntigo() {
   }
 }
 
-function montar() {
-  const existentes = titulos.map(encontrarBloco);
-  if (existentes.some((item) => !item)) return;
-
-  ocultarCabecalhoAntigo();
-  existentes.forEach((bloco) => {
-    bloco.style.display = "none";
-    bloco.dataset.inteligenciaOriginal = "true";
-  });
-
-  if (document.querySelector(".inteligencia-gerencial-unificada")) return;
-
+function criarBloco(existentes) {
   const detalhes = document.createElement("details");
   detalhes.className = "inteligencia-gerencial-unificada";
 
@@ -84,7 +89,30 @@ function montar() {
   });
 
   detalhes.appendChild(conteudo);
-  existentes[0].parentElement.insertBefore(detalhes, existentes[0]);
+  return detalhes;
+}
+
+function montar() {
+  const existentes = titulos.map(encontrarBloco);
+  if (existentes.some((item) => !item)) return;
+
+  ocultarCabecalhoAntigo();
+  existentes.forEach((bloco) => {
+    bloco.style.display = "none";
+    bloco.dataset.inteligenciaOriginal = "true";
+  });
+
+  let unificado = document.querySelector(".inteligencia-gerencial-unificada");
+  if (!unificado) unificado = criarBloco(existentes);
+
+  const grafico = encontrarGrafico();
+  if (grafico?.parentElement) {
+    grafico.parentElement.insertBefore(unificado, grafico);
+    return;
+  }
+
+  const referencia = existentes[0];
+  referencia.parentElement?.insertBefore(unificado, referencia);
 }
 
 export default function InteligenciaGerencialUnificada() {
