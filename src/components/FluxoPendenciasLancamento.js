@@ -9,17 +9,6 @@ const dinheiro = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
-function hojeLocal() {
-  const data = new Date();
-  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
-}
-
-function proximaData(data) {
-  const atual = new Date(`${data}T12:00:00`);
-  atual.setDate(atual.getDate() + 1);
-  return `${atual.getFullYear()}-${String(atual.getMonth() + 1).padStart(2, "0")}-${String(atual.getDate()).padStart(2, "0")}`;
-}
-
 function formatarData(data) {
   return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -81,15 +70,13 @@ export default function FluxoPendenciasLancamento() {
     setValor("");
     setCaixaNaoAberto(false);
 
-    const fim = hojeLocal();
     const [lojasResposta, vendasResposta] = await Promise.all([
       supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
       supabase
         .from("vendas_diarias")
         .select("*")
-        .gte("data", data)
-        .lte("data", fim)
-        .order("data", { ascending: true }),
+        .eq("data", data)
+        .order("periodo", { ascending: true }),
     ]);
 
     if (lojasResposta.error || vendasResposta.error) {
@@ -110,35 +97,30 @@ export default function FluxoPendenciasLancamento() {
 
   const pendencias = useMemo(() => {
     if (!inicio || !lojaId) return [];
-    const resultado = [];
-    let data = inicio;
-    const fim = hojeLocal();
 
-    while (data <= fim) {
-      periodos.forEach((periodo) => {
-        const existe = vendas.some(
-          (venda) =>
-            venda.data === data &&
-            Number(venda.loja_id) === Number(lojaId) &&
-            venda.periodo === periodo,
-        );
-        if (!existe) resultado.push({ data, periodo, existente: false });
-      });
-      data = proximaData(data);
-    }
-
-    return resultado;
+    return periodos
+      .filter(
+        (periodo) =>
+          !vendas.some(
+            (venda) =>
+              venda.data === inicio &&
+              Number(venda.loja_id) === Number(lojaId) &&
+              venda.periodo === periodo,
+          ),
+      )
+      .map((periodo) => ({ data: inicio, periodo, existente: false }));
   }, [inicio, lojaId, vendas]);
 
   const lancados = useMemo(
     () =>
       vendas
-        .filter((venda) => Number(venda.loja_id) === Number(lojaId))
-        .sort(
-          (a, b) =>
-            b.data.localeCompare(a.data) || b.periodo.localeCompare(a.periodo),
-        ),
-    [lojaId, vendas],
+        .filter(
+          (venda) =>
+            venda.data === inicio &&
+            Number(venda.loja_id) === Number(lojaId),
+        )
+        .sort((a, b) => b.periodo.localeCompare(a.periodo)),
+    [inicio, lojaId, vendas],
   );
 
   function selecionar(item, existente = false) {
@@ -201,7 +183,7 @@ export default function FluxoPendenciasLancamento() {
     setSlot(null);
     setValor("");
     setCaixaNaoAberto(false);
-    setAba("pendentes");
+    setAba("lancados");
     setSalvando(false);
   }
 
@@ -255,7 +237,7 @@ export default function FluxoPendenciasLancamento() {
         <header>
           <div>
             <p>LANÇAMENTOS</p>
-            <h2>A partir de {formatarData(inicio)}</h2>
+            <h2>Lançamentos de {formatarData(inicio)}</h2>
           </div>
           <button type="button" onClick={() => setAberto(false)} aria-label="Fechar">
             ×
@@ -264,22 +246,15 @@ export default function FluxoPendenciasLancamento() {
 
         <div className="fluxo-lojas">
           {lojas.map((loja) => {
-            let total = 0;
-            let data = inicio;
-            while (data <= hojeLocal()) {
-              periodos.forEach((periodo) => {
-                if (
-                  !vendas.some(
-                    (venda) =>
-                      venda.data === data &&
-                      Number(venda.loja_id) === Number(loja.id) &&
-                      venda.periodo === periodo,
-                  )
-                )
-                  total += 1;
-              });
-              data = proximaData(data);
-            }
+            const total = periodos.filter(
+              (periodo) =>
+                !vendas.some(
+                  (venda) =>
+                    venda.data === inicio &&
+                    Number(venda.loja_id) === Number(loja.id) &&
+                    venda.periodo === periodo,
+                ),
+            ).length;
 
             return (
               <button
@@ -324,15 +299,15 @@ export default function FluxoPendenciasLancamento() {
                 <span>
                   {aba === "pendentes"
                     ? pendencias.length === 0
-                      ? "Loja OK"
-                      : `${pendencias.length} pendência(s)`
-                    : `${lancados.length} lançamento(s)`}
+                      ? "Dia completo"
+                      : `${pendencias.length} pendência(s) neste dia`
+                    : `${lancados.length} lançamento(s) neste dia`}
                 </span>
               </div>
 
               {aba === "pendentes" ? (
                 pendencias.length === 0 ? (
-                  <div className="fluxo-vazio">✓ Loja conferida — tudo OK</div>
+                  <div className="fluxo-vazio">✓ Dia conferido — tudo OK</div>
                 ) : (
                   pendencias.map((item) => (
                     <button
@@ -349,7 +324,9 @@ export default function FluxoPendenciasLancamento() {
                   ))
                 )
               ) : lancados.length === 0 ? (
-                <div className="fluxo-vazio neutro">Nenhum lançamento nesta loja</div>
+                <div className="fluxo-vazio neutro">
+                  Nenhum lançamento nesta loja e neste dia
+                </div>
               ) : (
                 lancados.map((item) => (
                   <button
