@@ -23,6 +23,7 @@ import "./analise-ajustes.css";
 import "./inteligencia-gerencial.css";
 import "./persistencia-navegacao.css";
 import "./fechamento-print-fix.css";
+import "./fechamento-botao-final.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -65,12 +66,12 @@ export default function RootLayout({ children }) {
         <PainelReuniao />
         <InteligenciaGerencial />
         <MascaraMoeda />
-        <FechamentoPainelNovo />
         <AjusteProbabilidades />
         <FeedbackTurnos />
         <RemoverLancamento />
         <AjusteDiasEquivalentes />
         <FluxoPendenciasLancamento />
+        <FechamentoPainelNovo />
       </body>
     </html>
   );
