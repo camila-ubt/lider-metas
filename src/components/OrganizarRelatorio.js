@@ -26,21 +26,16 @@ function achar(seletor, texto) {
 export default function OrganizarRelatorio() {
   useEffect(() => {
     function organizar() {
-      const cabecalhoAntigo = achar("section,article,div", "LEITURA GERENCIAL AVANÇADA");
-      const cardCabecalho = cabecalhoAntigo ? cardMaisProximo(cabecalhoAntigo) : null;
-      if (cardCabecalho) cardCabecalho.style.display = "none";
-
       const tituloGrafico = achar("h1,h2,h3,h4,p,span", "EVOLUÇÃO ACUMULADA");
       const grafico = tituloGrafico ? cardMaisProximo(tituloGrafico) : null;
-      const inteligencia = achar("summary,h2,h3,strong", "Inteligência gerencial");
-      const cardInteligencia = inteligencia ? cardMaisProximo(inteligencia) : null;
+      const inteligencia = document.querySelector(".inteligencia-gerencial-unificada");
       const previa = achar("button,a", "Prévia / fechamento");
 
-      if (grafico && !grafico.dataset.movidoParaFinal) {
-        const destino = cardInteligencia?.parentElement || previa?.parentElement;
+      if (grafico && inteligencia && !grafico.dataset.movidoParaFinal) {
+        const destino = inteligencia.parentElement;
         if (destino) {
           if (previa && previa.parentElement === destino) destino.insertBefore(grafico, previa);
-          else if (cardInteligencia?.nextSibling) destino.insertBefore(grafico, cardInteligencia.nextSibling);
+          else if (inteligencia.nextSibling) destino.insertBefore(grafico, inteligencia.nextSibling);
           else destino.appendChild(grafico);
           grafico.dataset.movidoParaFinal = "true";
         }
@@ -66,6 +61,7 @@ export default function OrganizarRelatorio() {
           botaoNota.setAttribute("aria-expanded", String(!aberto));
           if (!aberto) blocoNota.scrollIntoView({ behavior: "smooth", block: "nearest" });
         };
+
         botaoNota.addEventListener("click", alternar);
         botaoNota.addEventListener("keydown", (evento) => {
           if (evento.key === "Enter" || evento.key === " ") {
