@@ -34,11 +34,19 @@ export default function OrdenarGraficoPainel() {
       if (posicaoGrafico < 0 || posicaoRanking < 0) return;
 
       filhos.forEach((filho, indice) => {
-        if (filho instanceof HTMLElement) filho.style.order = String(indice);
-      });
+        if (!(filho instanceof HTMLElement)) return;
 
-      ranking.style.order = String(posicaoGrafico);
-      grafico.style.order = String(posicaoRanking);
+        let ordem = indice;
+
+        if (posicaoGrafico < posicaoRanking) {
+          if (indice === posicaoGrafico) ordem = posicaoRanking;
+          else if (indice > posicaoGrafico && indice <= posicaoRanking) {
+            ordem = indice - 1;
+          }
+        }
+
+        filho.style.order = String(ordem);
+      });
     }
 
     function agendar() {
