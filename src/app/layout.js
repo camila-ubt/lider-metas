@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import FechamentoMensal from "@/components/FechamentoMensal";
+import LinguagemFechamentoContextual from "@/components/LinguagemFechamentoContextual";
 import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
 import AnaliseGerencial from "@/components/AnaliseGerencial";
@@ -67,6 +68,7 @@ export default function RootLayout({ children }) {
         <OrganizarRelatorio />
         <MascaraMoeda />
         <FechamentoMensal />
+        <LinguagemFechamentoContextual />
         <AlvoAnaliseFechamento />
         <ResumoLojasFechamento />
         <AnaliseGerencial modo="fechamento" />
