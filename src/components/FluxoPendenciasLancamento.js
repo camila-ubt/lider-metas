@@ -83,11 +83,7 @@ function pendenciasDaLoja(vendas, dataInicial, lojaId) {
       );
 
       if (!existe) {
-        resultado.push({
-          data,
-          periodo,
-          existente: false,
-        });
+        resultado.push({ data, periodo, existente: false });
       }
     });
 
@@ -119,9 +115,7 @@ export default function FluxoPendenciasLancamento() {
       );
       if (!botao) return;
 
-      const numero = botao
-        .querySelector(".calendar-number")
-        ?.textContent?.trim();
+      const numero = botao.querySelector(".calendar-number")?.textContent?.trim();
       const mes = document.querySelector('input[type="month"]')?.value;
       if (!numero || !mes) return;
 
@@ -132,11 +126,32 @@ export default function FluxoPendenciasLancamento() {
       void abrir(`${mes}-${String(numero).padStart(2, "0")}`);
     }
 
+    function abrirPeloRelatorio(evento) {
+      const data = evento.detail?.data;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data || ""))) return;
+
+      void abrir(data, {
+        lojaId: evento.detail?.lojaId,
+        aba: evento.detail?.aba || "lancados",
+      });
+    }
+
     document.addEventListener("click", capturar, true);
-    return () => document.removeEventListener("click", capturar, true);
+    window.addEventListener(
+      "lider-metas:abrir-lancamentos-dia",
+      abrirPeloRelatorio,
+    );
+
+    return () => {
+      document.removeEventListener("click", capturar, true);
+      window.removeEventListener(
+        "lider-metas:abrir-lancamentos-dia",
+        abrirPeloRelatorio,
+      );
+    };
   }, []);
 
-  async function abrir(data) {
+  async function abrir(data, opcoes = {}) {
     setAberto(true);
     setCarregando(true);
     setErro("");
@@ -172,17 +187,27 @@ export default function FluxoPendenciasLancamento() {
     const vendasDoIntervalo = (vendasResposta.data || []).filter(
       (venda) => venda.data >= data && venda.data <= dataFinal,
     );
-    const primeiraLoja = String(listaLojas[0]?.id || "");
-    const pendenciasPrimeiraLoja = pendenciasDaLoja(
+    const lojaSolicitada = listaLojas.some(
+      (loja) => Number(loja.id) === Number(opcoes.lojaId),
+    )
+      ? String(opcoes.lojaId)
+      : String(listaLojas[0]?.id || "");
+    const pendenciasLoja = pendenciasDaLoja(
       vendasDoIntervalo,
       data,
-      primeiraLoja,
+      lojaSolicitada,
     );
 
     setLojas(listaLojas);
     setVendas(vendasDoIntervalo);
-    setLojaId(primeiraLoja);
-    setAba(pendenciasPrimeiraLoja.length ? "pendentes" : "lancados");
+    setLojaId(lojaSolicitada);
+    setAba(
+      opcoes.aba === "lancados"
+        ? "lancados"
+        : pendenciasLoja.length
+          ? "pendentes"
+          : "lancados",
+    );
     setCarregando(false);
   }
 
@@ -201,7 +226,13 @@ export default function FluxoPendenciasLancamento() {
     const faltantes = pendenciasDaLoja(vendas, dataSelecionada, novoId);
     setLojaId(novoId);
     setSlot(null);
-    setAba(faltantes.length ? "pendentes" : "lancados");
+    setAba((atual) =>
+      atual === "lancados"
+        ? "lancados"
+        : faltantes.length
+          ? "pendentes"
+          : "lancados",
+    );
   }
 
   function selecionar(item, existente = false) {
@@ -275,11 +306,7 @@ export default function FluxoPendenciasLancamento() {
 
   async function removerLancamento() {
     if (!slot?.existente) return;
-    if (
-      !window.confirm(
-        `Remover o lançamento de ${formatarData(slot.data)}?`,
-      )
-    ) {
+    if (!window.confirm(`Remover o lançamento de ${formatarData(slot.data)}?`)) {
       return;
     }
 
@@ -453,8 +480,7 @@ export default function FluxoPendenciasLancamento() {
                           </span>
                         </div>
                         <b>
-                          {dinheiro.format(Number(item.valor_vendido || 0))} ·
-                          Editar
+                          {dinheiro.format(Number(item.valor_vendido || 0))} · Editar
                         </b>
                       </button>
                     ))
