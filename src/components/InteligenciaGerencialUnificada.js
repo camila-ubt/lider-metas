@@ -14,14 +14,17 @@ function texto(elemento) {
 
 function encontrarBloco(titulo) {
   return Array.from(document.querySelectorAll("details")).find((item) => {
-    const resumo = item.querySelector("summary strong, summary h3, summary");
+    if (item.closest(".inteligencia-gerencial-unificada")) return false;
+    const resumo = item.querySelector(":scope > summary strong, :scope > summary h3, :scope > summary");
     return texto(resumo).startsWith(titulo);
   });
 }
 
 function ocultarCabecalhoAntigo() {
   const marcador = Array.from(document.querySelectorAll("p, span, strong")).find(
-    (item) => texto(item) === "LEITURA GERENCIAL AVANÇADA",
+    (item) =>
+      !item.closest(".inteligencia-gerencial-unificada") &&
+      texto(item) === "LEITURA GERENCIAL AVANÇADA",
   );
   if (!marcador) return;
 
@@ -30,6 +33,7 @@ function ocultarCabecalhoAntigo() {
     if (alvo.querySelector("h1, h2") && texto(alvo).includes("Insights para as líderes")) break;
     alvo = alvo.parentElement;
   }
+
   if (alvo) {
     alvo.dataset.inteligenciaCabecalhoAntigo = "true";
     alvo.style.display = "none";
@@ -40,8 +44,13 @@ function montar() {
   const existentes = titulos.map(encontrarBloco);
   if (existentes.some((item) => !item)) return;
 
-  document.querySelector(".inteligencia-gerencial-unificada")?.remove();
   ocultarCabecalhoAntigo();
+  existentes.forEach((bloco) => {
+    bloco.style.display = "none";
+    bloco.dataset.inteligenciaOriginal = "true";
+  });
+
+  if (document.querySelector(".inteligencia-gerencial-unificada")) return;
 
   const detalhes = document.createElement("details");
   detalhes.className = "inteligencia-gerencial-unificada";
@@ -60,9 +69,6 @@ function montar() {
   conteudo.className = "inteligencia-gerencial-conteudo";
 
   existentes.forEach((bloco, indice) => {
-    bloco.style.display = "none";
-    bloco.dataset.inteligenciaOriginal = "true";
-
     const secao = document.createElement("section");
     secao.className = "inteligencia-gerencial-secao";
 
@@ -87,26 +93,23 @@ export default function InteligenciaGerencialUnificada() {
 
     const atualizar = () => {
       clearTimeout(agendado);
-      agendado = setTimeout(montar, 80);
+      agendado = setTimeout(montar, 120);
     };
 
     atualizar();
-    document.addEventListener("click", atualizar, true);
-    document.addEventListener("change", atualizar, true);
 
     const observador = new MutationObserver((mutacoes) => {
-      const externa = mutacoes.some(
+      const mudouForaDoBloco = mutacoes.some(
         (mutacao) => !mutacao.target.closest?.(".inteligencia-gerencial-unificada"),
       );
-      if (externa) atualizar();
+      if (mudouForaDoBloco) atualizar();
     });
+
     observador.observe(document.body, { subtree: true, childList: true });
 
     return () => {
       clearTimeout(agendado);
       observador.disconnect();
-      document.removeEventListener("click", atualizar, true);
-      document.removeEventListener("change", atualizar, true);
       document.querySelector(".inteligencia-gerencial-unificada")?.remove();
       document.querySelectorAll('[data-inteligencia-original="true"]').forEach((item) => {
         item.style.display = "";
