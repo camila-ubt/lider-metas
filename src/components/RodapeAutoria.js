@@ -17,19 +17,26 @@ export default function RodapeAutoria() {
       `;
     }
 
-    function posicionarNoFinal() {
-      const main = document.querySelector("main.app-shell");
-      if (!main) return;
+    let reposicionando = false;
 
-      if (rodape.parentElement !== main || main.lastElementChild !== rodape) {
-        main.appendChild(rodape);
-      }
+    function posicionarNoFinal() {
+      if (reposicionando || !document.body) return;
+      if (rodape.parentElement === document.body && document.body.lastElementChild === rodape) return;
+
+      reposicionando = true;
+      document.body.appendChild(rodape);
+      reposicionando = false;
     }
 
     posicionarNoFinal();
 
-    const observador = new MutationObserver(posicionarNoFinal);
-    observador.observe(document.body, { childList: true, subtree: true });
+    const observador = new MutationObserver(() => {
+      requestAnimationFrame(posicionarNoFinal);
+    });
+
+    observador.observe(document.body, {
+      childList: true,
+    });
 
     return () => {
       observador.disconnect();
