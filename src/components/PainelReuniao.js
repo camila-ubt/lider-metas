@@ -68,6 +68,73 @@ function statusHistorico(turno, contexto) {
   return "Dentro do padrão histórico do mesmo mês";
 }
 
+function calcularNotaGerencial(resumo) {
+  if (!resumo.temMeta || !resumo.temVendas) return null;
+
+  const resultado = Number(resumo.percentualGeral || 0);
+  const lojasComMeta = resumo.ranking.filter((loja) => loja.meta > 0);
+  const periodosComMeta = resumo.ranking.flatMap((loja) =>
+    loja.periodos.filter((periodo) => periodo.meta > 0),
+  );
+  const lojasAbaixo = lojasComMeta.filter(
+    (loja) => Number(loja.percentual || 0) < 100,
+  ).length;
+  const periodosAbaixo = periodosComMeta.filter(
+    (periodo) => Number(periodo.percentual || 0) < 100,
+  ).length;
+  const todasLojasNaMeta = lojasComMeta.length > 0 && lojasAbaixo === 0;
+  const todosPeriodosNaMeta =
+    periodosComMeta.length > 0 && periodosAbaixo === 0;
+
+  let nota;
+  let teto;
+
+  if (resultado < 100) {
+    nota = (resultado / 100) * 6.9;
+    teto = 6.9;
+  } else if (resultado < 120) {
+    nota = 7 + ((resultado - 100) / 20) * 1.5;
+    teto = 8.9;
+  } else if (resultado < 130) {
+    nota = 9 + ((resultado - 120) / 10) * 0.5;
+    teto = 9.7;
+  } else {
+    nota = 9.7 + Math.min((resultado - 130) / 20, 1) * 0.2;
+    teto = 9.9;
+  }
+
+  if (todasLojasNaMeta) nota += 0.35;
+  else nota -= lojasAbaixo * 0.25;
+
+  if (todosPeriodosNaMeta) nota += 0.25;
+  else nota -= periodosAbaixo * 0.1;
+
+  const todasLojasNaSupermeta =
+    lojasComMeta.length > 0 &&
+    lojasComMeta.every((loja) => Number(loja.percentual || 0) >= 120);
+
+  if (resultado >= 130 && todasLojasNaSupermeta && todosPeriodosNaMeta) {
+    teto = 10;
+  }
+
+  return Math.min(teto, Math.max(0, nota));
+}
+
+function explicarNota(resumo) {
+  const resultado = Number(resumo.percentualGeral || 0);
+
+  if (resultado < 100) {
+    return "A nota fica limitada abaixo de 7 porque o resultado geral não atingiu a Meta.";
+  }
+  if (resultado < 120) {
+    return "A Meta foi atingida, mas a nota permanece abaixo de 9 enquanto a Supermeta não for alcançada.";
+  }
+  if (resultado < 130) {
+    return "A Supermeta foi atingida; a nota 10 continua reservada à Megameta com desempenho equilibrado.";
+  }
+  return "A nota 10 exige Megameta geral, todas as lojas em Supermeta e todos os períodos com pelo menos 100% da Meta.";
+}
+
 export default function PainelReuniao() {
   const supabase = useMemo(() => createClient(), []);
   const [visivel, setVisivel] = useState(false);
@@ -308,6 +375,8 @@ export default function PainelReuniao() {
   const futuro = contexto.tipo === "futuro";
   const encerrado = contexto.tipo === "encerrado";
   const ultimoDia = contexto.tipo === "ultimo-dia";
+  const notaCalculada = calcularNotaGerencial(resumo);
+  const criterioNota = notaCalculada === null ? null : explicarNota(resumo);
 
   let titulo;
   let sintese;
@@ -325,9 +394,7 @@ export default function PainelReuniao() {
     sintese = resumo.temMeta
       ? `O mês encerrou com ${dinheiro.format(resumo.totalVendido)}, equivalente a ${percentual.format(resumo.percentualGeral || 0)}% da Meta. Resultado final: ${resumo.nivelGeral}.`
       : `O mês encerrou com ${dinheiro.format(resumo.totalVendido)}, mas não havia metas cadastradas para avaliar o atingimento.`;
-    notaTexto = resumo.temMeta
-      ? Math.min(10, Math.max(0, (resumo.percentualGeral || 0) / 10)).toFixed(1)
-      : "—";
+    notaTexto = notaCalculada === null ? "—" : notaCalculada.toFixed(1);
   } else if (!resumo.temMeta) {
     titulo = ultimoDia ? "Último dia sem metas cadastradas" : "Metas ainda não cadastradas";
     sintese = "O mês está em andamento, mas as metas ainda não foram cadastradas. Cadastre-as para que o sistema consiga orientar o esforço e avaliar cada loja e turno.";
@@ -344,10 +411,10 @@ export default function PainelReuniao() {
     sintese = resumo.proximo
       ? `A operação está em ${percentual.format(resumo.percentualGeral || 0)}% da Meta. Faltam ${dinheiro.format(falta)} para a ${resumo.proximo.nome}. O resultado ainda está em construção: mantenha o foco nas lojas e turnos com maior distância do objetivo.`
       : "A Megameta já foi conquistada. Continue preservando o ritmo e a qualidade dos lançamentos até o fechamento.";
-    notaTexto = Math.min(10, Math.max(0, (resumo.percentualGeral || 0) / 10)).toFixed(1);
+    notaTexto = notaCalculada === null ? "—" : notaCalculada.toFixed(1);
   }
 
-  const motivos = futuro
+  const motivosBase = futuro
     ? [
         resumo.temMeta
           ? "As metas já estão prontas para o início do mês."
@@ -382,6 +449,7 @@ export default function PainelReuniao() {
             ? `${resumo.atencao?.codigo} exige maior acompanhamento neste momento.`
             : "Os pontos de atenção aparecerão após metas e vendas serem registradas.",
         ];
+  const motivos = criterioNota ? [criterioNota, ...motivosBase] : motivosBase;
 
   return (
     <section className={styles.wrap}>
