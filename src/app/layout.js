@@ -27,6 +27,7 @@ import "./inteligencia-gerencial.css";
 import "./persistencia-navegacao.css";
 import "./fechamento-print-fix.css";
 import "./fechamento-botao-final.css";
+import "./mobile-tabs.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
