@@ -10,6 +10,7 @@ import RemoverLancamento from "@/components/RemoverLancamento";
 import AjusteDiasEquivalentes from "@/components/AjusteDiasEquivalentes";
 import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
 import ConfiguracaoHorarios from "@/components/ConfiguracaoHorarios";
+import OrdenarGraficoPainel from "@/components/OrdenarGraficoPainel";
 import "./globals.css";
 import "./branding.css";
 import "./meta-status.css";
@@ -72,6 +73,7 @@ export default function RootLayout({ children }) {
         <AjusteDiasEquivalentes />
         <FluxoPendenciasLancamento />
         <ConfiguracaoHorarios />
+        <OrdenarGraficoPainel />
       </body>
     </html>
   );
