@@ -12,6 +12,7 @@ import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
 import ConfiguracaoHorarios from "@/components/ConfiguracaoHorarios";
 import OrdenarGraficoPainel from "@/components/OrdenarGraficoPainel";
 import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
+import ManualUsuario from "@/components/ManualUsuario";
 import "./globals.css";
 import "./branding.css";
 import "./meta-status.css";
@@ -76,6 +77,7 @@ export default function RootLayout({ children }) {
         <ConfiguracaoHorarios />
         <OrdenarGraficoPainel />
         <DetalhesMetasRanking />
+        <ManualUsuario />
       </body>
     </html>
   );
