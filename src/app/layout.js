@@ -5,7 +5,10 @@ import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
 import InteligenciaGerencial from "@/components/InteligenciaGerencial";
 import PainelReuniao from "@/components/PainelReuniao";
+import AjusteProbabilidades from "@/components/AjusteProbabilidades";
+import FeedbackTurnos from "@/components/FeedbackTurnos";
 import RemoverLancamento from "@/components/RemoverLancamento";
+import AjusteDiasEquivalentes from "@/components/AjusteDiasEquivalentes";
 import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
 import "./globals.css";
 import "./branding.css";
@@ -13,6 +16,10 @@ import "./meta-status.css";
 import "./dashboard-compact.css";
 import "./lancamento-cards.css";
 import "./fluxo-pendencias.css";
+import "./fechamento-posicao.css";
+import "./relatorio-enxuto.css";
+import "./fechamento-impressao.css";
+import "./analise-ajustes.css";
 import "./inteligencia-gerencial.css";
 import "./persistencia-navegacao.css";
 import "./fechamento-print-fix.css";
@@ -59,7 +66,10 @@ export default function RootLayout({ children }) {
         <InteligenciaGerencial />
         <MascaraMoeda />
         <FechamentoPainelNovo />
+        <AjusteProbabilidades />
+        <FeedbackTurnos />
         <RemoverLancamento />
+        <AjusteDiasEquivalentes />
         <FluxoPendenciasLancamento />
       </body>
     </html>
