@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { contextoDoMes } from "@/lib/contextoMes";
 import DashboardEstavelV2 from "./DashboardEstavelV2";
+import PainelReuniao from "./PainelReuniao";
 import styles from "./FechamentoPainelNovo.module.css";
 
 const PERIODOS = ["manha", "noite"];
@@ -46,45 +47,66 @@ function aguardarRenderizacao() {
   });
 }
 
-async function aguardarPainelPronto(elemento) {
+function limparSnapshotImpressao() {
+  document.getElementById("fechamento-painel-snapshot")?.remove();
+}
+
+async function aguardarRelatorioPronto(original) {
   if (document.fonts?.ready) await document.fonts.ready;
 
   const inicio = Date.now();
-  while (
-    elemento?.textContent?.includes("Carregando comparação histórica") &&
-    Date.now() - inicio < 5000
-  ) {
+  while (Date.now() - inicio < 7000) {
+    const texto = original?.textContent || "";
+    const roteiroPronto = texto.includes("ROTEIRO DA REUNIÃO");
+    const historicoPronto = !texto.includes("Carregando comparação histórica");
+
+    if (roteiroPronto && historicoPronto) break;
     await esperar(120);
   }
 
   await aguardarRenderizacao();
-  await esperar(180);
+  await esperar(150);
 }
 
-async function criarSnapshotCompleto(original) {
-  const detalhes = [];
-  const quantidade = original.querySelectorAll('button[aria-expanded]').length;
+async function criarSnapshotCompleto() {
+  const original = document.getElementById("fechamento-painel-original");
+  if (!original) return false;
 
-  for (let indice = 0; indice < quantidade; indice += 1) {
-    const botoes = Array.from(original.querySelectorAll('button[aria-expanded]'));
-    const botao = botoes[indice];
+  limparSnapshotImpressao();
+  await aguardarRelatorioPronto(original);
+
+  const botoesIniciais = Array.from(
+    original.querySelectorAll('button[aria-expanded]'),
+  );
+  const indiceAbertoInicial = botoesIniciais.findIndex(
+    (botao) => botao.getAttribute("aria-expanded") === "true",
+  );
+  const detalhesExpandidos = [];
+
+  for (let indice = 0; indice < botoesIniciais.length; indice += 1) {
+    let botoesAtuais = Array.from(
+      original.querySelectorAll('button[aria-expanded]'),
+    );
+    let botao = botoesAtuais[indice];
     if (!botao) continue;
 
     if (botao.getAttribute("aria-expanded") !== "true") {
       botao.click();
       await aguardarRenderizacao();
       await esperar(70);
+      botoesAtuais = Array.from(
+        original.querySelectorAll('button[aria-expanded]'),
+      );
+      botao = botoesAtuais[indice];
     }
 
-    const botaoAtual = Array.from(
-      original.querySelectorAll('button[aria-expanded]'),
-    )[indice];
-    detalhes[indice] = botaoAtual?.nextElementSibling?.cloneNode(true) || null;
+    detalhesExpandidos[indice] =
+      botao?.nextElementSibling?.cloneNode(true) || null;
   }
 
   const snapshot = original.cloneNode(true);
-  snapshot.removeAttribute("id");
-  snapshot.setAttribute("data-painel-imagem", "true");
+  snapshot.id = "fechamento-painel-snapshot";
+  snapshot.setAttribute("aria-hidden", "true");
 
   const botoesSnapshot = Array.from(
     snapshot.querySelectorAll('button[aria-expanded]'),
@@ -92,31 +114,38 @@ async function criarSnapshotCompleto(original) {
 
   botoesSnapshot.forEach((botao, indice) => {
     botao.setAttribute("aria-expanded", "true");
-    botao.style.cursor = "default";
-
     while (botao.nextElementSibling) {
       botao.nextElementSibling.remove();
     }
-
-    if (detalhes[indice]) {
-      botao.parentElement?.appendChild(detalhes[indice]);
+    if (detalhesExpandidos[indice]) {
+      botao.parentElement?.appendChild(detalhesExpandidos[indice]);
     }
   });
-
-  snapshot.style.display = "block";
-  snapshot.style.width = "1180px";
-  snapshot.style.maxWidth = "none";
-  snapshot.style.margin = "0";
-  snapshot.style.padding = "24px";
-  snapshot.style.background = "#f7f3fa";
-  snapshot.style.boxSizing = "border-box";
 
   snapshot.querySelectorAll("*").forEach((elemento) => {
     elemento.style.animation = "none";
     elemento.style.transition = "none";
+    elemento.style.opacity = "1";
   });
 
-  return snapshot;
+  original.parentElement?.insertBefore(snapshot, original.nextSibling);
+
+  let botoesAtuais = Array.from(
+    original.querySelectorAll('button[aria-expanded]'),
+  );
+  const indiceAbertoAtual = botoesAtuais.findIndex(
+    (botao) => botao.getAttribute("aria-expanded") === "true",
+  );
+
+  if (indiceAbertoInicial >= 0 && indiceAbertoAtual !== indiceAbertoInicial) {
+    botoesAtuais[indiceAbertoInicial]?.click();
+    await aguardarRenderizacao();
+  } else if (indiceAbertoInicial < 0 && indiceAbertoAtual >= 0) {
+    botoesAtuais[indiceAbertoAtual]?.click();
+    await aguardarRenderizacao();
+  }
+
+  return true;
 }
 
 function calcularPendencias(valorMes, lojas, vendas) {
@@ -153,14 +182,13 @@ function calcularPendencias(valorMes, lojas, vendas) {
 export default function FechamentoPainelNovo() {
   const supabase = useMemo(() => createClient(), []);
   const [visivel, setVisivel] = useState(false);
+  const [aberto, setAberto] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+  const [preparandoPdf, setPreparandoPdf] = useState(false);
+  const [erro, setErro] = useState("");
   const [tipoMes, setTipoMes] = useState("andamento");
   const [dados, setDados] = useState(null);
   const [aviso, setAviso] = useState(null);
-  const [gerando, setGerando] = useState(false);
-  const [imagem, setImagem] = useState(null);
-  const [blobImagem, setBlobImagem] = useState(null);
-  const [nomeArquivo, setNomeArquivo] = useState("painel-metas.png");
-  const [erro, setErro] = useState("");
 
   useEffect(() => {
     let ativo = true;
@@ -195,16 +223,25 @@ export default function FechamentoPainelNovo() {
   }, []);
 
   useEffect(() => {
-    return () => {
-      if (imagem) URL.revokeObjectURL(imagem);
-    };
-  }, [imagem]);
+    document.body.classList.toggle(
+      "fechamento-print-active",
+      aberto && Boolean(dados) && !aviso,
+    );
 
-  async function carregarDados() {
+    return () => document.body.classList.remove("fechamento-print-active");
+  }, [aberto, dados, aviso]);
+
+  useEffect(() => {
+    window.addEventListener("afterprint", limparSnapshotImpressao);
+    return () => window.removeEventListener("afterprint", limparSnapshotImpressao);
+  }, []);
+
+  async function abrirRelatorio() {
     const mes = lerMesSelecionado();
     const intervalo = intervaloMes(mes);
 
-    setGerando(true);
+    setAberto(true);
+    setCarregando(true);
     setErro("");
     setAviso(null);
     setDados(null);
@@ -229,7 +266,7 @@ export default function FechamentoPainelNovo() {
 
     if (falha?.error) {
       setErro(falha.error.message);
-      setGerando(false);
+      setCarregando(false);
       return;
     }
 
@@ -246,112 +283,35 @@ export default function FechamentoPainelNovo() {
     );
 
     setDados(novosDados);
-    setNomeArquivo(`painel-metas-${mes}.png`);
-
-    if (pendencias.quantidade > 0) {
-      setAviso(pendencias);
-      setGerando(false);
-      return;
-    }
-
-    await gerarImagem(novosDados);
+    setAviso(pendencias.quantidade > 0 ? pendencias : null);
+    setCarregando(false);
   }
 
-  async function gerarImagem(dadosParaImagem = dados) {
-    if (!dadosParaImagem) return;
-
-    setAviso(null);
-    setGerando(true);
+  async function imprimirRelatorio() {
+    if (preparandoPdf) return;
+    setPreparandoPdf(true);
     setErro("");
 
     try {
-      await aguardarRenderizacao();
-      const original = document.getElementById("painel-captura-imagem");
-      if (!original) throw new Error("Não foi possível preparar o painel.");
-
-      await aguardarPainelPronto(original);
-      const snapshot = await criarSnapshotCompleto(original);
-      const palco = document.createElement("div");
-      palco.style.position = "fixed";
-      palco.style.left = "-20000px";
-      palco.style.top = "0";
-      palco.style.width = "1180px";
-      palco.style.background = "#f7f3fa";
-      palco.style.zIndex = "-1";
-      palco.appendChild(snapshot);
-      document.body.appendChild(palco);
-
-      await aguardarRenderizacao();
-      await esperar(120);
-
-      const { toBlob } = await import("html-to-image");
-      const altura = snapshot.scrollHeight;
-      const proporcao = altura > 8500 ? 1 : altura > 6000 ? 1.25 : 1.5;
-      const blob = await toBlob(snapshot, {
-        backgroundColor: "#f7f3fa",
-        cacheBust: true,
-        pixelRatio: proporcao,
-        width: snapshot.scrollWidth,
-        height: snapshot.scrollHeight,
-      });
-
-      palco.remove();
-      if (!blob) throw new Error("Não foi possível gerar a imagem.");
-
-      if (imagem) URL.revokeObjectURL(imagem);
-      const url = URL.createObjectURL(blob);
-      setBlobImagem(blob);
-      setImagem(url);
-      setDados(null);
-    } catch (falha) {
-      setErro(falha?.message || "Não foi possível gerar a imagem do painel.");
-      setDados(null);
-    } finally {
-      setGerando(false);
-    }
-  }
-
-  function baixarImagem() {
-    if (!imagem) return;
-    const link = document.createElement("a");
-    link.href = imagem;
-    link.download = nomeArquivo;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-
-  async function compartilharImagem() {
-    if (!blobImagem) return;
-
-    const arquivo = new File([blobImagem], nomeArquivo, { type: "image/png" });
-    if (navigator.canShare?.({ files: [arquivo] })) {
-      try {
-        await navigator.share({
-          files: [arquivo],
-          title: "Painel de metas",
-          text: `Painel de metas — ${lerMesSelecionado()}`,
-        });
-        return;
-      } catch (falha) {
-        if (falha?.name === "AbortError") return;
+      const preparado = await criarSnapshotCompleto();
+      if (!preparado) {
+        throw new Error("Não foi possível preparar o relatório completo.");
       }
+      window.print();
+    } catch (falha) {
+      setErro(falha?.message || "Não foi possível preparar o PDF.");
+    } finally {
+      setPreparandoPdf(false);
+      window.setTimeout(limparSnapshotImpressao, 700);
     }
-
-    baixarImagem();
   }
 
-  function fecharImagem() {
-    if (imagem) URL.revokeObjectURL(imagem);
-    setImagem(null);
-    setBlobImagem(null);
+  function fechar() {
+    limparSnapshotImpressao();
+    setAberto(false);
     setErro("");
-  }
-
-  function cancelarAviso() {
     setAviso(null);
     setDados(null);
-    setGerando(false);
   }
 
   if (!visivel) return null;
@@ -366,201 +326,98 @@ export default function FechamentoPainelNovo() {
   return (
     <>
       <style>{`
-        .painel-imagem-captura {
-          position: fixed;
-          left: -20000px;
-          top: 0;
-          width: 1180px;
-          padding: 24px;
-          background: #f7f3fa;
-          pointer-events: none;
-          z-index: -1;
-        }
-        .painel-imagem-overlay {
-          position: fixed;
-          inset: 0;
-          z-index: 3000;
-          display: grid;
-          place-items: center;
-          padding: 16px;
-          background: rgba(35, 24, 48, .72);
-          backdrop-filter: blur(5px);
-        }
-        .painel-imagem-dialogo {
-          width: min(560px, 100%);
-          max-height: calc(100dvh - 32px);
-          overflow: auto;
-          border-radius: 24px;
-          padding: 20px;
-          background: #fff;
-          color: #241a32;
-          box-shadow: 0 28px 80px rgba(24, 15, 35, .35);
-        }
-        .painel-imagem-dialogo h2 { margin: 0 0 8px; }
-        .painel-imagem-dialogo p { margin: 0; color: #6f6578; line-height: 1.5; }
-        .painel-imagem-acoes {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 10px;
-          margin-top: 18px;
-        }
-        .painel-imagem-acoes button {
-          min-height: 46px;
-          border: 0;
-          border-radius: 14px;
-          padding: 11px 14px;
-          font: inherit;
-          font-weight: 850;
-          cursor: pointer;
-        }
-        .painel-imagem-secundario { background: #eee8f4; color: #5f3c91; }
-        .painel-imagem-principal { background: #684199; color: #fff; }
-        .painel-imagem-preview {
-          width: min(820px, 100%);
-        }
-        .painel-imagem-preview img {
-          display: block;
-          width: 100%;
-          max-height: calc(100dvh - 190px);
-          object-fit: contain;
-          border: 1px solid #e6deec;
-          border-radius: 15px;
-          background: #f7f3fa;
-        }
-        .painel-imagem-carregando {
-          display: grid;
-          place-items: center;
-          gap: 12px;
-          min-height: 180px;
-          text-align: center;
-        }
-        .painel-imagem-carregando i {
-          width: 38px;
-          height: 38px;
-          border: 4px solid #e8dff0;
-          border-top-color: #684199;
-          border-radius: 50%;
-          animation: painelImagemGirar .8s linear infinite;
-        }
-        @keyframes painelImagemGirar { to { transform: rotate(360deg); } }
-        @media (max-width: 540px) {
-          .painel-imagem-dialogo { border-radius: 20px; padding: 16px; }
-          .painel-imagem-acoes { grid-template-columns: 1fr; }
+        #fechamento-painel-snapshot { display: none; }
+        .fechamento-conteudo-completo { display: grid; gap: 22px; }
+        @media print {
+          #fechamento-painel-original { display: none !important; }
+          #fechamento-painel-snapshot { display: block !important; }
+          .fechamento-conteudo-completo { display: grid !important; gap: 8mm !important; }
         }
       `}</style>
 
       <button
         type="button"
         className={styles.launcher}
-        onClick={carregarDados}
-        disabled={gerando}
+        onClick={abrirRelatorio}
       >
-        {gerando ? "Preparando imagem..." : textoBotao}
+        {textoBotao}
       </button>
 
-      {dados && (
-        <div className="painel-imagem-captura" aria-hidden="true">
-          <div id="painel-captura-imagem">
-            <DashboardEstavelV2
-              mes={dados.mes}
-              vendas={dados.vendas}
-              metas={dados.metas}
-              lojas={dados.lojas}
-            />
-          </div>
-        </div>
-      )}
-
-      {gerando && (
-        <div className="painel-imagem-overlay" role="status">
-          <section className="painel-imagem-dialogo painel-imagem-carregando">
-            <i />
-            <div>
-              <h2>Preparando a imagem</h2>
-              <p>Abrindo todos os detalhes e montando o painel completo.</p>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {aviso && !gerando && (
-        <div className="painel-imagem-overlay">
-          <section className="painel-imagem-dialogo" role="dialog" aria-modal="true">
-            <h2>Lançamentos pendentes</h2>
-            <p>
-              Existem {aviso.quantidade} lançamentos pendentes em {aviso.dias}{" "}
-              {aviso.dias === 1 ? "dia" : "dias"}. A imagem pode apresentar um
-              resultado incompleto.
-            </p>
-            <div className="painel-imagem-acoes">
-              <button
-                type="button"
-                className="painel-imagem-secundario"
-                onClick={cancelarAviso}
-              >
-                Voltar e corrigir
-              </button>
-              <button
-                type="button"
-                className="painel-imagem-principal"
-                onClick={() => gerarImagem()}
-              >
-                Gerar mesmo assim
+      {aberto && (
+        <div className={styles.backdrop} id="fechamento-impressao">
+          <section className={styles.modal}>
+            <div className={styles.modalHeader} data-print-hide="true">
+              <div>
+                <p>RELATÓRIO DA REUNIÃO</p>
+                <h2>{textoBotao}</h2>
+              </div>
+              <button type="button" onClick={fechar} aria-label="Fechar">
+                ×
               </button>
             </div>
-          </section>
-        </div>
-      )}
 
-      {imagem && !gerando && (
-        <div className="painel-imagem-overlay">
-          <section
-            className="painel-imagem-dialogo painel-imagem-preview"
-            role="dialog"
-            aria-modal="true"
-          >
-            <img src={imagem} alt="Painel completo de metas" />
-            <div className="painel-imagem-acoes">
-              <button
-                type="button"
-                className="painel-imagem-secundario"
-                onClick={fecharImagem}
-              >
-                Fechar
-              </button>
-              <button
-                type="button"
-                className="painel-imagem-secundario"
-                onClick={baixarImagem}
-              >
-                Salvar imagem
-              </button>
-              <button
-                type="button"
-                className="painel-imagem-principal"
-                onClick={compartilharImagem}
-              >
-                Compartilhar
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+            {carregando && (
+              <div className={styles.loading}>Atualizando o relatório...</div>
+            )}
 
-      {erro && !gerando && !imagem && !aviso && (
-        <div className="painel-imagem-overlay">
-          <section className="painel-imagem-dialogo" role="alertdialog">
-            <h2>Não foi possível gerar a imagem</h2>
-            <p>{erro}</p>
-            <div className="painel-imagem-acoes">
-              <button
-                type="button"
-                className="painel-imagem-principal"
-                onClick={() => setErro("")}
-              >
-                Fechar
-              </button>
-            </div>
+            {erro && <div className={styles.error}>{erro}</div>}
+
+            {!carregando && !erro && aviso && (
+              <div className={styles.warning}>
+                <div>
+                  <strong>Existem lançamentos pendentes</strong>
+                  <span>
+                    Foram encontrados {aviso.quantidade} período(s) sem
+                    lançamento, distribuídos em {aviso.dias} dia(s). Corrija as
+                    pendências antes do fechamento ou continue mesmo assim.
+                  </span>
+                </div>
+                <div className={styles.warningActions}>
+                  <button type="button" onClick={fechar}>
+                    Voltar e corrigir
+                  </button>
+                  <button type="button" onClick={() => setAviso(null)}>
+                    Continuar mesmo assim
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!carregando && !erro && dados && !aviso && (
+              <>
+                <div id="fechamento-painel-original">
+                  <div className="fechamento-conteudo-completo">
+                    <PainelReuniao />
+                    <DashboardEstavelV2
+                      mes={dados.mes}
+                      vendas={dados.vendas}
+                      metas={dados.metas}
+                      lojas={dados.lojas}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.actionsNoPrint} data-print-hide="true">
+                  <button
+                    type="button"
+                    className={styles.secondary}
+                    onClick={fechar}
+                  >
+                    Fechar
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.primary}
+                    onClick={imprimirRelatorio}
+                    disabled={preparandoPdf}
+                  >
+                    {preparandoPdf
+                      ? "Preparando relatório completo..."
+                      : "Imprimir / salvar PDF"}
+                  </button>
+                </div>
+              </>
+            )}
           </section>
         </div>
       )}
