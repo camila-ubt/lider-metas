@@ -34,22 +34,11 @@ function localizarAnaliseOriginal() {
 
 function localizarBloco(secao, titulo) {
   return Array.from(secao.querySelectorAll("details")).find((details) => {
+    if (details.classList.contains("inteligencia-gerencial-unificada")) return false;
     const summary = details.querySelector(":scope > summary");
     const strong = summary?.querySelector("strong");
     return normalizar(strong?.textContent || summary?.textContent).startsWith(titulo);
   });
-}
-
-function prepararBloco(bloco) {
-  bloco.open = true;
-  bloco.style.setProperty("display", "block", "important");
-  bloco.style.setProperty("margin", "0", "important");
-  bloco.style.setProperty("border", "0", "important");
-  bloco.style.setProperty("box-shadow", "none", "important");
-  bloco.style.setProperty("background", "transparent", "important");
-
-  const summary = bloco.querySelector(":scope > summary");
-  if (summary) summary.style.setProperty("display", "none", "important");
 }
 
 function textoDoParagrafo(bloco, teste) {
@@ -72,12 +61,10 @@ function gerarInsights(blocos) {
     (item) => normalizar(item.textContent) === "supermeta",
   );
   const chanceSuper = supermeta?.parentElement?.querySelector("span")?.textContent?.trim();
-  if (chanceSuper) {
-    insights.push(`A probabilidade de Supermeta é de ${chanceSuper}.`);
-  }
+  if (chanceSuper) insights.push(`A probabilidade de Supermeta é de ${chanceSuper}.`);
 
-  const artigosTendencia = Array.from(tendencia.querySelectorAll("article"));
-  const artigoRitmo = artigosTendencia.find(
+  const artigos = Array.from(tendencia.querySelectorAll("article"));
+  const artigoRitmo = artigos.find(
     (artigo) =>
       normalizar(artigo.querySelector("span")?.textContent) === "tendência recente",
   );
@@ -87,14 +74,14 @@ function gerarInsights(blocos) {
     insights.push(`O ritmo recente está ${ritmo}.${detalheRitmo ? ` ${detalheRitmo}` : ""}`);
   }
 
-  const artigoRegularidade = artigosTendencia.find(
+  const artigoRegularidade = artigos.find(
     (artigo) => normalizar(artigo.querySelector("span")?.textContent) === "regularidade",
   );
-  const lojaConsistente = artigoRegularidade?.querySelector("strong")?.textContent?.trim();
+  const consistente = artigoRegularidade?.querySelector("strong")?.textContent?.trim();
   const detalheConsistencia = artigoRegularidade?.querySelector("p")?.textContent?.trim();
-  if (lojaConsistente && normalizar(lojaConsistente) !== "sem amostra") {
+  if (consistente && normalizar(consistente) !== "sem amostra") {
     insights.push(
-      `${lojaConsistente} apresenta a maior consistência.${
+      `${consistente} apresenta a maior consistência.${
         detalheConsistencia ? ` ${detalheConsistencia}` : ""
       }`,
     );
@@ -103,43 +90,30 @@ function gerarInsights(blocos) {
   return insights.slice(0, 4);
 }
 
-function criarAba(blocos) {
+function criarControle() {
   const details = document.createElement("details");
   details.className = "inteligencia-gerencial-unificada";
-  details.dataset.inteligenciaGerencial = "true";
-
-  const summary = document.createElement("summary");
-  summary.innerHTML = `
-    <div>
-      <strong>🧠 Inteligência Gerencial</strong>
-      <span>Projeções, tendências e comparativos históricos.</span>
-    </div>
-    <i aria-hidden="true">⌄</i>
+  details.innerHTML = `
+    <summary>
+      <div>
+        <strong>🧠 Inteligência Gerencial</strong>
+        <span>Projeções, tendências e comparativos históricos.</span>
+      </div>
+      <i aria-hidden="true">⌄</i>
+    </summary>
   `;
+  return details;
+}
 
-  const conteudo = document.createElement("div");
-  conteudo.className = "inteligencia-gerencial-conteudo";
+function criarInsights(blocos) {
+  const secao = document.createElement("section");
+  secao.className = "inteligencia-gerencial-secao inteligencia-gerencial-secao-insights";
 
-  BLOCOS.forEach((configuracao, indice) => {
-    const secao = document.createElement("section");
-    secao.className = "inteligencia-gerencial-secao";
+  const titulo = document.createElement("h3");
+  titulo.textContent = "💡 Insights automáticos";
 
-    const titulo = document.createElement("h3");
-    titulo.textContent = configuracao.titulo;
-
-    prepararBloco(blocos[indice]);
-    secao.append(titulo, blocos[indice]);
-    conteudo.appendChild(secao);
-  });
-
-  const secaoInsights = document.createElement("section");
-  secaoInsights.className = "inteligencia-gerencial-secao";
-
-  const tituloInsights = document.createElement("h3");
-  tituloInsights.textContent = "💡 Insights automáticos";
-
-  const listaInsights = document.createElement("div");
-  listaInsights.className = "inteligencia-gerencial-insights";
+  const lista = document.createElement("div");
+  lista.className = "inteligencia-gerencial-insights";
 
   const insights = gerarInsights(blocos);
   const textos = insights.length
@@ -151,54 +125,102 @@ function criarAba(blocos) {
     const paragrafo = document.createElement("p");
     paragrafo.textContent = texto;
     artigo.appendChild(paragrafo);
-    listaInsights.appendChild(artigo);
+    lista.appendChild(artigo);
   });
 
-  secaoInsights.append(tituloInsights, listaInsights);
-  conteudo.appendChild(secaoInsights);
-  details.append(summary, conteudo);
+  secao.append(titulo, lista);
+  return secao;
+}
 
-  return details;
+function prepararConteudo(container, blocos) {
+  const conjunto = new Set(blocos);
+
+  Array.from(container.children).forEach((filho) => {
+    if (filho.classList?.contains("inteligencia-gerencial-secao-insights")) return;
+
+    if (filho.tagName === "DETAILS") {
+      if (!conjunto.has(filho)) {
+        filho.style.setProperty("display", "none", "important");
+        return;
+      }
+
+      const indice = blocos.indexOf(filho);
+      filho.open = true;
+      filho.classList.add("inteligencia-gerencial-item");
+      filho.dataset.inteligenciaTitulo = BLOCOS[indice].titulo;
+      filho.style.setProperty("display", "block", "important");
+
+      const summary = filho.querySelector(":scope > summary");
+      if (summary) summary.style.setProperty("display", "none", "important");
+    }
+  });
+
+  container.classList.add("inteligencia-gerencial-blocos");
+  container.querySelector(".inteligencia-gerencial-secao-insights")?.remove();
+  container.appendChild(criarInsights(blocos));
+}
+
+function alternarConteudo(controle, container) {
+  container.style.setProperty(
+    "display",
+    controle.open ? "grid" : "none",
+    "important",
+  );
 }
 
 function montar() {
   const original = localizarAnaliseOriginal();
-  const atual = document.querySelector("details.inteligencia-gerencial-unificada");
-
   if (!original) {
-    atual?.remove();
+    document.querySelector("details.inteligencia-gerencial-unificada")?.remove();
     return false;
-  }
-
-  if (original.dataset.inteligenciaSubstituida === "true" && atual) {
-    return true;
   }
 
   const blocos = BLOCOS.map((item) => localizarBloco(original, item.origem));
   if (blocos.some((bloco) => !bloco)) return false;
 
-  atual?.remove();
-  const aba = criarAba(blocos);
-  original.parentElement?.insertBefore(aba, original);
-  original.style.setProperty("display", "none", "important");
-  original.dataset.inteligenciaSubstituida = "true";
+  const container = blocos[0].parentElement;
+  if (!container || !blocos.every((bloco) => bloco.parentElement === container)) {
+    return false;
+  }
 
+  const cabecalho = original.querySelector(":scope > header");
+  if (cabecalho) cabecalho.style.setProperty("display", "none", "important");
+
+  let controle = original.querySelector(":scope > details.inteligencia-gerencial-unificada");
+  if (!controle) {
+    document
+      .querySelectorAll("details.inteligencia-gerencial-unificada")
+      .forEach((item) => item.remove());
+
+    controle = criarControle();
+    original.insertBefore(controle, container);
+  }
+
+  prepararConteudo(container, blocos);
+  alternarConteudo(controle, container);
+
+  if (controle.dataset.listenerAtivo !== "true") {
+    controle.addEventListener("toggle", () => alternarConteudo(controle, container));
+    controle.dataset.listenerAtivo = "true";
+  }
+
+  original.dataset.inteligenciaSubstituida = "true";
   return true;
 }
 
 export default function InteligenciaGerencialUnificada() {
   useEffect(() => {
     let temporizador;
-    let montando = false;
+    let executando = false;
     let tentativas = 0;
 
     const executar = () => {
       clearTimeout(temporizador);
       temporizador = setTimeout(() => {
-        if (montando) return;
-        montando = true;
+        if (executando) return;
+        executando = true;
         const pronto = montar();
-        montando = false;
+        executando = false;
 
         if (!pronto && tentativas < 50) {
           tentativas += 1;
@@ -214,7 +236,7 @@ export default function InteligenciaGerencialUnificada() {
         const alvo = mutacao.target;
         return !(
           alvo instanceof Element &&
-          alvo.closest(".inteligencia-gerencial-unificada")
+          alvo.closest(".inteligencia-gerencial-secao-insights")
         );
       });
 
