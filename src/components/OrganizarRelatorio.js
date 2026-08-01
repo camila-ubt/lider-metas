@@ -6,28 +6,21 @@ function texto(elemento) {
   return elemento?.textContent?.replace(/\s+/g, " ").trim() || "";
 }
 
-function acharExato(seletor, valor) {
+function acharTextoExato(seletor, valor) {
   return Array.from(document.querySelectorAll(seletor)).find(
     (elemento) => texto(elemento).toLowerCase() === valor.toLowerCase(),
   );
 }
 
-function acharInicio(seletor, valor) {
-  return Array.from(document.querySelectorAll(seletor)).find((elemento) =>
-    texto(elemento).toLowerCase().startsWith(valor.toLowerCase()),
-  );
-}
-
-function cardMaisProximo(elemento) {
-  if (!elemento) return null;
-  return elemento.closest("section, article, details") || elemento.parentElement;
+function acharCardPorTitulo(titulo) {
+  const marcador = acharTextoExato("h1,h2,h3,h4,p,span,strong", titulo);
+  if (!marcador) return null;
+  return marcador.closest("section, article");
 }
 
 function inserirDepois(elemento, referencia) {
-  const pai = referencia?.parentElement;
-  if (!elemento || !referencia || !pai || elemento === referencia) return false;
-  if (referencia.nextSibling === elemento) return true;
-  pai.insertBefore(elemento, referencia.nextSibling);
+  if (!elemento || !referencia || !referencia.parentElement) return false;
+  referencia.parentElement.insertBefore(elemento, referencia.nextSibling);
   return true;
 }
 
@@ -36,39 +29,32 @@ export default function OrganizarRelatorio() {
     let agendado = null;
 
     function organizar() {
-      const rankingTitulo = acharExato("p,span,strong,h1,h2,h3,h4", "RANKING INTERATIVO");
-      const ranking = cardMaisProximo(rankingTitulo);
+      const ranking = acharCardPorTitulo("RANKING INTERATIVO");
+      const roteiro = Array.from(document.querySelectorAll("section")).find((secao) =>
+        Array.from(secao.querySelectorAll("p")).some(
+          (paragrafo) => texto(paragrafo) === "ROTEIRO DA REUNIÃO",
+        ),
+      );
+      const grafico = acharCardPorTitulo("EVOLUÇÃO ACUMULADA");
+      const inteligencia = document.querySelector("details.inteligencia-gerencial-unificada");
 
-      const roteiroTitulo = acharExato("p,span,strong,h1,h2,h3,h4", "ROTEIRO DA REUNIÃO");
-      const roteiro = cardMaisProximo(roteiroTitulo);
-
-      const graficoTitulo = acharExato("p,span,strong,h1,h2,h3,h4", "EVOLUÇÃO ACUMULADA");
-      const grafico = cardMaisProximo(graficoTitulo);
-
-      const inteligenciaTitulo = acharInicio("summary strong, summary h2, summary h3", "Inteligência gerencial");
-      const inteligencia = inteligenciaTitulo?.closest("details") || null;
-
-      // Só reorganiza quando todos os blocos realmente existem.
-      // Isso evita esconder ou deslocar o painel em meses ainda sem dados.
-      if (ranking && roteiro && grafico && inteligencia) {
+      if (ranking && roteiro && ranking.nextElementSibling !== roteiro) {
         inserirDepois(roteiro, ranking);
+      }
+
+      if (roteiro && grafico && roteiro.nextElementSibling !== grafico) {
         inserirDepois(grafico, roteiro);
+      }
+
+      if (grafico && inteligencia && grafico.nextElementSibling !== inteligencia) {
         inserirDepois(inteligencia, grafico);
       }
 
-      const cabecalhoMarcador = acharExato(
-        "p,span,strong",
-        "LEITURA GERENCIAL AVANÇADA",
-      );
-      if (cabecalhoMarcador && inteligencia) {
-        const cabecalho = cardMaisProximo(cabecalhoMarcador);
-        if (cabecalho && !cabecalho.contains(inteligencia)) cabecalho.style.display = "none";
-      }
-
-      const tituloNota = acharExato("h2,h3,h4", "Por que essa nota?");
-      const blocoNota = cardMaisProximo(tituloNota);
+      const tituloNota = acharTextoExato("h2,h3,h4", "Por que essa nota?");
+      const blocoNota = tituloNota?.closest("div,section,article");
       const textoNota =
-        acharInicio("span", "Nota parcial") || acharInicio("span", "Nota final do mês");
+        acharTextoExato("span", "Nota parcial") ||
+        acharTextoExato("span", "Nota final do mês");
       const botaoNota = textoNota?.parentElement;
 
       if (blocoNota && botaoNota && !botaoNota.dataset.notaInterativa) {
@@ -78,6 +64,7 @@ export default function OrganizarRelatorio() {
         botaoNota.setAttribute("tabindex", "0");
         botaoNota.setAttribute("aria-expanded", "false");
         botaoNota.style.cursor = "pointer";
+        botaoNota.title = "Toque para ver o motivo da nota";
 
         const alternar = () => {
           const aberto = blocoNota.style.display !== "none";
@@ -95,13 +82,13 @@ export default function OrganizarRelatorio() {
       }
     }
 
-    const solicitar = () => {
+    function atualizar() {
       clearTimeout(agendado);
       agendado = setTimeout(organizar, 120);
-    };
+    }
 
-    solicitar();
-    const observador = new MutationObserver(solicitar);
+    atualizar();
+    const observador = new MutationObserver(atualizar);
     observador.observe(document.body, { subtree: true, childList: true });
 
     return () => {
