@@ -2,6 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  minutosDoHorario,
+  useHorariosPeriodos,
+} from "@/lib/horariosPeriodos";
 import styles from "./DashboardEstavelV2.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -184,6 +188,7 @@ function PeriodoDetalhe({ periodo, encerrado }) {
 
 export default function DashboardEstavelV2({ mes, vendas, metas, lojas }) {
   const supabase = useMemo(() => createClient(), []);
+  const horarios = useHorariosPeriodos();
   const [historicoAnterior, setHistoricoAnterior] = useState([]);
   const [carregandoHistorico, setCarregandoHistorico] = useState(true);
   const [filtroLoja, setFiltroLoja] = useState("geral");
@@ -211,16 +216,21 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas }) {
   const dados = useMemo(() => {
     const [ano, numeroMes] = mes.split("-").map(Number);
     const agora = new Date();
-    const hora = agora.getHours();
+    const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+    const fimManha = minutosDoHorario(horarios.manhaFim);
+    const fimNoite = Math.max(
+      minutosDoHorario(horarios.manhaFim),
+      minutosDoHorario(horarios.noiteFim),
+    );
     const totalDias = new Date(ano, numeroMes, 0).getDate();
     const mesAtual = ano === agora.getFullYear() && numeroMes === agora.getMonth() + 1;
     const mesPassado = ano < agora.getFullYear() || (ano === agora.getFullYear() && numeroMes < agora.getMonth() + 1);
     const mesFuturo = !mesAtual && !mesPassado;
     const diaCorte = mesAtual ? Math.min(agora.getDate(), totalDias) : mesPassado ? totalDias : 0;
     const diasDepoisHoje = mesAtual ? Math.max(totalDias - diaCorte, 0) : mesFuturo ? totalDias : 0;
-    const diasRestantesGeral = mesPassado ? 0 : mesFuturo ? totalDias : diasDepoisHoje + (hora < 22 ? 1 : 0);
-    const diasRestantesManha = mesPassado ? 0 : mesFuturo ? totalDias : diasDepoisHoje + (hora < 16 ? 1 : 0);
-    const diasRestantesNoite = mesPassado ? 0 : mesFuturo ? totalDias : diasDepoisHoje + (hora < 22 ? 1 : 0);
+    const diasRestantesGeral = mesPassado ? 0 : mesFuturo ? totalDias : diasDepoisHoje + (minutosAgora < fimNoite ? 1 : 0);
+    const diasRestantesManha = mesPassado ? 0 : mesFuturo ? totalDias : diasDepoisHoje + (minutosAgora < fimManha ? 1 : 0);
+    const diasRestantesNoite = mesPassado ? 0 : mesFuturo ? totalDias : diasDepoisHoje + (minutosAgora < fimNoite ? 1 : 0);
 
     const dias = Array.from({ length: totalDias }, () => 0);
     const porLoja = new Map();
@@ -311,7 +321,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas }) {
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       nivelFechado: nivelFechado(totalVendido, meta),
     };
-  }, [mes, vendas, metas, lojas]);
+  }, [mes, vendas, metas, lojas, horarios]);
 
   useEffect(() => { setLojaAberta(null); }, [mes]);
 
