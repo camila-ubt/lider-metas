@@ -15,39 +15,29 @@ function acharTextoExato(seletor, valor) {
 function cardVisualDo(marcador) {
   if (!marcador) return null;
 
-  let atual = marcador.parentElement;
-  let fallback = marcador.closest("section, article");
+  let atual = marcador;
+  let melhor = marcador.closest("section, article, div");
 
   while (atual && atual !== document.body) {
     const estilo = getComputedStyle(atual);
     const raio = parseFloat(estilo.borderTopLeftRadius || "0");
     const conteudo = texto(atual);
 
-    if (
-      raio >= 12 &&
-      conteudo.length >= 40 &&
-      conteudo.length <= 5000 &&
-      atual.parentElement &&
-      atual.parentElement !== document.body
-    ) {
-      return atual;
+    if (raio >= 12 && conteudo.length >= 40 && conteudo.length <= 6000) {
+      melhor = atual;
     }
 
+    if (atual.parentElement?.tagName === "MAIN") break;
     atual = atual.parentElement;
   }
 
-  return fallback;
+  return melhor;
 }
 
 function acharCardPorTitulo(titulo) {
-  const marcador = acharTextoExato("h1,h2,h3,h4,p,span,strong", titulo);
-  return cardVisualDo(marcador);
-}
-
-function inserirDepois(elemento, referencia) {
-  if (!elemento || !referencia || !referencia.parentElement) return false;
-  referencia.parentElement.insertBefore(elemento, referencia.nextSibling);
-  return true;
+  return cardVisualDo(
+    acharTextoExato("h1,h2,h3,h4,p,span,strong", titulo),
+  );
 }
 
 export default function OrganizarRelatorio() {
@@ -56,21 +46,18 @@ export default function OrganizarRelatorio() {
 
     function organizar() {
       const ranking = acharCardPorTitulo("RANKING INTERATIVO");
-      const marcadorRoteiro = acharTextoExato("p", "ROTEIRO DA REUNIÃO");
-      const roteiro = marcadorRoteiro?.closest("section");
+      const roteiro = acharTextoExato("p", "ROTEIRO DA REUNIÃO")?.closest("section");
       const grafico = acharCardPorTitulo("EVOLUÇÃO ACUMULADA");
       const inteligencia = document.querySelector("details.inteligencia-gerencial-unificada");
 
-      if (ranking && roteiro && ranking.nextElementSibling !== roteiro) {
-        inserirDepois(roteiro, ranking);
-      }
+      if (ranking && roteiro && grafico && inteligencia) {
+        const destino = grafico.parentElement;
 
-      if (roteiro && grafico && roteiro.nextElementSibling !== grafico) {
-        inserirDepois(grafico, roteiro);
-      }
-
-      if (grafico && inteligencia && grafico.nextElementSibling !== inteligencia) {
-        inserirDepois(inteligencia, grafico);
+        if (destino) {
+          destino.insertBefore(ranking, grafico);
+          destino.insertBefore(roteiro, grafico);
+          destino.insertBefore(inteligencia, grafico.nextSibling);
+        }
       }
 
       const tituloNota = acharTextoExato("h2,h3,h4", "Por que essa nota?");
@@ -107,7 +94,7 @@ export default function OrganizarRelatorio() {
 
     function atualizar() {
       clearTimeout(agendado);
-      agendado = setTimeout(organizar, 150);
+      agendado = setTimeout(organizar, 180);
     }
 
     atualizar();
