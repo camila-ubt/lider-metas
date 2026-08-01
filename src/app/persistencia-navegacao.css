@@ -1,0 +1,37 @@
+.atalho-mes-atual {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 80;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  padding: 11px 17px;
+  background: #6d43a2;
+  color: #fff;
+  box-shadow: 0 12px 30px rgba(69, 40, 88, 0.24);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.atalho-mes-atual:hover {
+  transform: translateY(-2px);
+  background: #5f378f;
+  box-shadow: 0 15px 34px rgba(69, 40, 88, 0.3);
+}
+
+.atalho-mes-atual:focus-visible {
+  outline: 3px solid rgba(118, 80, 167, 0.28);
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .atalho-mes-atual {
+    right: 14px;
+    bottom: 14px;
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+}
