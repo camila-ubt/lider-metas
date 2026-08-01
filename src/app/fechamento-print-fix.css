@@ -59,16 +59,39 @@
     border-radius: 0 !important;
     background: #fff !important;
     box-shadow: none !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
   }
 
   body.fechamento-print-active #fechamento-impressao [data-print-hide="true"] {
     display: none !important;
   }
 
+  /* O snapshot precisa aparecer já no estado final, sem o primeiro quadro
+     transparente da animação de abertura do ranking. */
+  body.fechamento-print-active #fechamento-painel-snapshot,
+  body.fechamento-print-active #fechamento-painel-snapshot [class*="rankDetails"] {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Não mantém o painel ou o card inteiro em uma única página. Isso evitava
+     a quebra e gerava uma primeira folha vazia. */
   body.fechamento-print-active #fechamento-impressao section,
-  body.fechamento-print-active #fechamento-impressao article,
-  body.fechamento-print-active #fechamento-impressao svg {
-    break-inside: avoid;
-    page-break-inside: avoid;
+  body.fechamento-print-active #fechamento-impressao article {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  /* Mantém apenas unidades pequenas juntas. */
+  body.fechamento-print-active #fechamento-impressao svg,
+  body.fechamento-print-active #fechamento-impressao [class*="rankWrapper"],
+  body.fechamento-print-active #fechamento-impressao [class*="periodCard"],
+  body.fechamento-print-active #fechamento-impressao [class*="barGroup"],
+  body.fechamento-print-active #fechamento-impressao [class*="kpi"] {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }
