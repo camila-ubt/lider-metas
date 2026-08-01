@@ -3,8 +3,8 @@ import FechamentoMensal from "@/components/FechamentoMensal";
 import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
 import AnaliseGerencial from "@/components/AnaliseGerencial";
+import InteligenciaGerencial from "@/components/InteligenciaGerencial";
 import PainelReuniao from "@/components/PainelReuniao";
-import InteligenciaGerencialUnificada from "@/components/InteligenciaGerencialUnificada";
 import OrganizarRelatorio from "@/components/OrganizarRelatorio";
 import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
 import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
@@ -63,8 +63,7 @@ export default function RootLayout({ children }) {
         {children}
         <ConferenciaAthos />
         <PainelReuniao />
-        <AnaliseGerencial modo="painel" />
-        <InteligenciaGerencialUnificada />
+        <InteligenciaGerencial />
         <OrganizarRelatorio />
         <MascaraMoeda />
         <FechamentoMensal />
