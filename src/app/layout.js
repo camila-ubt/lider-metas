@@ -4,6 +4,7 @@ import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
 import AnaliseGerencial from "@/components/AnaliseGerencial";
 import PainelReuniao from "@/components/PainelReuniao";
+import InteligenciaGerencialUnificada from "@/components/InteligenciaGerencialUnificada";
 import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
 import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
 import AjusteProbabilidades from "@/components/AjusteProbabilidades";
@@ -21,6 +22,7 @@ import "./fechamento-posicao.css";
 import "./relatorio-enxuto.css";
 import "./fechamento-impressao.css";
 import "./analise-ajustes.css";
+import "./inteligencia-gerencial.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +63,7 @@ export default function RootLayout({ children }) {
         <ConferenciaAthos />
         <PainelReuniao />
         <AnaliseGerencial modo="painel" />
+        <InteligenciaGerencialUnificada />
         <MascaraMoeda />
         <FechamentoMensal />
         <AlvoAnaliseFechamento />
