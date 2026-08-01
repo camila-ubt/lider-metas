@@ -1,5 +1,4 @@
 import { Geist, Geist_Mono } from "next/font/google";
-import FechamentoPainelNovo from "@/components/FechamentoPainelNovo";
 import PersistenciaNavegacao from "@/components/PersistenciaNavegacao";
 import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
@@ -73,7 +72,6 @@ export default function RootLayout({ children }) {
         <AjusteDiasEquivalentes />
         <FluxoPendenciasLancamento />
         <ConfiguracaoHorarios />
-        <FechamentoPainelNovo />
       </body>
     </html>
   );
