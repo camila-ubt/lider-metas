@@ -19,7 +19,6 @@
     background: #fff !important;
   }
 
-  /* Remove o aplicativo do fluxo de impressão, em vez de apenas deixá-lo invisível. */
   body.fechamento-print-active > * {
     display: none !important;
   }
@@ -62,6 +61,7 @@
     box-shadow: none !important;
   }
 
+  body.fechamento-print-active #fechamento-impressao [data-print-hide="true"],
   body.fechamento-print-active #fechamento-impressao button {
     display: none !important;
   }
