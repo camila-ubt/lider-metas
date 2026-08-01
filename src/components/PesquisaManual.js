@@ -96,7 +96,12 @@ export default function PesquisaManual() {
       aviso = document.createElement("p");
       aviso.className = styles.empty;
       aviso.hidden = true;
-      manual.querySelector(`.${styles.sections}`)?.appendChild(aviso);
+
+      const avisoFinal = Array.from(manual.children).find(
+        (elemento) => elemento !== hero && !elemento.querySelector?.("details"),
+      );
+      if (avisoFinal) manual.insertBefore(aviso, avisoFinal);
+      else manual.appendChild(aviso);
 
       campo.addEventListener("input", () => filtrar(manual, campo.value));
     }
