@@ -24,9 +24,6 @@ export default function OrganizarRelatorio() {
       const ranking = marcadorRanking?.closest("article");
       const grafico = marcadorGrafico?.closest("article");
       const roteiro = marcadorRoteiro?.closest("section");
-      const inteligencia = document.querySelector(
-        "details.inteligencia-gerencial-unificada",
-      );
       const dashboard = ranking?.parentElement;
 
       if (
@@ -34,16 +31,13 @@ export default function OrganizarRelatorio() {
         grafico?.parentElement === dashboard &&
         ranking?.parentElement === dashboard
       ) {
-        // Ordem fixa dentro do dashboard:
-        // ranking -> roteiro -> gráfico -> inteligência gerencial.
+        // Mantém apenas a organização dos blocos que já pertencem ao dashboard.
+        // A Inteligência Gerencial não pode ser movida manualmente, pois é um
+        // componente React e precisa permanecer no pai onde foi renderizada.
         dashboard.insertBefore(ranking, grafico);
 
         if (roteiro) {
           dashboard.insertBefore(roteiro, grafico);
-        }
-
-        if (inteligencia) {
-          dashboard.insertBefore(inteligencia, grafico.nextSibling);
         }
       }
 
