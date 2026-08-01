@@ -8,9 +8,14 @@
   text-align: center;
 }
 
-.rodape-autoria strong {
+.rodape-autoria a {
   color: #5f3c91;
   font-weight: 800;
+  text-decoration: none;
+}
+
+.rodape-autoria a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 560px) {
