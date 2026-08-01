@@ -28,11 +28,96 @@ function lerMesSelecionado() {
   );
 }
 
+function aguardarRenderizacao() {
+  return new Promise((resolver) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(resolver);
+    });
+  });
+}
+
+function limparSnapshotImpressao() {
+  document.getElementById("fechamento-painel-snapshot")?.remove();
+}
+
+async function criarSnapshotCompleto() {
+  const area = document.getElementById("fechamento-impressao");
+  const original = document.getElementById("fechamento-painel-original");
+  if (!area || !original) return false;
+
+  limparSnapshotImpressao();
+
+  const botoesIniciais = Array.from(
+    original.querySelectorAll('button[aria-expanded]'),
+  );
+  const indiceAbertoInicial = botoesIniciais.findIndex(
+    (botao) => botao.getAttribute("aria-expanded") === "true",
+  );
+  const detalhesExpandidos = [];
+
+  for (let indice = 0; indice < botoesIniciais.length; indice += 1) {
+    let botoesAtuais = Array.from(
+      original.querySelectorAll('button[aria-expanded]'),
+    );
+    let botao = botoesAtuais[indice];
+    if (!botao) continue;
+
+    if (botao.getAttribute("aria-expanded") !== "true") {
+      botao.click();
+      await aguardarRenderizacao();
+      botoesAtuais = Array.from(
+        original.querySelectorAll('button[aria-expanded]'),
+      );
+      botao = botoesAtuais[indice];
+    }
+
+    detalhesExpandidos[indice] = botao?.nextElementSibling?.cloneNode(true) || null;
+  }
+
+  const snapshot = original.cloneNode(true);
+  snapshot.id = "fechamento-painel-snapshot";
+  snapshot.setAttribute("aria-hidden", "true");
+
+  const botoesSnapshot = Array.from(
+    snapshot.querySelectorAll('button[aria-expanded]'),
+  );
+
+  botoesSnapshot.forEach((botao, indice) => {
+    botao.setAttribute("aria-expanded", "true");
+    while (botao.nextElementSibling) {
+      botao.nextElementSibling.remove();
+    }
+    if (detalhesExpandidos[indice]) {
+      botao.parentElement?.appendChild(detalhesExpandidos[indice]);
+    }
+  });
+
+  original.parentElement?.insertBefore(snapshot, original.nextSibling);
+
+  let botoesAtuais = Array.from(
+    original.querySelectorAll('button[aria-expanded]'),
+  );
+  const indiceAbertoAtual = botoesAtuais.findIndex(
+    (botao) => botao.getAttribute("aria-expanded") === "true",
+  );
+
+  if (indiceAbertoInicial >= 0 && indiceAbertoAtual !== indiceAbertoInicial) {
+    botoesAtuais[indiceAbertoInicial]?.click();
+    await aguardarRenderizacao();
+  } else if (indiceAbertoInicial < 0 && indiceAbertoAtual >= 0) {
+    botoesAtuais[indiceAbertoAtual]?.click();
+    await aguardarRenderizacao();
+  }
+
+  return true;
+}
+
 export default function FechamentoPainelNovo() {
   const supabase = useMemo(() => createClient(), []);
   const [visivel, setVisivel] = useState(false);
   const [aberto, setAberto] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [preparandoPdf, setPreparandoPdf] = useState(false);
   const [erro, setErro] = useState("");
   const [tipoMes, setTipoMes] = useState("andamento");
   const [dados, setDados] = useState(null);
@@ -78,6 +163,11 @@ export default function FechamentoPainelNovo() {
     return () => document.body.classList.remove("fechamento-print-active");
   }, [aberto, dados]);
 
+  useEffect(() => {
+    window.addEventListener("afterprint", limparSnapshotImpressao);
+    return () => window.removeEventListener("afterprint", limparSnapshotImpressao);
+  }, []);
+
   async function abrirRelatorio() {
     const mes = lerMesSelecionado();
     const intervalo = intervaloMes(mes);
@@ -120,7 +210,21 @@ export default function FechamentoPainelNovo() {
     setCarregando(false);
   }
 
+  async function imprimirRelatorio() {
+    if (preparandoPdf) return;
+    setPreparandoPdf(true);
+
+    try {
+      await criarSnapshotCompleto();
+      window.print();
+    } finally {
+      setPreparandoPdf(false);
+      window.setTimeout(limparSnapshotImpressao, 500);
+    }
+  }
+
   function fechar() {
+    limparSnapshotImpressao();
     setAberto(false);
     setErro("");
     setDados(null);
@@ -137,6 +241,14 @@ export default function FechamentoPainelNovo() {
 
   return (
     <>
+      <style>{`
+        #fechamento-painel-snapshot { display: none; }
+        @media print {
+          #fechamento-painel-original { display: none !important; }
+          #fechamento-painel-snapshot { display: block !important; }
+        }
+      `}</style>
+
       <button type="button" className={styles.launcher} onClick={abrirRelatorio}>
         {textoBotao}
       </button>
@@ -162,12 +274,14 @@ export default function FechamentoPainelNovo() {
 
             {!carregando && !erro && dados && (
               <>
-                <DashboardEstavelV2
-                  mes={dados.mes}
-                  vendas={dados.vendas}
-                  metas={dados.metas}
-                  lojas={dados.lojas}
-                />
+                <div id="fechamento-painel-original">
+                  <DashboardEstavelV2
+                    mes={dados.mes}
+                    vendas={dados.vendas}
+                    metas={dados.metas}
+                    lojas={dados.lojas}
+                  />
+                </div>
 
                 <div className={styles.actionsNoPrint} data-print-hide="true">
                   <button
@@ -180,9 +294,12 @@ export default function FechamentoPainelNovo() {
                   <button
                     type="button"
                     className={styles.primary}
-                    onClick={() => window.print()}
+                    onClick={imprimirRelatorio}
+                    disabled={preparandoPdf}
                   >
-                    Imprimir / salvar PDF
+                    {preparandoPdf
+                      ? "Preparando relatório completo..."
+                      : "Imprimir / salvar PDF"}
                   </button>
                 </div>
               </>
