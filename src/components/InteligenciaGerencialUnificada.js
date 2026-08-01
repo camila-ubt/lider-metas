@@ -15,42 +15,28 @@ function normalizar(valor) {
     .toLocaleLowerCase("pt-BR");
 }
 
-function tituloDoDetails(details) {
-  return normalizar(details.querySelector(":scope > summary")?.textContent);
+function encontrarAnalise() {
+  return Array.from(document.querySelectorAll("section")).find((secao) => {
+    const texto = normalizar(secao.textContent);
+    return (
+      texto.includes("insights para as líderes") &&
+      texto.includes("comparativo histórico") &&
+      texto.includes("projeção e inferência estatística") &&
+      texto.includes("tendência e consistência")
+    );
+  });
 }
 
-function localizarOriginais() {
-  const todos = Array.from(document.querySelectorAll("details"));
-  return TITULOS.map((titulo) =>
-    todos.find(
-      (details) =>
-        !details.classList.contains("inteligencia-gerencial-unificada") &&
-        tituloDoDetails(details).startsWith(titulo),
-    ),
-  );
-}
-
-function localizarCabecalho() {
-  const marcador = Array.from(document.querySelectorAll("p, span, strong")).find(
-    (elemento) => normalizar(elemento.textContent) === "leitura gerencial avançada",
-  );
-  if (!marcador) return null;
-
-  let atual = marcador.parentElement;
-  while (atual && atual !== document.body) {
-    const conteudo = normalizar(atual.textContent);
-    if (conteudo.includes("insights para as líderes") && atual.querySelector("h2")) {
-      return atual;
-    }
-    atual = atual.parentElement;
-  }
-  return null;
+function encontrarBloco(wrapper, titulo) {
+  return Array.from(wrapper.querySelectorAll("details")).find((details) => {
+    const summary = details.querySelector(":scope > summary");
+    return normalizar(summary?.textContent).startsWith(titulo);
+  });
 }
 
 function criarUnificado() {
   const details = document.createElement("details");
   details.className = "inteligencia-gerencial-unificada";
-  details.dataset.criadoPelaUnificacao = "true";
 
   const summary = document.createElement("summary");
   summary.innerHTML = `
@@ -64,29 +50,28 @@ function criarUnificado() {
   const conteudo = document.createElement("div");
   conteudo.className = "inteligencia-gerencial-conteudo";
 
-  details.appendChild(summary);
-  details.appendChild(conteudo);
+  details.append(summary, conteudo);
   return details;
 }
 
-function prepararOriginal(original) {
-  original.open = true;
-  original.dataset.inteligenciaOriginal = "true";
-  original.style.setProperty("display", "block", "important");
+function prepararBloco(bloco) {
+  bloco.open = true;
+  bloco.style.display = "block";
+  bloco.style.margin = "0";
+  bloco.style.border = "0";
+  bloco.style.boxShadow = "none";
+  bloco.style.background = "transparent";
 
-  const summary = original.querySelector(":scope > summary");
-  if (summary) summary.style.setProperty("display", "none", "important");
+  const summary = bloco.querySelector(":scope > summary");
+  if (summary) summary.style.display = "none";
 }
 
 function montar() {
-  const originais = localizarOriginais();
-  if (originais.some((item) => !item)) return false;
+  const wrapper = encontrarAnalise();
+  if (!wrapper) return false;
 
-  const cabecalho = localizarCabecalho();
-  if (cabecalho) {
-    cabecalho.style.setProperty("display", "none", "important");
-    cabecalho.dataset.inteligenciaCabecalho = "true";
-  }
+  const blocos = TITULOS.map((titulo) => encontrarBloco(wrapper, titulo));
+  if (blocos.some((bloco) => !bloco)) return false;
 
   let unificado = document.querySelector("details.inteligencia-gerencial-unificada");
   if (!unificado) unificado = criarUnificado();
@@ -94,18 +79,17 @@ function montar() {
   const conteudo = unificado.querySelector(".inteligencia-gerencial-conteudo");
   if (!conteudo) return false;
 
-  const primeiroOriginal = originais[0];
-  const paiOriginal = primeiroOriginal.parentElement;
-
-  if (!unificado.isConnected && paiOriginal) {
-    paiOriginal.insertBefore(unificado, primeiroOriginal);
+  if (!unificado.isConnected) {
+    wrapper.parentElement?.insertBefore(unificado, wrapper);
   }
 
-  originais.forEach((original) => {
-    prepararOriginal(original);
-    if (original.parentElement !== conteudo) conteudo.appendChild(original);
+  blocos.forEach((bloco) => {
+    prepararBloco(bloco);
+    if (bloco.parentElement !== conteudo) conteudo.appendChild(bloco);
   });
 
+  wrapper.style.setProperty("display", "none", "important");
+  wrapper.dataset.inteligenciaOculta = "true";
   return true;
 }
 
@@ -117,8 +101,7 @@ export default function InteligenciaGerencialUnificada() {
     const executar = () => {
       clearTimeout(temporizador);
       temporizador = setTimeout(() => {
-        const pronto = montar();
-        if (!pronto && tentativas < 40) {
+        if (!montar() && tentativas < 50) {
           tentativas += 1;
           executar();
         }
@@ -128,11 +111,12 @@ export default function InteligenciaGerencialUnificada() {
     executar();
 
     const observador = new MutationObserver((mutacoes) => {
-      const mudouFora = mutacoes.some(
+      const alteracaoExterna = mutacoes.some(
         (mutacao) => !mutacao.target.closest?.(".inteligencia-gerencial-unificada"),
       );
-      if (mudouFora) executar();
+      if (alteracaoExterna) executar();
     });
+
     observador.observe(document.body, { subtree: true, childList: true });
 
     return () => {
