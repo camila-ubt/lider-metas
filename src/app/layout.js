@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import FechamentoMensal from "@/components/FechamentoMensal";
+import PersistenciaNavegacao from "@/components/PersistenciaNavegacao";
 import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
 import AnaliseGerencial from "@/components/AnaliseGerencial";
@@ -23,6 +24,7 @@ import "./relatorio-enxuto.css";
 import "./fechamento-impressao.css";
 import "./analise-ajustes.css";
 import "./inteligencia-gerencial.css";
+import "./persistencia-navegacao.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,6 +62,7 @@ export default function RootLayout({ children }) {
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
+        <PersistenciaNavegacao />
         <ConferenciaAthos />
         <PainelReuniao />
         <InteligenciaGerencial />
