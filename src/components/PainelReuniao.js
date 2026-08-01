@@ -8,103 +8,14 @@ const dinheiro = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "
 const percentual = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const blocosSubstituidos = ["Loja destaque e ponto de atenção", "Leitura da manhã", "Leitura da noite", "Ações sugeridas"];
 
-function mesDaTela() {
-  return document.querySelector('input[type="month"]')?.value || "";
-}
-
-function painelAtivo() {
-  return Boolean(document.querySelector("nav.tabs button:first-child")?.classList.contains("active"));
-}
-
-function fimMes(mes) {
-  const [ano, numeroMes] = mes.split("-").map(Number);
-  return `${ano}-${String(numeroMes).padStart(2, "0")}-${String(new Date(ano, numeroMes, 0).getDate()).padStart(2, "0")}`;
-}
-
-function intervaloMesmoMes(mes, anosAtras) {
-  const [ano, numeroMes] = mes.split("-").map(Number);
-  const anoHistorico = ano - anosAtras;
-  const mm = String(numeroMes).padStart(2, "0");
-  const ultimoDia = String(new Date(anoHistorico, numeroMes, 0).getDate()).padStart(2, "0");
-  return { inicio: `${anoHistorico}-${mm}-01`, fim: `${anoHistorico}-${mm}-${ultimoDia}` };
-}
-
-function intervaloUltimosTresMeses(mes) {
-  const [ano, numeroMes] = mes.split("-").map(Number);
-  const inicio = new Date(ano, numeroMes - 4, 1);
-  const fim = new Date(ano, numeroMes - 1, 0);
-  const formatar = (data) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
-  return { inicio: formatar(inicio), fim: formatar(fim) };
-}
-
-function hojeLocal() {
-  const data = new Date();
-  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
-}
-
-function statusMes(mes) {
-  if (hojeLocal() > fimMes(mes)) return "encerrado";
-  if (hojeLocal() === fimMes(mes)) return "ultimo-dia";
-  return "andamento";
-}
-
-function proximoAlvo(vendido, meta) {
-  const alvos = [
-    { nome: "Meta", valor: meta },
-    { nome: "Supermeta", valor: meta * 1.2 },
-    { nome: "Megameta", valor: meta * 1.3 },
-  ];
-  return alvos.find((item) => vendido < item.valor) || alvos[2];
-}
-
-function nivelAtingido(vendido, meta) {
-  if (!(meta > 0)) return "Sem meta";
-  if (vendido >= meta * 1.3) return "Megameta";
-  if (vendido >= meta * 1.2) return "Supermeta";
-  if (vendido >= meta) return "Meta";
-  return "Abaixo da Meta";
-}
-
-function mediaDiaria(lista) {
-  const dias = new Set(lista.map((item) => item.data)).size;
-  const total = lista.reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
-  return dias ? total / dias : 0;
-}
-
-function referenciaHistorica(sazonal, recente) {
-  const porAno = new Map();
-  sazonal.forEach((item) => {
-    const ano = item.data.slice(0, 4);
-    if (!porAno.has(ano)) porAno.set(ano, []);
-    porAno.get(ano).push(item);
-  });
-  const mediasAnuais = [...porAno.entries()]
-    .map(([ano, itens]) => ({ ano, media: mediaDiaria(itens) }))
-    .filter((item) => item.media > 0);
-
-  if (mediasAnuais.length) {
-    return {
-      media: mediasAnuais.reduce((soma, item) => soma + item.media, 0) / mediasAnuais.length,
-      origem: `mesmo mês de ${mediasAnuais.map((item) => item.ano).join(" e ")}`,
-      sazonal: true,
-    };
-  }
-
-  const mediaRecente = mediaDiaria(recente);
-  return {
-    media: mediaRecente,
-    origem: mediaRecente > 0 ? "últimos 3 meses (referência temporária)" : "sem histórico suficiente",
-    sazonal: false,
-  };
-}
-
-function leituraHistorica(atual, referencia) {
-  if (!(referencia.media > 0)) return { variacao: null, texto: "Sem histórico suficiente para comparação." };
-  const variacao = ((atual - referencia.media) / referencia.media) * 100;
-  if (variacao >= 5) return { variacao, texto: `${percentual.format(variacao)}% acima do padrão do ${referencia.origem}.` };
-  if (variacao <= -5) return { variacao, texto: `${percentual.format(Math.abs(variacao))}% abaixo do padrão do ${referencia.origem}.` };
-  return { variacao, texto: `Dentro do padrão do ${referencia.origem}.` };
-}
+function mesDaTela() { return document.querySelector('input[type="month"]')?.value || ""; }
+function painelAtivo() { return Boolean(document.querySelector("nav.tabs button:first-child")?.classList.contains("active")); }
+function fimMes(mes) { const [ano, numeroMes] = mes.split("-").map(Number); return `${ano}-${String(numeroMes).padStart(2, "0")}-${String(new Date(ano, numeroMes, 0).getDate()).padStart(2, "0")}`; }
+function hojeLocal() { const data = new Date(); return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`; }
+function statusMes(mes) { if (hojeLocal() > fimMes(mes)) return "encerrado"; if (hojeLocal() === fimMes(mes)) return "ultimo-dia"; return "andamento"; }
+function media(lista) { return lista.length ? lista.reduce((soma, valor) => soma + valor, 0) / lista.length : 0; }
+function proximoAlvo(vendido, meta) { const alvos = [{ nome: "Meta", valor: meta }, { nome: "Supermeta", valor: meta * 1.2 }, { nome: "Megameta", valor: meta * 1.3 }]; return alvos.find((item) => vendido < item.valor) || alvos[2]; }
+function nivelAtingido(vendido, meta) { if (!(meta > 0)) return "Sem meta"; if (vendido >= meta * 1.3) return "Megameta"; if (vendido >= meta * 1.2) return "Supermeta"; if (vendido >= meta) return "Meta"; return "Abaixo da Meta"; }
 
 export default function PainelReuniao() {
   const supabase = useMemo(() => createClient(), []);
@@ -112,25 +23,17 @@ export default function PainelReuniao() {
   const [mes, setMes] = useState("");
   const [lojas, setLojas] = useState([]);
   const [vendas, setVendas] = useState([]);
-  const [historicoSazonal, setHistoricoSazonal] = useState([]);
-  const [historicoRecente, setHistoricoRecente] = useState([]);
+  const [historico, setHistorico] = useState([]);
   const [metas, setMetas] = useState([]);
 
   useEffect(() => {
-    function sincronizar() {
-      setMes(mesDaTela());
-      setVisivel(painelAtivo());
-    }
+    function sincronizar() { setMes(mesDaTela()); setVisivel(painelAtivo()); }
     sincronizar();
     document.addEventListener("click", sincronizar, true);
     document.addEventListener("change", sincronizar, true);
     const observador = new MutationObserver(sincronizar);
     observador.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
-    return () => {
-      document.removeEventListener("click", sincronizar, true);
-      document.removeEventListener("change", sincronizar, true);
-      observador.disconnect();
-    };
+    return () => { document.removeEventListener("click", sincronizar, true); document.removeEventListener("change", sincronizar, true); observador.disconnect(); };
   }, []);
 
   useEffect(() => {
@@ -149,159 +52,121 @@ export default function PainelReuniao() {
   useEffect(() => {
     if (!visivel || !mes) return undefined;
     let ativo = true;
-    const ano1 = intervaloMesmoMes(mes, 1);
-    const ano2 = intervaloMesmoMes(mes, 2);
-    const recentes = intervaloUltimosTresMeses(mes);
-
+    const [ano, numeroMes] = mes.split("-").map(Number);
+    const historicos = [ano - 1, ano - 2].map((anoHistorico) => {
+      const referencia = `${anoHistorico}-${String(numeroMes).padStart(2, "0")}`;
+      return supabase.from("vendas_diarias").select("data,loja_id,periodo,valor_vendido").gte("data", `${referencia}-01`).lte("data", fimMes(referencia));
+    });
     Promise.all([
       supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
       supabase.from("vendas_diarias").select("*").gte("data", `${mes}-01`).lte("data", fimMes(mes)),
-      supabase.from("vendas_diarias").select("data,loja_id,periodo,valor_vendido").gte("data", ano1.inicio).lte("data", ano1.fim),
-      supabase.from("vendas_diarias").select("data,loja_id,periodo,valor_vendido").gte("data", ano2.inicio).lte("data", ano2.fim),
-      supabase.from("vendas_diarias").select("data,loja_id,periodo,valor_vendido").gte("data", recentes.inicio).lte("data", recentes.fim),
       supabase.from("metas_mensais").select("*").eq("mes", `${mes}-01`),
-    ]).then(([lojasResp, vendasResp, hist1Resp, hist2Resp, recenteResp, metasResp]) => {
+      ...historicos,
+    ]).then(([lojasResp, vendasResp, metasResp, ...historicosResp]) => {
       if (!ativo) return;
       setLojas(lojasResp.data || []);
       setVendas(vendasResp.data || []);
-      setHistoricoSazonal([...(hist1Resp.data || []), ...(hist2Resp.data || [])]);
-      setHistoricoRecente(recenteResp.data || []);
       setMetas(metasResp.data || []);
+      setHistorico(historicosResp.flatMap((resposta) => resposta.data || []));
     });
     return () => { ativo = false; };
   }, [visivel, mes, supabase]);
 
   const resumo = useMemo(() => {
-    const totalVendido = vendas.reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
+    if (!mes) return null;
+    const [ano, numeroMes] = mes.split("-").map(Number);
+    const contexto = statusMes(mes);
+    const hoje = new Date();
+    const ultimoDia = new Date(ano, numeroMes, 0).getDate();
+    const diaCorte = contexto === "encerrado" ? ultimoDia : Math.min(hoje.getDate(), ultimoDia);
+    const vendasAteCorte = vendas.filter((item) => Number(item.data.slice(8, 10)) <= diaCorte);
+    const totalVendido = vendasAteCorte.reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
     const totalMeta = metas.reduce((soma, item) => soma + Number(item.valor_meta || 0), 0);
     const alvo = proximoAlvo(totalVendido, totalMeta);
     const atingido = nivelAtingido(totalVendido, totalMeta);
 
     const ranking = lojas.map((loja) => {
-      const vendido = vendas.filter((item) => Number(item.loja_id) === Number(loja.id)).reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
+      const vendido = vendasAteCorte.filter((item) => Number(item.loja_id) === Number(loja.id)).reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
       const meta = metas.filter((item) => Number(item.loja_id) === Number(loja.id)).reduce((soma, item) => soma + Number(item.valor_meta || 0), 0);
       return { ...loja, vendido, meta, percentual: meta > 0 ? (vendido / meta) * 100 : 0, proximo: proximoAlvo(vendido, meta) };
     }).sort((a, b) => b.percentual - a.percentual);
 
     const turnos = ["manha", "noite"].map((periodo) => {
-      const vendasTurno = vendas.filter((item) => item.periodo === periodo);
-      const sazonalTurno = historicoSazonal.filter((item) => item.periodo === periodo);
-      const recenteTurno = historicoRecente.filter((item) => item.periodo === periodo);
-      const atual = mediaDiaria(vendasTurno);
-      const referencia = referenciaHistorica(sazonalTurno, recenteTurno);
-      const leitura = leituraHistorica(atual, referencia);
-
+      const atuais = vendasAteCorte.filter((item) => item.periodo === periodo);
+      const totalAtual = atuais.reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
+      const mediaAtual = diaCorte > 0 ? totalAtual / diaCorte : 0;
+      const mediasAnuais = [ano - 1, ano - 2].map((anoHistorico) => {
+        const itens = historico.filter((item) => Number(item.data.slice(0, 4)) === anoHistorico && item.periodo === periodo && Number(item.data.slice(8, 10)) <= diaCorte);
+        if (!itens.length) return null;
+        return itens.reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0) / diaCorte;
+      }).filter((valor) => valor !== null);
+      const mediaHistorica = media(mediasAnuais);
+      const variacaoHistorica = mediaHistorica > 0 ? ((mediaAtual - mediaHistorica) / mediaHistorica) * 100 : null;
       const lojasTurno = lojas.map((loja) => {
-        const vendido = vendasTurno.filter((item) => Number(item.loja_id) === Number(loja.id)).reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
+        const vendido = atuais.filter((item) => Number(item.loja_id) === Number(loja.id)).reduce((soma, item) => soma + Number(item.valor_vendido || 0), 0);
         const meta = metas.filter((item) => Number(item.loja_id) === Number(loja.id) && item.periodo === periodo).reduce((soma, item) => soma + Number(item.valor_meta || 0), 0);
         return { ...loja, vendido, meta, percentual: meta > 0 ? (vendido / meta) * 100 : 0 };
       }).sort((a, b) => b.percentual - a.percentual);
-
-      return { periodo, atual, mediaHistorica: referencia.media, origemHistorica: referencia.origem, leitura, puxando: lojasTurno[0], atencao: lojasTurno[lojasTurno.length - 1] };
+      return { periodo, mediaAtual, mediaHistorica, variacaoHistorica, anosHistoricos: mediasAnuais.length, puxa: lojasTurno[0], atencao: lojasTurno[lojasTurno.length - 1] };
     });
 
     const destaque = ranking[0];
     const atencao = ranking[ranking.length - 1];
     const desempenho = totalMeta > 0 ? (totalVendido / totalMeta) * 100 : 0;
     const diferencaLojas = destaque && atencao ? Math.max(0, destaque.percentual - atencao.percentual) : 0;
-    const aderenciaTurnos = turnos.reduce((soma, turno) => {
-      if (turno.leitura.variacao === null) return soma + 0.75;
-      return soma + Math.max(0, 1 - Math.max(0, -turno.leitura.variacao) / 25);
-    }, 0);
-
+    const desempenhoTurnos = turnos.map((turno) => turno.variacaoHistorica === null ? 1 : Math.max(0, Math.min(1.2, 1 + turno.variacaoHistorica / 100)));
     let nota = Math.min(6, Math.max(0, desempenho / 20));
     nota += Math.max(0, 2 - diferencaLojas / 15);
-    nota += aderenciaTurnos;
+    nota += media(desempenhoTurnos) * 1.5;
     if (ranking.length && ranking.every((item) => item.percentual >= 100)) nota += 0.5;
     if (atingido === "Supermeta") nota += 0.5;
     if (atingido === "Megameta") nota += 1;
+    return { contexto, totalVendido, totalMeta, alvo, atingido, ranking, destaque, atencao, turnos, nota: Math.min(10, Math.max(0, nota)), diferencaLojas };
+  }, [mes, lojas, vendas, historico, metas]);
 
-    return { totalVendido, totalMeta, alvo, atingido, ranking, destaque, atencao, turnos, nota: Math.min(10, Math.max(0, nota)), diferencaLojas };
-  }, [lojas, vendas, historicoSazonal, historicoRecente, metas]);
-
-  if (!visivel || !mes || !resumo.totalMeta) return null;
-
-  const contexto = statusMes(mes);
+  if (!visivel || !mes || !resumo?.totalMeta) return null;
   const todasAcima = resumo.ranking.every((item) => item.percentual >= 100);
   const faltaProximo = Math.max(resumo.alvo.valor - resumo.totalVendido, 0);
   const faltaAtencao = Math.max(resumo.atencao?.proximo.valor - resumo.atencao?.vendido, 0);
-  const titulo = contexto === "encerrado" ? "Avaliação do mês encerrado" : contexto === "ultimo-dia" ? "Último dia para fechar o mês" : "Onde concentrar os esforços até o fechamento";
-  const sintese = contexto === "encerrado"
+  const titulo = resumo.contexto === "encerrado" ? "Avaliação do mês encerrado" : resumo.contexto === "ultimo-dia" ? "Último dia para fechar o mês" : "Onde concentrar os esforços até o fechamento";
+  const sintese = resumo.contexto === "encerrado"
     ? `A operação encerrou o mês com ${percentual.format((resumo.totalVendido / resumo.totalMeta) * 100)}% da Meta, atingindo ${resumo.atingido}. ${faltaProximo > 0 ? `Ficou ${dinheiro.format(faltaProximo)} abaixo da ${resumo.alvo.nome}.` : "O maior nível previsto foi alcançado."} O foco agora é reconhecer os resultados e definir as prioridades do próximo mês.`
-    : contexto === "ultimo-dia"
+    : resumo.contexto === "ultimo-dia"
       ? `Hoje é o último dia do mês. A operação está em ${percentual.format((resumo.totalVendido / resumo.totalMeta) * 100)}% da Meta e precisa de ${dinheiro.format(faltaProximo)} para alcançar a ${resumo.alvo.nome}.`
       : `A operação está em ${percentual.format((resumo.totalVendido / resumo.totalMeta) * 100)}% da Meta e segue rumo à ${resumo.alvo.nome}. Faltam ${dinheiro.format(faltaProximo)}.`;
 
-  const turnosAbaixo = resumo.turnos.filter((turno) => turno.leitura.variacao !== null && turno.leitura.variacao < -5);
-  const acoes = contexto === "encerrado"
-    ? [
-        `Definir um plano para a ${resumo.atencao?.codigo} reduzir a diferença para as demais lojas no próximo mês.`,
-        `Levar para o próximo ciclo as práticas da ${resumo.destaque?.codigo}, destaque do mês.`,
-        ...turnosAbaixo.map((turno) => `Revisar o resultado da ${turno.periodo === "manha" ? "manhã" : "noite"}, que fechou abaixo do padrão do mesmo mês em anos anteriores.`),
-      ].slice(0, 3)
-    : [
-        resumo.atencao?.percentual < 100
-          ? `Recuperar a ${resumo.atencao.codigo}: faltam ${dinheiro.format(Math.max(resumo.atencao.meta - resumo.atencao.vendido, 0))} para a Meta.`
-          : `Direcionar esforço para a ${resumo.atencao?.codigo} alcançar ${resumo.atencao?.proximo.nome}; faltam ${dinheiro.format(faltaAtencao)}.`,
-        `Replicar com a equipe as práticas da ${resumo.destaque?.codigo}, líder do mês.`,
-        ...turnosAbaixo.map((turno) => `Acompanhar a ${turno.periodo === "manha" ? "manhã" : "noite"}: está abaixo do padrão do mesmo mês em anos anteriores.`),
-      ].slice(0, 3);
+  const acoes = resumo.contexto === "encerrado"
+    ? [`Definir um plano para a ${resumo.atencao?.codigo} reduzir a diferença para as demais lojas no próximo mês.`, `Levar para o próximo ciclo as práticas da ${resumo.destaque?.codigo}, destaque do mês.`]
+    : [resumo.atencao?.percentual < 100 ? `Recuperar a ${resumo.atencao.codigo}: faltam ${dinheiro.format(Math.max(resumo.atencao.meta - resumo.atencao.vendido, 0))} para a Meta.` : `Direcionar esforço para a ${resumo.atencao?.codigo} alcançar ${resumo.atencao?.proximo.nome}; faltam ${dinheiro.format(faltaAtencao)}.`, `Replicar com a equipe as práticas da ${resumo.destaque?.codigo}, líder do mês.`];
 
   const justificativas = [
     resumo.atingido === "Megameta" ? "Megameta atingida." : resumo.atingido === "Supermeta" ? "Supermeta atingida." : resumo.atingido === "Meta" ? "Meta atingida, mas a Supermeta ainda não foi alcançada." : "Meta ainda não atingida.",
     todasAcima ? "Todas as lojas atingiram a Meta." : "Nem todas as lojas atingiram a Meta.",
     resumo.diferencaLojas <= 8 ? "As lojas estão equilibradas." : `Há ${percentual.format(resumo.diferencaLojas)} p.p. de diferença entre a primeira e a última loja.`,
-    ...resumo.turnos.map((turno) => `${turno.periodo === "manha" ? "Manhã" : "Noite"}: ${turno.leitura.texto}`),
+    ...resumo.turnos.map((turno) => { const nome = turno.periodo === "manha" ? "Manhã" : "Noite"; if (turno.variacaoHistorica === null) return `${nome}: ainda não há histórico suficiente do mesmo mês.`; if (turno.variacaoHistorica < -5) return `${nome}: ${percentual.format(Math.abs(turno.variacaoHistorica))}% abaixo da média do mesmo mês em anos anteriores.`; if (turno.variacaoHistorica > 5) return `${nome}: ${percentual.format(turno.variacaoHistorica)}% acima da média do mesmo mês em anos anteriores.`; return `${nome}: dentro do padrão histórico do mesmo mês.`; }),
   ];
 
   return (
     <section className={styles.wrap}>
       <header className={styles.header}>
         <div><p>ROTEIRO DA REUNIÃO</p><h2>{titulo}</h2></div>
-        <div className={styles.score}><span>{contexto === "encerrado" ? "Nota final do mês" : "Nota parcial"}</span><strong>{resumo.nota.toFixed(1)}</strong></div>
+        <div className={styles.score}><span>{resumo.contexto === "encerrado" ? "Nota final do mês" : "Nota parcial"}</span><strong>{resumo.nota.toFixed(1)}</strong></div>
       </header>
-
       <p className={styles.sintese}>{sintese}</p>
-
       <div className={styles.grid}>
-        <article className={styles.positivo}>
-          <h3>Reconhecer</h3>
-          <p>{contexto === "encerrado" ? `${resumo.destaque?.codigo} foi a loja destaque do mês` : `${resumo.destaque?.codigo} lidera o mês`} com {percentual.format(resumo.destaque?.percentual || 0)}% da Meta.</p>
-          <p>{todasAcima ? "Todas as lojas atingiram a Meta." : "O resultado geral segue em evolução."}</p>
-        </article>
-        <article className={styles.atencao}>
-          <h3>Corrigir</h3>
-          <p><b>{resumo.atencao?.codigo}</b> tem o menor desempenho proporcional do ranking.</p>
-          <p>Os turnos só entram como atenção quando ficam abaixo do próprio padrão sazonal.</p>
-        </article>
+        <article className={styles.positivo}><h3>Reconhecer</h3><p>{resumo.contexto === "encerrado" ? `${resumo.destaque?.codigo} foi a loja destaque do mês, encerrando com ${percentual.format(resumo.destaque?.percentual || 0)}% da Meta.` : `${resumo.destaque?.codigo} lidera o mês com ${percentual.format(resumo.destaque?.percentual || 0)}% da Meta.`}</p><p>{todasAcima ? "Todas as lojas já superaram a Meta." : "A loja líder está puxando o resultado geral."}</p></article>
+        <article className={styles.atencao}><h3>Corrigir</h3><p>{resumo.contexto === "encerrado" ? `${resumo.atencao?.codigo} encerrou com o menor desempenho proporcional: ${percentual.format(resumo.atencao?.percentual || 0)}% da Meta.` : `${resumo.atencao?.codigo} tem o menor desempenho proporcional do ranking.`}</p><p>Os turnos são avaliados contra o próprio histórico do mesmo mês, sem comparar manhã com noite.</p></article>
       </div>
-
-      <div className={styles.turnosHistoricos}>
-        <h3>Leitura justa por turno</h3>
-        <div className={styles.turnosGrid}>
-          {resumo.turnos.map((turno) => (
-            <article key={turno.periodo}>
-              <header><strong>{turno.periodo === "manha" ? "Manhã" : "Noite"}</strong><span>{turno.leitura.texto}</span></header>
-              <p>Média atual: <b>{dinheiro.format(turno.atual)}</b> por dia</p>
-              <p>Referência ({turno.origemHistorica}): <b>{dinheiro.format(turno.mediaHistorica)}</b> por dia</p>
-              <div className={styles.turnoLojas}>
-                <p><span>Puxando o resultado</span><b>{turno.puxando?.codigo} · {percentual.format(turno.puxando?.percentual || 0)}%</b></p>
-                <p><span>Precisa de atenção</span><b>{turno.atencao?.codigo} · {percentual.format(turno.atencao?.percentual || 0)}%</b></p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-
       <div className={styles.acoes}>
-        <h3>{contexto === "encerrado" ? "Decisões para o próximo mês" : "Combinar com a equipe"}</h3>
-        {acoes.map((acao, indice) => <label key={acao}><input type="checkbox" /><span><b>{indice + 1}.</b> {acao}</span></label>)}
+        <h3>Leitura dos turnos pelo próprio histórico</h3>
+        {resumo.turnos.map((turno) => {
+          const nome = turno.periodo === "manha" ? "Manhã" : "Noite";
+          const status = turno.variacaoHistorica === null ? "Sem histórico suficiente" : turno.variacaoHistorica < -5 ? `${percentual.format(Math.abs(turno.variacaoHistorica))}% abaixo do histórico` : turno.variacaoHistorica > 5 ? `${percentual.format(turno.variacaoHistorica)}% acima do histórico` : "Dentro do padrão histórico";
+          return <div key={turno.periodo} style={{ marginBottom: 14 }}><p><b>{nome}</b> — {status}</p><p>Média diária atual: {dinheiro.format(turno.mediaAtual)} · média do mesmo mês em anos anteriores: {turno.anosHistoricos ? dinheiro.format(turno.mediaHistorica) : "sem dados"}</p><p><b>Puxa o resultado:</b> {turno.puxa?.codigo} ({percentual.format(turno.puxa?.percentual || 0)}% da meta do turno)</p><p><b>Precisa de atenção:</b> {turno.atencao?.codigo} ({percentual.format(turno.atencao?.percentual || 0)}% da meta do turno)</p></div>;
+        })}
       </div>
-
-      <div className={styles.acoes}>
-        <h3>Por que essa nota?</h3>
-        {justificativas.map((item) => <p key={item}>{item}</p>)}
-      </div>
+      <div className={styles.acoes}><h3>{resumo.contexto === "encerrado" ? "Decisões para o próximo mês" : "Combinar com a equipe"}</h3>{acoes.map((acao, indice) => <label key={acao}><input type="checkbox" /><span><b>{indice + 1}.</b> {acao}</span></label>)}{resumo.turnos.filter((turno) => turno.variacaoHistorica !== null && turno.variacaoHistorica < -5).map((turno) => <label key={turno.periodo}><input type="checkbox" /><span>Revisar o turno da {turno.periodo === "manha" ? "manhã" : "noite"}, que está abaixo da própria média do mesmo mês.</span></label>)}</div>
+      <div className={styles.acoes}><h3>Por que essa nota?</h3>{justificativas.map((item) => <p key={item}>{item}</p>)}</div>
     </section>
   );
 }
