@@ -15,6 +15,7 @@ import "./lancamento-cards.css";
 import "./fluxo-pendencias.css";
 import "./inteligencia-gerencial.css";
 import "./persistencia-navegacao.css";
+import "./fechamento-print-fix.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
