@@ -14,6 +14,20 @@ function hojeLocal() {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
 }
 
+function fimDoMes(data) {
+  const [ano, mes] = String(data).slice(0, 7).split("-").map(Number);
+  const ultimoDia = new Date(ano, mes, 0).getDate();
+  return `${ano}-${String(mes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+}
+
+function dataFinalDasPendencias(dataInicial) {
+  const hoje = hojeLocal();
+  const ultimoDiaDoMes = fimDoMes(dataInicial);
+
+  if (dataInicial > hoje) return dataInicial;
+  return hoje < ultimoDiaDoMes ? hoje : ultimoDiaDoMes;
+}
+
 function proximaData(data) {
   const atual = new Date(`${data}T12:00:00`);
   atual.setDate(atual.getDate() + 1);
@@ -56,8 +70,7 @@ function pendenciasDaLoja(vendas, dataInicial, lojaId) {
   if (!dataInicial || !lojaId) return [];
 
   const resultado = [];
-  const hoje = hojeLocal();
-  const dataFinal = dataInicial > hoje ? dataInicial : hoje;
+  const dataFinal = dataFinalDasPendencias(dataInicial);
   let data = dataInicial;
 
   while (data <= dataFinal) {
@@ -132,8 +145,7 @@ export default function FluxoPendenciasLancamento() {
     setValor("");
     setCaixaNaoAberto(false);
 
-    const hoje = hojeLocal();
-    const dataFinal = data > hoje ? data : hoje;
+    const dataFinal = dataFinalDasPendencias(data);
 
     const [lojasResposta, vendasResposta] = await Promise.all([
       supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
