@@ -5,6 +5,7 @@ import ConferenciaAthos from "@/components/ConferenciaAthos";
 import AnaliseGerencial from "@/components/AnaliseGerencial";
 import PainelReuniao from "@/components/PainelReuniao";
 import InteligenciaGerencialUnificada from "@/components/InteligenciaGerencialUnificada";
+import OrganizarRelatorio from "@/components/OrganizarRelatorio";
 import AlvoAnaliseFechamento from "@/components/AlvoAnaliseFechamento";
 import ResumoLojasFechamento from "@/components/ResumoLojasFechamento";
 import AjusteProbabilidades from "@/components/AjusteProbabilidades";
@@ -64,6 +65,7 @@ export default function RootLayout({ children }) {
         <PainelReuniao />
         <AnaliseGerencial modo="painel" />
         <InteligenciaGerencialUnificada />
+        <OrganizarRelatorio />
         <MascaraMoeda />
         <FechamentoMensal />
         <AlvoAnaliseFechamento />
