@@ -208,6 +208,21 @@ function montar() {
   return true;
 }
 
+function mutacaoSomenteDosInsights(mutacao) {
+  const alterados = [...mutacao.addedNodes, ...mutacao.removedNodes].filter(
+    (item) => item instanceof Element,
+  );
+
+  return (
+    alterados.length > 0 &&
+    alterados.every(
+      (item) =>
+        item.classList.contains("inteligencia-gerencial-secao-insights") ||
+        Boolean(item.closest(".inteligencia-gerencial-secao-insights")),
+    )
+  );
+}
+
 export default function InteligenciaGerencialUnificada() {
   useEffect(() => {
     let temporizador;
@@ -232,15 +247,11 @@ export default function InteligenciaGerencialUnificada() {
     executar();
 
     const observador = new MutationObserver((mutacoes) => {
-      const alteracaoExterna = mutacoes.some((mutacao) => {
-        const alvo = mutacao.target;
-        return !(
-          alvo instanceof Element &&
-          alvo.closest(".inteligencia-gerencial-secao-insights")
-        );
-      });
+      const alteracaoRelevante = mutacoes.some(
+        (mutacao) => !mutacaoSomenteDosInsights(mutacao),
+      );
 
-      if (alteracaoExterna) executar();
+      if (alteracaoRelevante) executar();
     });
 
     observador.observe(document.body, { subtree: true, childList: true });
