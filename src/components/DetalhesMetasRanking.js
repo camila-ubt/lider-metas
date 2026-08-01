@@ -33,12 +33,20 @@ function mesSelecionado() {
   );
 }
 
-function encontrarRanking() {
+function encontrarArtigoPorMarcador(marcador) {
   return Array.from(document.querySelectorAll("article")).find((artigo) =>
     Array.from(artigo.querySelectorAll("p")).some(
-      (paragrafo) => texto(paragrafo).toUpperCase() === "RANKING INTERATIVO",
+      (paragrafo) => texto(paragrafo).toUpperCase() === marcador,
     ),
   );
+}
+
+function encontrarRanking() {
+  return encontrarArtigoPorMarcador("RANKING INTERATIVO");
+}
+
+function encontrarJornada() {
+  return encontrarArtigoPorMarcador("JORNADA DO MÊS");
 }
 
 function diasDoMes(mes) {
@@ -120,6 +128,13 @@ function vendidoDoPeriodo(artigo) {
   return valorMoeda(valor?.textContent);
 }
 
+function vendidoDaJornada(artigo) {
+  const subtitulo = Array.from(artigo.querySelectorAll("p")).find((elemento) =>
+    texto(elemento).includes(" vendidos"),
+  );
+  return valorMoeda(subtitulo?.textContent);
+}
+
 function nomeDoPeriodo(artigo) {
   return texto(
     Array.from(artigo.querySelectorAll("span")).find((elemento) =>
@@ -146,6 +161,33 @@ function formatarSituacao({ alvo, vendido, encerrado, diasCalculo, totalDias }) 
   return `Faltam ${dinheiro.format(falta)}`;
 }
 
+function atualizarNiveisDoBloco({ bloco, vendido, estado, diasCalculo }) {
+  if (!bloco) return;
+
+  Array.from(bloco.querySelectorAll("strong")).forEach((titulo) => {
+    const nomeNivel = texto(titulo);
+    if (!nomesNiveis.has(nomeNivel)) return;
+
+    const conteudoNivel = titulo.parentElement;
+    const cardNivel = conteudoNivel?.parentElement;
+    const alvo = valorMoeda(conteudoNivel?.querySelector("small")?.textContent);
+    const situacao = Array.from(cardNivel?.children || []).find(
+      (elemento) => elemento.tagName === "EM",
+    );
+    if (!situacao) return;
+
+    const novoTexto = formatarSituacao({
+      alvo,
+      vendido,
+      encerrado: estado.encerrado,
+      diasCalculo,
+      totalDias: estado.totalDias,
+    });
+
+    if (texto(situacao) !== novoTexto) situacao.textContent = novoTexto;
+  });
+}
+
 export default function DetalhesMetasRanking() {
   const horarios = useHorariosPeriodos();
 
@@ -154,11 +196,23 @@ export default function DetalhesMetasRanking() {
 
     function atualizar() {
       quadro = null;
-      const ranking = encontrarRanking();
       const mes = mesSelecionado();
-      if (!ranking || !mes) return;
+      if (!mes) return;
 
       const estado = estadoDoMes(mes, horarios);
+      const jornada = encontrarJornada();
+
+      if (jornada) {
+        atualizarNiveisDoBloco({
+          bloco: jornada,
+          vendido: vendidoDaJornada(jornada),
+          estado,
+          diasCalculo: estado.geral,
+        });
+      }
+
+      const ranking = encontrarRanking();
+      if (!ranking) return;
 
       ranking
         .querySelectorAll('button[aria-expanded="true"]')
