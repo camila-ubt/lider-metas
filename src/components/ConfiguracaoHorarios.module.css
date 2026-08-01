@@ -1,0 +1,163 @@
+.wrapper {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto 28px;
+}
+
+.panel {
+  border: 1px solid #e6deec;
+  border-radius: 22px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgba(57, 39, 73, 0.08);
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.heading p {
+  margin: 0 0 5px;
+  color: #7650a7;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.heading h2 {
+  margin: 0;
+  color: #2d2037;
+  font-size: 20px;
+}
+
+.heading > span {
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #f1ebf6;
+  color: #684393;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.help {
+  margin: 10px 0 16px;
+  color: #756a7d;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.form fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid #e7dfea;
+  border-radius: 16px;
+  padding: 12px;
+  background: #faf7fc;
+}
+
+.form legend {
+  padding: 0 5px;
+  color: #5f3c91;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.form label {
+  display: grid;
+  gap: 5px;
+  color: #665b6f;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.form input {
+  min-width: 0;
+  height: 42px;
+  border: 1px solid #dcd2e4;
+  border-radius: 11px;
+  padding: 0 10px;
+  background: #fff;
+  color: #2d2037;
+  font: inherit;
+  font-size: 14px;
+}
+
+.form > button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 13px;
+  padding: 11px 16px;
+  background: #684199;
+  color: #fff;
+  font: inherit;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.form > button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.error,
+.success {
+  margin: 12px 0 0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.error {
+  background: #fdecec;
+  color: #973333;
+}
+
+.success {
+  background: #edf8f0;
+  color: #34734a;
+}
+
+@media (max-width: 760px) {
+  .wrapper {
+    width: calc(100% - 24px);
+    margin-bottom: 22px;
+  }
+
+  .panel {
+    padding: 15px;
+  }
+
+  .heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .form > button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .form fieldset {
+    grid-template-columns: 1fr;
+  }
+}
