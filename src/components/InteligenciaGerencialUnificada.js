@@ -2,106 +2,138 @@
 
 import { useEffect } from "react";
 
-const titulos = [
-  "Comparativo histórico",
-  "Projeção e inferência estatística",
-  "Tendência e consistência",
+const TITULOS = [
+  "comparativo histórico",
+  "projeção e inferência estatística",
+  "tendência e consistência",
 ];
 
-function texto(elemento) {
-  return elemento?.textContent?.replace(/\s+/g, " ").trim() || "";
+function normalizar(valor) {
+  return String(valor || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
 }
 
-function encontrarBloco(titulo) {
-  return Array.from(document.querySelectorAll("details")).find((item) => {
-    if (item.classList.contains("inteligencia-gerencial-unificada")) return false;
-    const resumo = item.querySelector(":scope > summary");
-    return texto(resumo).startsWith(titulo);
+function tituloDoDetails(details) {
+  return normalizar(details.querySelector("summary")?.textContent);
+}
+
+function localizarOriginais() {
+  const todos = Array.from(document.querySelectorAll("details"));
+  return TITULOS.map((titulo) =>
+    todos.find(
+      (details) =>
+        !details.classList.contains("inteligencia-gerencial-unificada") &&
+        tituloDoDetails(details).startsWith(titulo),
+    ),
+  );
+}
+
+function localizarCabecalho() {
+  return Array.from(document.querySelectorAll("section, article, div")).find((elemento) => {
+    const conteudo = normalizar(elemento.textContent);
+    return (
+      conteudo.includes("leitura gerencial avançada") &&
+      conteudo.includes("insights para as líderes") &&
+      elemento.querySelector("h2")
+    );
   });
 }
 
-function encontrarCabecalho() {
-  const marcador = Array.from(document.querySelectorAll("p, span, strong")).find(
-    (item) =>
-      !item.closest(".inteligencia-gerencial-unificada") &&
-      texto(item) === "LEITURA GERENCIAL AVANÇADA",
-  );
+function criarUnificado(originais) {
+  const details = document.createElement("details");
+  details.className = "inteligencia-gerencial-unificada";
+  details.dataset.criadoPelaUnificacao = "true";
 
-  if (!marcador) return null;
-  return marcador.closest("section, article") || marcador.parentElement;
-}
-
-function criarBloco(existentes) {
-  const detalhes = document.createElement("details");
-  detalhes.className = "inteligencia-gerencial-unificada";
-
-  const resumo = document.createElement("summary");
-  resumo.innerHTML = `
+  const summary = document.createElement("summary");
+  summary.innerHTML = `
     <div>
       <strong>Inteligência gerencial</strong>
-      <span>Histórico, projeções e tendências em uma única análise.</span>
+      <span>Comparativo histórico, projeções e tendências.</span>
     </div>
-    <i>⌄</i>
+    <i aria-hidden="true">⌄</i>
   `;
 
   const conteudo = document.createElement("div");
   conteudo.className = "inteligencia-gerencial-conteudo";
 
-  existentes.forEach((bloco, indice) => {
+  originais.forEach((original, indice) => {
     const secao = document.createElement("section");
     secao.className = "inteligencia-gerencial-secao";
 
     const titulo = document.createElement("h3");
-    titulo.textContent = titulos[indice];
+    titulo.textContent = [
+      "Comparativo histórico",
+      "Projeção e inferência estatística",
+      "Tendência e consistência",
+    ][indice];
     secao.appendChild(titulo);
 
-    Array.from(bloco.children)
-      .filter((filho) => filho.tagName !== "SUMMARY")
-      .forEach((filho) => secao.appendChild(filho.cloneNode(true)));
-
+    const corpoOriginal = Array.from(original.children).filter(
+      (filho) => filho.tagName !== "SUMMARY",
+    );
+    corpoOriginal.forEach((filho) => secao.appendChild(filho.cloneNode(true)));
     conteudo.appendChild(secao);
   });
 
-  detalhes.appendChild(resumo);
-  detalhes.appendChild(conteudo);
-  return detalhes;
+  details.appendChild(summary);
+  details.appendChild(conteudo);
+  return details;
 }
 
 function montar() {
-  const existentes = titulos.map(encontrarBloco);
-  const cabecalho = encontrarCabecalho();
+  const originais = localizarOriginais();
+  if (originais.some((item) => !item)) return false;
 
-  if (!cabecalho || existentes.some((item) => !item)) return;
-
-  existentes.forEach((bloco) => {
-    bloco.style.display = "none";
-    bloco.dataset.inteligenciaOriginal = "true";
+  originais.forEach((item) => {
+    item.style.setProperty("display", "none", "important");
+    item.dataset.inteligenciaOriginal = "true";
   });
 
-  cabecalho.style.display = "none";
-  cabecalho.dataset.inteligenciaCabecalhoAntigo = "true";
+  const cabecalho = localizarCabecalho();
+  if (cabecalho) {
+    cabecalho.style.setProperty("display", "none", "important");
+    cabecalho.dataset.inteligenciaCabecalho = "true";
+  }
 
-  let unificado = document.querySelector(".inteligencia-gerencial-unificada");
-  if (!unificado) unificado = criarBloco(existentes);
+  let unificado = document.querySelector("details.inteligencia-gerencial-unificada");
+  if (!unificado) unificado = criarUnificado(originais);
 
-  cabecalho.parentElement?.insertBefore(unificado, cabecalho);
+  const ultimoOriginal = originais[originais.length - 1];
+  const pai = ultimoOriginal.parentElement;
+  if (pai && unificado.parentElement !== pai) {
+    pai.insertBefore(unificado, ultimoOriginal.nextSibling);
+  } else if (pai && ultimoOriginal.nextSibling !== unificado) {
+    pai.insertBefore(unificado, ultimoOriginal.nextSibling);
+  }
+
+  return true;
 }
 
 export default function InteligenciaGerencialUnificada() {
   useEffect(() => {
-    let agendado = null;
+    let tentativas = 0;
+    let temporizador;
 
-    const atualizar = () => {
-      clearTimeout(agendado);
-      agendado = setTimeout(montar, 150);
+    const executar = () => {
+      clearTimeout(temporizador);
+      temporizador = setTimeout(() => {
+        const pronto = montar();
+        if (!pronto && tentativas < 30) {
+          tentativas += 1;
+          executar();
+        }
+      }, 100);
     };
 
-    atualizar();
-    const observador = new MutationObserver(atualizar);
+    executar();
+
+    const observador = new MutationObserver(() => executar());
     observador.observe(document.body, { subtree: true, childList: true });
 
     return () => {
-      clearTimeout(agendado);
+      clearTimeout(temporizador);
       observador.disconnect();
     };
   }, []);
