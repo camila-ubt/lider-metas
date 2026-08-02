@@ -72,10 +72,10 @@ function orientacaoDoPeriodo({ periodo, desempenho, destaque, atencao, encerrado
     if (desempenho < 100) {
       return `o mês encerrou sem atingir a Meta da ${periodo}. Comparar ${atencao.codigo} com ${destaque.codigo}, registrar diferenças observáveis e definir uma ação prática para o próximo mês.`;
     }
-    if (desempenho < 120) {
+    if (desempenho < 110) {
       return `a Meta da ${periodo} foi atingida, mas a Supermeta não. Identificar com ${destaque.codigo} o que esteve presente nos melhores dias, registrar o que funcionou e transformar a análise em ação para o próximo mês.`;
     }
-    if (desempenho < 130) {
+    if (desempenho < 120) {
       return `a Supermeta da ${periodo} foi atingida, mas a Megameta não. Documentar as práticas observáveis de ${destaque.codigo} e planejar como ampliar esse padrão no próximo mês.`;
     }
     return `a Megameta da ${periodo} foi atingida. Documentar com ${destaque.codigo} as práticas observáveis dos melhores dias e definir como preservar esse padrão no próximo mês.`;
@@ -84,10 +84,10 @@ function orientacaoDoPeriodo({ periodo, desempenho, destaque, atencao, encerrado
   if (desempenho < 100) {
     return `comparar ${atencao.codigo} com ${destaque.codigo}, identificar diferenças observáveis e definir um teste prático para recuperar a Meta nos dias restantes.`;
   }
-  if (desempenho < 120) {
+  if (desempenho < 110) {
     return `identificar com ${destaque.codigo} quais abordagens, produtos, exposições ou condições de atendimento estiveram presentes nos melhores dias e manter o acompanhamento para avançar em direção à Supermeta.`;
   }
-  if (desempenho < 130) {
+  if (desempenho < 120) {
     return `documentar com ${destaque.codigo} o que esteve presente nos melhores dias e avaliar o que pode ser replicado para avançar em direção à Megameta.`;
   }
   return `documentar com ${destaque.codigo} as práticas observáveis dos melhores dias e preservar o padrão que levou à Megameta.`;
@@ -178,7 +178,7 @@ function ajustarAcoesConsolidadas(wrapper, dadosPeriodos, encerrado) {
   if (!lista || dadosPeriodos.length < 2) return;
 
   const assinatura = JSON.stringify([
-    "v4",
+    "v5",
     ...dadosPeriodos.map((dados) => [
       dados.periodo,
       dados.desempenho,
