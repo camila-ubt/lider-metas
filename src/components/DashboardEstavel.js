@@ -21,8 +21,8 @@ export default function DashboardEstavel(props) {
 
     const etapas = [
       { nome: "Meta", valor: meta },
-      { nome: "Supermeta", valor: meta * 1.2 },
-      { nome: "Megameta", valor: meta * 1.3 },
+      { nome: "Supermeta", valor: meta * 1.1 },
+      { nome: "Megameta", valor: meta * 1.2 },
     ];
     const proxima = etapas.find((etapa) => vendido < etapa.valor);
 
