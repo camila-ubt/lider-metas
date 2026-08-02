@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const CHAVE_MES = "lider-metas:mes-selecionado";
 const CHAVE_TELA = "lider-metas:tela-selecionada";
 const CHAVE_SCROLL = "lider-metas:posicao-scroll";
-const TELAS_VALIDAS = ["painel", "lancamentos", "metas"];
+const TELAS_VALIDAS = ["painel", "lancamentos", "metas", "manual"];
 
 function mesAtual() {
   const data = new Date();
@@ -17,10 +17,13 @@ function campoMes() {
 }
 
 function telaDoBotao(botao) {
+  if (botao?.hasAttribute?.("data-manual-botao")) return "manual";
+
   const texto = botao?.textContent?.trim().toLocaleLowerCase("pt-BR") || "";
   if (texto === "painel") return "painel";
   if (texto === "lançar vendas") return "lancamentos";
   if (texto === "metas") return "metas";
+  if (texto === "manual do usuário") return "manual";
   return null;
 }
 
@@ -72,7 +75,12 @@ export default function PersistenciaNavegacao() {
 
       if (TELAS_VALIDAS.includes(telaSalva || "")) {
         const botao = botoes.find((item) => telaDoBotao(item) === telaSalva);
-        if (botao && !botao.classList.contains("active")) botao.click();
+
+        // O botão do Manual é inserido depois dos demais. Aguarda ele existir
+        // antes de concluir a restauração da tela selecionada.
+        if (!botao) return;
+
+        if (!botao.classList.contains("active")) botao.click();
       }
 
       restaurado = true;
