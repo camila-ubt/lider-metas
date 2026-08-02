@@ -378,8 +378,8 @@ export default function InteligenciaGerencial() {
 
     const probabilidades = {
       meta: chance(totalMeta),
-      super: chance(totalMeta * 1.2),
-      mega: chance(totalMeta * 1.3),
+      super: chance(totalMeta * 1.1),
+      mega: chance(totalMeta * 1.2),
     };
 
     const lojasResumo = lojas.map((loja) => {
