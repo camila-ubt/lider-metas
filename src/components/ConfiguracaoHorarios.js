@@ -21,6 +21,7 @@ function abaMetasAtiva() {
 export default function ConfiguracaoHorarios() {
   const supabase = useMemo(() => createClient(), []);
   const [visivel, setVisivel] = useState(false);
+  const [aberto, setAberto] = useState(false);
   const [horarios, setHorarios] = useState(HORARIOS_PADRAO);
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("");
@@ -31,10 +32,11 @@ export default function ConfiguracaoHorarios() {
 
     function sincronizarVisibilidade() {
       clearTimeout(temporizador);
-      temporizador = window.setTimeout(
-        () => setVisivel(abaMetasAtiva()),
-        30,
-      );
+      temporizador = window.setTimeout(() => {
+        const ativa = abaMetasAtiva();
+        setVisivel(ativa);
+        if (!ativa) setAberto(false);
+      }, 30);
     }
 
     sincronizarVisibilidade();
@@ -108,79 +110,102 @@ export default function ConfiguracaoHorarios() {
 
   return (
     <section className={styles.wrapper}>
-      <div className={styles.panel}>
-        <div className={styles.heading}>
-          <div>
+      <div className={`${styles.panel} ${aberto ? styles.open : ""}`}>
+        <button
+          className={styles.toggle}
+          type="button"
+          aria-expanded={aberto}
+          aria-controls="configuracao-horarios-conteudo"
+          onClick={() => {
+            setAberto((valor) => !valor);
+            setMensagem("");
+            setErro("");
+          }}
+        >
+          <div className={styles.headingText}>
             <p>CONFIGURAÇÃO DOS PERÍODOS</p>
             <h2>Horários da manhã e da noite</h2>
+            <span className={styles.summary}>
+              Manhã {horarios.manhaInicio}–{horarios.manhaFim} · Noite {horarios.noiteInicio}–{horarios.noiteFim}
+            </span>
           </div>
-          <span>Salvo no seu perfil</span>
+
+          <div className={styles.toggleSide}>
+            <span className={styles.profileBadge}>Salvo no seu perfil</span>
+            <span className={styles.arrow} aria-hidden="true">⌄</span>
+          </div>
+        </button>
+
+        <div
+          id="configuracao-horarios-conteudo"
+          className={styles.content}
+          hidden={!aberto}
+        >
+          <p className={styles.help}>
+            Esses horários definem quando cada período deixa de entrar no cálculo do valor necessário por dia.
+          </p>
+
+          <form className={styles.form} onSubmit={salvar}>
+            <fieldset>
+              <legend>Manhã</legend>
+              <label>
+                Início
+                <input
+                  type="time"
+                  value={horarios.manhaInicio}
+                  onChange={(evento) =>
+                    setHorarios({ ...horarios, manhaInicio: evento.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label>
+                Término
+                <input
+                  type="time"
+                  value={horarios.manhaFim}
+                  onChange={(evento) =>
+                    setHorarios({ ...horarios, manhaFim: evento.target.value })
+                  }
+                  required
+                />
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Noite</legend>
+              <label>
+                Início
+                <input
+                  type="time"
+                  value={horarios.noiteInicio}
+                  onChange={(evento) =>
+                    setHorarios({ ...horarios, noiteInicio: evento.target.value })
+                  }
+                  required
+                />
+              </label>
+              <label>
+                Término
+                <input
+                  type="time"
+                  value={horarios.noiteFim}
+                  onChange={(evento) =>
+                    setHorarios({ ...horarios, noiteFim: evento.target.value })
+                  }
+                  required
+                />
+              </label>
+            </fieldset>
+
+            <button type="submit" disabled={salvando}>
+              {salvando ? "Salvando..." : "Salvar horários"}
+            </button>
+          </form>
+
+          {erro && <p className={styles.error}>{erro}</p>}
+          {mensagem && <p className={styles.success}>{mensagem}</p>}
         </div>
-
-        <p className={styles.help}>
-          Esses horários definem quando cada período deixa de entrar no cálculo do valor necessário por dia.
-        </p>
-
-        <form className={styles.form} onSubmit={salvar}>
-          <fieldset>
-            <legend>Manhã</legend>
-            <label>
-              Início
-              <input
-                type="time"
-                value={horarios.manhaInicio}
-                onChange={(evento) =>
-                  setHorarios({ ...horarios, manhaInicio: evento.target.value })
-                }
-                required
-              />
-            </label>
-            <label>
-              Término
-              <input
-                type="time"
-                value={horarios.manhaFim}
-                onChange={(evento) =>
-                  setHorarios({ ...horarios, manhaFim: evento.target.value })
-                }
-                required
-              />
-            </label>
-          </fieldset>
-
-          <fieldset>
-            <legend>Noite</legend>
-            <label>
-              Início
-              <input
-                type="time"
-                value={horarios.noiteInicio}
-                onChange={(evento) =>
-                  setHorarios({ ...horarios, noiteInicio: evento.target.value })
-                }
-                required
-              />
-            </label>
-            <label>
-              Término
-              <input
-                type="time"
-                value={horarios.noiteFim}
-                onChange={(evento) =>
-                  setHorarios({ ...horarios, noiteFim: evento.target.value })
-                }
-                required
-              />
-            </label>
-          </fieldset>
-
-          <button type="submit" disabled={salvando}>
-            {salvando ? "Salvando..." : "Salvar horários"}
-          </button>
-        </form>
-
-        {erro && <p className={styles.error}>{erro}</p>}
-        {mensagem && <p className={styles.success}>{mensagem}</p>}
       </div>
     </section>
   );
