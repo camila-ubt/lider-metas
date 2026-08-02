@@ -28,11 +28,11 @@ O acesso é restrito a usuários cadastrados e aprovados.
 - Comparativo histórico
 - Insights automáticos de desempenho
 
-### Níveis de meta
+### Níveis de meta e comissão
 
 - **Meta:** 100% do valor cadastrado
-- **Supermeta:** 120% da Meta
-- **Megameta:** 130% da Meta
+- **Supermeta:** 110% da Meta
+- **Megameta:** 120% da Meta
 
 Os cálculos são realizados para:
 
@@ -65,7 +65,7 @@ Os cálculos são realizados para:
 
 Área administrativa para cadastrar a Meta de cada loja e período.
 
-A Supermeta e a Megameta são calculadas automaticamente a partir da Meta cadastrada.
+A Supermeta e a Megameta são calculadas automaticamente em **110%** e **120%** da Meta cadastrada.
 
 ### Configuração dos períodos
 
