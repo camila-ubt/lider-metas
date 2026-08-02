@@ -15,6 +15,7 @@ import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
 import ManualUsuario from "@/components/ManualUsuario";
 import PesquisaManual from "@/components/PesquisaManual";
 import CorrecaoAbaManual from "@/components/CorrecaoAbaManual";
+import AtualizarTextosNiveis from "@/components/AtualizarTextosNiveis";
 import RodapeAutoria from "@/components/RodapeAutoria";
 import "./globals.css";
 import "./branding.css";
@@ -85,6 +86,7 @@ export default function RootLayout({ children }) {
         <ManualUsuario />
         <PesquisaManual />
         <CorrecaoAbaManual />
+        <AtualizarTextosNiveis />
         <RodapeAutoria />
       </body>
     </html>
