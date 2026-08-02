@@ -92,14 +92,14 @@ function calcularNotaGerencial(resumo) {
   if (resultado < 100) {
     nota = (resultado / 100) * 6.9;
     teto = 6.9;
-  } else if (resultado < 120) {
-    nota = 7 + ((resultado - 100) / 20) * 1.5;
+  } else if (resultado < 110) {
+    nota = 7 + ((resultado - 100) / 10) * 1.5;
     teto = 8.9;
-  } else if (resultado < 130) {
-    nota = 9 + ((resultado - 120) / 10) * 0.5;
+  } else if (resultado < 120) {
+    nota = 9 + ((resultado - 110) / 10) * 0.5;
     teto = 9.7;
   } else {
-    nota = 9.7 + Math.min((resultado - 130) / 20, 1) * 0.2;
+    nota = 9.7 + Math.min((resultado - 120) / 20, 1) * 0.2;
     teto = 9.9;
   }
 
@@ -111,9 +111,9 @@ function calcularNotaGerencial(resumo) {
 
   const todasLojasNaSupermeta =
     lojasComMeta.length > 0 &&
-    lojasComMeta.every((loja) => Number(loja.percentual || 0) >= 120);
+    lojasComMeta.every((loja) => Number(loja.percentual || 0) >= 110);
 
-  if (resultado >= 130 && todasLojasNaSupermeta && todosPeriodosNaMeta) {
+  if (resultado >= 120 && todasLojasNaSupermeta && todosPeriodosNaMeta) {
     teto = 10;
   }
 
@@ -126,10 +126,10 @@ function explicarNota(resumo) {
   if (resultado < 100) {
     return "A nota fica limitada abaixo de 7 porque o resultado geral não atingiu a Meta.";
   }
-  if (resultado < 120) {
+  if (resultado < 110) {
     return "A Meta foi atingida, mas a nota permanece abaixo de 9 enquanto a Supermeta não for alcançada.";
   }
-  if (resultado < 130) {
+  if (resultado < 120) {
     return "A Supermeta foi atingida; a nota 10 continua reservada à Megameta com desempenho equilibrado.";
   }
   return "A nota 10 exige Megameta geral, todas as lojas em Supermeta e todos os períodos com pelo menos 100% da Meta.";
