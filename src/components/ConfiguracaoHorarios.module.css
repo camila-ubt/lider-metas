@@ -6,19 +6,36 @@
 .panel {
   border: 1px solid #e6deec;
   border-radius: 22px;
-  padding: 20px;
   background: #fff;
   box-shadow: 0 12px 34px rgba(57, 39, 73, 0.08);
+  overflow: hidden;
 }
 
-.heading {
+.toggle {
+  width: 100%;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
+  border: 0;
+  padding: 20px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
 }
 
-.heading p {
+.toggle:focus-visible {
+  outline: 3px solid rgba(118, 80, 167, 0.28);
+  outline-offset: -3px;
+}
+
+.headingText {
+  min-width: 0;
+}
+
+.headingText p {
   margin: 0 0 5px;
   color: #7650a7;
   font-size: 11px;
@@ -26,13 +43,29 @@
   letter-spacing: 0.12em;
 }
 
-.heading h2 {
+.headingText h2 {
   margin: 0;
   color: #2d2037;
   font-size: 20px;
 }
 
-.heading > span {
+.summary {
+  display: block;
+  margin-top: 7px;
+  color: #756a7d;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.toggleSide {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.profileBadge {
   border-radius: 999px;
   padding: 7px 10px;
   background: #f1ebf6;
@@ -42,8 +75,34 @@
   white-space: nowrap;
 }
 
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f1ebf6;
+  color: #684393;
+  font-size: 25px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.open .arrow {
+  transform: rotate(180deg);
+}
+
+.content {
+  border-top: 1px solid #eee7f2;
+  padding: 0 20px 20px;
+}
+
+.content[hidden] {
+  display: none;
+}
+
 .help {
-  margin: 10px 0 16px;
+  margin: 16px 0;
   color: #756a7d;
   font-size: 13px;
   line-height: 1.45;
@@ -137,14 +196,22 @@
     margin-bottom: 22px;
   }
 
-  .panel {
-    padding: 15px;
+  .toggle {
+    align-items: flex-start;
+    padding: 16px;
   }
 
-  .heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
+  .toggleSide {
+    align-items: flex-end;
+    flex-direction: column-reverse;
+  }
+
+  .profileBadge {
+    display: none;
+  }
+
+  .content {
+    padding: 0 16px 16px;
   }
 
   .form {
@@ -157,6 +224,14 @@
 }
 
 @media (max-width: 420px) {
+  .headingText h2 {
+    font-size: 18px;
+  }
+
+  .summary {
+    font-size: 11px;
+  }
+
   .form fieldset {
     grid-template-columns: 1fr;
   }
