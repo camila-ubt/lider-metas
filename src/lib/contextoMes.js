@@ -45,8 +45,8 @@ export function contextoDoMes(valorMes, referencia = new Date()) {
 
 export function nivelDoResultado(vendido, meta) {
   if (!(meta > 0)) return "Sem meta cadastrada";
-  if (vendido >= meta * 1.3) return "Megameta";
-  if (vendido >= meta * 1.2) return "Supermeta";
+  if (vendido >= meta * 1.2) return "Megameta";
+  if (vendido >= meta * 1.1) return "Supermeta";
   if (vendido >= meta) return "Meta";
   return "Abaixo da Meta";
 }
@@ -59,8 +59,8 @@ export function proximoNivel(vendido, meta) {
   if (!(meta > 0)) return null;
   const niveis = [
     { nome: "Meta", valor: meta },
-    { nome: "Supermeta", valor: meta * 1.2 },
-    { nome: "Megameta", valor: meta * 1.3 },
+    { nome: "Supermeta", valor: meta * 1.1 },
+    { nome: "Megameta", valor: meta * 1.2 },
   ];
   return niveis.find((nivel) => vendido < nivel.valor) || null;
 }
