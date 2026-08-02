@@ -50,8 +50,8 @@ function intervaloMes(ano, mes) {
 
 function nivelFechado(vendido, metaBase) {
   if (!(metaBase > 0)) return "Sem meta cadastrada";
-  if (vendido >= metaBase * 1.3) return "Megameta";
-  if (vendido >= metaBase * 1.2) return "Supermeta";
+  if (vendido >= metaBase * 1.2) return "Megameta";
+  if (vendido >= metaBase * 1.1) return "Supermeta";
   if (vendido >= metaBase) return "Meta";
   return "abaixo da Meta";
 }
@@ -59,8 +59,8 @@ function nivelFechado(vendido, metaBase) {
 function calcularJornada(vendido, metaBase) {
   const niveis = [
     { nome: "Meta", valor: metaBase, simbolo: "★" },
-    { nome: "Supermeta", valor: metaBase * 1.2, simbolo: "◆" },
-    { nome: "Megameta", valor: metaBase * 1.3, simbolo: "♛" },
+    { nome: "Supermeta", valor: metaBase * 1.1, simbolo: "◆" },
+    { nome: "Megameta", valor: metaBase * 1.2, simbolo: "♛" },
   ];
 
   if (!(metaBase > 0)) {
@@ -267,8 +267,8 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas }) {
     });
 
     const meta = somar(metas, "valor_meta");
-    const supermeta = meta * 1.2;
-    const megameta = meta * 1.3;
+    const supermeta = meta * 1.1;
+    const megameta = meta * 1.2;
     const jornada = calcularJornada(totalVendido, meta);
     const media = diaCorte > 0 ? totalVendido / diaCorte : 0;
     const projecao = mesPassado ? totalVendido : diaCorte > 0 ? media * totalDias : 0;
