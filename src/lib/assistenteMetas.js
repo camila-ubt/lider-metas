@@ -24,6 +24,26 @@ function normalizar(texto) {
     .trim();
 }
 
+function contextualizarPergunta(pergunta, historico = []) {
+  const atual = normalizar(pergunta);
+  const usuarios = historico
+    .filter((item) => item.papel === "usuario")
+    .map((item) => item.conteudo)
+    .filter(Boolean);
+
+  if (!usuarios.length) return pergunta;
+
+  const dependeDoContexto =
+    atual.length < 75 ||
+    /^(e |e no |e na |e de |e da |e do |nesse|nessa|neste|nesta|agora|e agora|e se|e quanto|e qual|e quem)/.test(atual) ||
+    /\b(ele|ela|essa|esse|isso|aquilo|tambem|mesmo periodo|mesma loja|mesmo turno)\b/.test(atual);
+
+  if (!dependeDoContexto) return pergunta;
+
+  const anteriores = usuarios.slice(-3).join(". ");
+  return `${anteriores}. Continuação: ${pergunta}`;
+}
+
 function dataIso(data) {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(
     data.getDate()
@@ -323,8 +343,9 @@ function resumoPadrao({ vendasFiltradas, metasFiltradas, intervalo, loja, period
   return partes.join(" ");
 }
 
-export function responderPerguntaMetas({ pergunta, mes, vendas = [], metas = [], lojas = [] }) {
-  const q = normalizar(pergunta);
+export function responderPerguntaMetas({ pergunta, mes, vendas = [], metas = [], lojas = [], historico = [] }) {
+  const perguntaComContexto = contextualizarPergunta(pergunta, historico);
+  const q = normalizar(perguntaComContexto);
   if (!q) return "Digite uma pergunta sobre vendas, metas, lojas, turnos ou períodos.";
 
   const mencionadas = identificarLojas(q, lojas);
