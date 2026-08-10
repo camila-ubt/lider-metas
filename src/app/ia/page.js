@@ -14,16 +14,26 @@ function hojeLocal() {
 
 function periodoCarga(mes) {
   const [ano, numeroMes] = mes.split("-").map(Number);
-  const inicio = new Date(ano, numeroMes - 1, 1, 12, 0, 0);
-  inicio.setDate(inicio.getDate() - 90);
-  const fim = new Date(ano, numeroMes, 0, 12, 0, 0);
+  const inicio = `${ano - 2}-01-01`;
+  const ultimoDia = new Date(ano, numeroMes, 0).getDate();
+  const fim = `${ano}-${String(numeroMes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+  return { inicio, fim };
+}
 
-  const iso = (data) =>
-    `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(
-      data.getDate()
-    ).padStart(2, "0")}`;
+async function buscarPaginado(criarConsulta, tamanho = 1000) {
+  const registros = [];
+  let inicio = 0;
 
-  return { inicio: iso(inicio), fim: iso(fim) };
+  while (true) {
+    const { data, error } = await criarConsulta().range(inicio, inicio + tamanho - 1);
+    if (error) return { data: null, error };
+    const lote = data || [];
+    registros.push(...lote);
+    if (lote.length < tamanho) break;
+    inicio += tamanho;
+  }
+
+  return { data: registros, error: null };
 }
 
 export default function PaginaIA() {
@@ -54,16 +64,22 @@ export default function PaginaIA() {
       const periodo = periodoCarga(mes);
       const [lojasResp, vendasResp, metasResp] = await Promise.all([
         supabase.from("lojas").select("id,codigo,nome,ativa,ordem").eq("ativa", true).order("ordem"),
-        supabase
-          .from("vendas_diarias")
-          .select("data,loja_id,periodo,valor_vendido,observacao")
-          .gte("data", periodo.inicio)
-          .lte("data", periodo.fim)
-          .order("data", { ascending: true }),
-        supabase
-          .from("metas_mensais")
-          .select("mes,loja_id,periodo,valor_meta")
-          .eq("mes", `${mes}-01`),
+        buscarPaginado(() =>
+          supabase
+            .from("vendas_diarias")
+            .select("data,loja_id,periodo,valor_vendido,observacao")
+            .gte("data", periodo.inicio)
+            .lte("data", periodo.fim)
+            .order("data", { ascending: true })
+        ),
+        buscarPaginado(() =>
+          supabase
+            .from("metas_mensais")
+            .select("mes,loja_id,periodo,valor_meta")
+            .gte("mes", `${periodo.inicio.slice(0, 7)}-01`)
+            .lte("mes", `${mes}-01`)
+            .order("mes", { ascending: true })
+        ),
       ]);
 
       if (!ativo) return;
@@ -128,7 +144,7 @@ export default function PaginaIA() {
             <p className={styles.eyebrow}>Líder Metas</p>
             <h1 className={styles.title}>Pergunte à IA</h1>
             <p className={styles.subtitle}>
-              Faça perguntas sobre vendas, metas, lojas, turnos e projeções. Esta tela consulta o Supabase diretamente e não depende da Dashboard.
+              Pergunte livremente sobre vendas, metas, lojas, turnos, anos, comparações e projeções. A IA consulta o histórico direto do Supabase.
             </p>
           </div>
 
@@ -146,7 +162,7 @@ export default function PaginaIA() {
             <i className={styles.dot} />
             {erro
               ? "Não foi possível consultar o banco"
-              : `${lojas.length} lojas conectadas · ${vendas.length} lançamentos carregados`}
+              : `${lojas.length} lojas conectadas · ${vendas.length} lançamentos históricos carregados`}
           </div>
 
           {erro ? (
@@ -161,7 +177,7 @@ export default function PaginaIA() {
                   className={styles.input}
                   value={pergunta}
                   onChange={(evento) => setPergunta(evento.target.value)}
-                  placeholder="Ex.: Quanto falta para a CB bater a supermeta?"
+                  placeholder="Ex.: Compare Arte e Adoro deste mês até hoje com o ano passado"
                   autoComplete="off"
                   autoFocus
                 />
