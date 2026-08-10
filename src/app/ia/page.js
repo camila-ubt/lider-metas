@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { responderPerguntaMetas, sugestoesPerguntas } from "@/lib/assistenteMetasChat";
+import { responderPerguntaMetas, sugestoesPerguntas } from "@/lib/assistenteMetasConversa";
 import styles from "./ia.module.css";
 
 function hojeLocal() {
