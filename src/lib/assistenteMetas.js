@@ -30,10 +30,17 @@ function dataIso(data) {
   ).padStart(2, "0")}`;
 }
 
+function parseIso(iso) {
+  const [ano, mes, dia] = String(iso).split("-").map(Number);
+  return new Date(ano, mes - 1, dia, 12, 0, 0);
+}
+
 function inicioFimMes(mes) {
   const [ano, numeroMes] = mes.split("-").map(Number);
   const ultimoDia = new Date(ano, numeroMes, 0).getDate();
   return {
+    ano,
+    numeroMes,
     inicio: `${ano}-${String(numeroMes).padStart(2, "0")}-01`,
     fim: `${ano}-${String(numeroMes).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`,
     totalDias: ultimoDia,
@@ -66,13 +73,23 @@ function agrupar(lista, chaveFn) {
   return mapa;
 }
 
-function identificarLoja(perguntaNormalizada, lojas) {
+function aliasesLoja(loja) {
+  const codigo = normalizar(loja.codigo);
+  const nome = normalizar(loja.nome);
+  const ignorar = new Set(["loja", "acessorios", "acessorio", "bijoux", "biju", "bijuterias"]);
+  const palavras = nome
+    .split(" ")
+    .filter((item) => item.length >= 3 && !ignorar.has(item));
+  return [...new Set([codigo, nome, ...palavras].filter(Boolean))];
+}
+
+function identificarLojas(perguntaNormalizada, lojas) {
   const tokens = new Set(perguntaNormalizada.split(" "));
-  return lojas.find((loja) => {
-    const codigo = normalizar(loja.codigo);
-    const nome = normalizar(loja.nome);
-    return (codigo && tokens.has(codigo)) || (nome && perguntaNormalizada.includes(nome));
-  }) || null;
+  return lojas.filter((loja) =>
+    aliasesLoja(loja).some((alias) =>
+      alias.includes(" ") ? perguntaNormalizada.includes(alias) : tokens.has(alias)
+    )
+  );
 }
 
 function identificarPeriodo(perguntaNormalizada) {
@@ -87,13 +104,25 @@ function identificarNivel(perguntaNormalizada) {
   return NIVEIS.meta;
 }
 
+function dataReferenciaMes(mes, vendas) {
+  const { ano, numeroMes, fim } = inicioFimMes(mes);
+  const hoje = new Date();
+  const mesmoMesAtual = hoje.getFullYear() === ano && hoje.getMonth() + 1 === numeroMes;
+  if (mesmoMesAtual) return dataIso(hoje);
+
+  const datas = vendas
+    .filter((venda) => String(venda.data || "").startsWith(`${mes}-`))
+    .map((venda) => venda.data)
+    .sort();
+  return datas.at(-1) || fim;
+}
+
 function intervaloPergunta(perguntaNormalizada, mesSelecionado, vendas) {
   const { inicio, fim } = inicioFimMes(mesSelecionado);
-  const vendasMes = vendas.filter((venda) => venda.data >= inicio && venda.data <= fim);
-  const ultimaDataMes = vendasMes.at(-1)?.data || fim;
-  const referencia = new Date(`${ultimaDataMes}T12:00:00`);
+  const referenciaIso = dataReferenciaMes(mesSelecionado, vendas);
+  const referencia = parseIso(referenciaIso);
 
-  if (/\bhoje\b/.test(perguntaNormalizada)) {
+  if (/\bhoje\b/.test(perguntaNormalizada) && !/mes|comeco|inicio|desde/.test(perguntaNormalizada)) {
     const hoje = dataIso(new Date());
     return { inicio: hoje, fim: hoje, rotulo: "hoje" };
   }
@@ -107,12 +136,12 @@ function intervaloPergunta(perguntaNormalizada, mesSelecionado, vendas) {
 
   const ultimos = perguntaNormalizada.match(/(?:ultimos?|ultimas?)\s+(\d+)\s+dias?/);
   if (ultimos) {
-    const quantidade = Math.max(1, Math.min(Number(ultimos[1]), 90));
+    const quantidade = Math.max(1, Math.min(Number(ultimos[1]), 365));
     const inicioData = new Date(referencia);
     inicioData.setDate(inicioData.getDate() - quantidade + 1);
     return {
       inicio: dataIso(inicioData),
-      fim: dataIso(referencia),
+      fim: referenciaIso,
       rotulo: `nos últimos ${quantidade} dias`,
     };
   }
@@ -120,7 +149,11 @@ function intervaloPergunta(perguntaNormalizada, mesSelecionado, vendas) {
   if (/\bsemana\b/.test(perguntaNormalizada)) {
     const inicioData = new Date(referencia);
     inicioData.setDate(inicioData.getDate() - 6);
-    return { inicio: dataIso(inicioData), fim: dataIso(referencia), rotulo: "nos últimos 7 dias" };
+    return { inicio: dataIso(inicioData), fim: referenciaIso, rotulo: "nos últimos 7 dias" };
+  }
+
+  if (/ate hoje|ate o dia de hoje|comeco do mes|inicio do mes|desde o inicio|deste mes|desse mes|este mes/.test(perguntaNormalizada)) {
+    return { inicio, fim: referenciaIso, rotulo: "do começo do mês até hoje" };
   }
 
   return { inicio, fim, rotulo: "no mês selecionado" };
@@ -142,8 +175,9 @@ function rotuloFiltro(loja, periodo) {
   return partes.length ? ` (${partes.join(" · ")})` : "";
 }
 
-function metasDoFiltro(metas, loja, periodo) {
+function metasDoFiltro(metas, loja, periodo, mesSelecionado) {
   return metas.filter((meta) => {
+    if (mesSelecionado && String(meta.mes || "").slice(0, 7) !== mesSelecionado) return false;
     if (loja && Number(meta.loja_id) !== Number(loja.id)) return false;
     if (periodo && meta.periodo !== periodo) return false;
     return true;
@@ -188,6 +222,83 @@ function nomeLojaPorId(lojas, id) {
   return lojas.find((loja) => Number(loja.id) === Number(id))?.codigo || `Loja ${id}`;
 }
 
+function anosMencionados(q) {
+  return [...new Set((q.match(/\b20\d{2}\b/g) || []).map(Number))];
+}
+
+function temComparacaoTemporal(q) {
+  return /ano passado|mesmo periodo|em relacao a|comparad[oa]|comparar|compare|versus| vs |20\d{2}/.test(` ${q} `);
+}
+
+function intervaloMesmoPeriodo(intervaloAtual, anoDestino) {
+  return {
+    inicio: `${anoDestino}-${intervaloAtual.inicio.slice(5)}`,
+    fim: `${anoDestino}-${intervaloAtual.fim.slice(5)}`,
+    rotulo: `${intervaloAtual.inicio.slice(8, 10)}/${intervaloAtual.inicio.slice(5, 7)} a ${intervaloAtual.fim.slice(8, 10)}/${intervaloAtual.fim.slice(5, 7)}/${anoDestino}`,
+  };
+}
+
+function variacaoTexto(atual, anterior) {
+  const diferenca = atual - anterior;
+  if (anterior > 0) {
+    const pct = (diferenca / anterior) * 100;
+    return `${diferenca >= 0 ? "+" : "-"}${moeda.format(Math.abs(diferenca))} (${diferenca >= 0 ? "+" : ""}${percentual.format(pct)}%)`;
+  }
+  if (atual > 0) return `+${moeda.format(atual)} (sem base anterior)`;
+  return moeda.format(0);
+}
+
+function responderComparacaoTemporal({ q, mes, vendas, lojas, periodo, mencionadas }) {
+  if (!temComparacaoTemporal(q)) return null;
+
+  const { ano } = inicioFimMes(mes);
+  const anos = anosMencionados(q);
+  let anoAnterior = anos.find((item) => item !== ano);
+  if (!anoAnterior && /ano passado|mesmo periodo/.test(q)) anoAnterior = ano - 1;
+  if (!anoAnterior) return null;
+
+  const intervaloAtual = intervaloPergunta(q, mes, vendas);
+  const intervaloAnterior = intervaloMesmoPeriodo(intervaloAtual, anoAnterior);
+  const lojasAnalisadas = mencionadas.length ? mencionadas : lojas;
+  if (!lojasAnalisadas.length) return null;
+
+  const resultados = lojasAnalisadas.map((loja) => {
+    const atual = somar(aplicarFiltros(vendas, intervaloAtual, loja, periodo));
+    const anterior = somar(aplicarFiltros(vendas, intervaloAnterior, loja, periodo));
+    const diferenca = atual - anterior;
+    const pct = anterior > 0 ? (diferenca / anterior) * 100 : null;
+    return { loja, atual, anterior, diferenca, pct };
+  });
+
+  if (/caiu mais|maior queda|pior queda|mais caiu/.test(q)) {
+    const comBase = resultados.filter((item) => item.anterior > 0);
+    if (!comBase.length) return `Não encontrei dados de ${anoAnterior} suficientes para comparar as lojas.`;
+    const escolhido = [...comBase].sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0))[0];
+    if ((escolhido.pct ?? 0) >= 0) {
+      return `Nenhuma loja caiu nesse período em relação a ${anoAnterior}. A menor variação foi da ${escolhido.loja.codigo}: ${moeda.format(escolhido.anterior)} em ${anoAnterior} para ${moeda.format(escolhido.atual)} agora (${percentual.format(escolhido.pct)}%).`;
+    }
+    return `A ${escolhido.loja.codigo} foi a que mais caiu: ${moeda.format(escolhido.anterior)} no mesmo período de ${anoAnterior} contra ${moeda.format(escolhido.atual)} agora, queda de ${moeda.format(Math.abs(escolhido.diferenca))} (${percentual.format(Math.abs(escolhido.pct))}%).`;
+  }
+
+  if (/cresceu mais|subiu mais|maior crescimento|mais cresceu/.test(q)) {
+    const comBase = resultados.filter((item) => item.anterior > 0);
+    if (!comBase.length) return `Não encontrei dados de ${anoAnterior} suficientes para comparar as lojas.`;
+    const escolhido = [...comBase].sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0))[0];
+    return `A ${escolhido.loja.codigo} teve a maior variação: ${moeda.format(escolhido.anterior)} no mesmo período de ${anoAnterior} para ${moeda.format(escolhido.atual)} agora, ${variacaoTexto(escolhido.atual, escolhido.anterior)}.`;
+  }
+
+  const linhas = resultados.map(
+    (item) => `${item.loja.codigo}: ${moeda.format(item.atual)} agora vs. ${moeda.format(item.anterior)} em ${anoAnterior} — ${variacaoTexto(item.atual, item.anterior)}`
+  );
+  const maiorAtual = [...resultados].sort((a, b) => b.atual - a.atual)[0];
+
+  let fechamento = `Comparando ${intervaloAtual.inicio.slice(8, 10)}/${intervaloAtual.inicio.slice(5, 7)} a ${intervaloAtual.fim.slice(8, 10)}/${intervaloAtual.fim.slice(5, 7)} de ${ano} com o mesmo período de ${anoAnterior}: ${linhas.join(" | ")}.`;
+  if (/quem vendeu mais|qual vendeu mais|mais vendeu|vendeu mais|maior venda/.test(q) && maiorAtual) {
+    fechamento += ` Neste período, ${maiorAtual.loja.codigo} vendeu mais, com ${moeda.format(maiorAtual.atual)}.`;
+  }
+  return fechamento;
+}
+
 function resumoPadrao({ vendasFiltradas, metasFiltradas, intervalo, loja, periodo, nivel }) {
   const vendido = somar(vendasFiltradas);
   const metaBase = somar(metasFiltradas, "valor_meta");
@@ -214,20 +325,32 @@ function resumoPadrao({ vendasFiltradas, metasFiltradas, intervalo, loja, period
 
 export function responderPerguntaMetas({ pergunta, mes, vendas = [], metas = [], lojas = [] }) {
   const q = normalizar(pergunta);
-  if (!q) return "Digite uma pergunta sobre vendas, metas, lojas ou turnos.";
+  if (!q) return "Digite uma pergunta sobre vendas, metas, lojas, turnos ou períodos.";
 
-  const loja = identificarLoja(q, lojas);
+  const mencionadas = identificarLojas(q, lojas);
+  const loja = mencionadas.length === 1 ? mencionadas[0] : null;
   const periodo = identificarPeriodo(q);
   const nivel = identificarNivel(q);
+
+  const respostaTemporal = responderComparacaoTemporal({
+    q,
+    mes,
+    vendas,
+    lojas,
+    periodo,
+    mencionadas,
+  });
+  if (respostaTemporal) return respostaTemporal;
+
   const intervalo = intervaloPergunta(q, mes, vendas);
   const vendasFiltradas = aplicarFiltros(vendas, intervalo, loja, periodo);
-  const metasFiltradas = metasDoFiltro(metas, loja, periodo);
+  const metasFiltradas = metasDoFiltro(metas, loja, periodo, mes);
   const vendido = somar(vendasFiltradas);
   const metaBase = somar(metasFiltradas, "valor_meta");
   const alvo = metaBase * nivel.fator;
   const filtro = rotuloFiltro(loja, periodo);
 
-  if (/qual loja|loja que|melhor loja|pior loja|mais vendeu|menos vendeu/.test(q)) {
+  if (/qual loja|loja que|melhor loja|pior loja|mais vendeu|menos vendeu/.test(q) && mencionadas.length < 2) {
     const totais = [...agrupar(vendasFiltradas, (venda) => venda.loja_id).entries()]
       .map(([lojaId, itens]) => ({ lojaId, total: somar(itens) }))
       .sort((a, b) => b.total - a.total);
@@ -242,9 +365,10 @@ export function responderPerguntaMetas({ pergunta, mes, vendas = [], metas = [],
   }
 
   if (/qual turno|melhor turno|pior turno|turno que|manha.*noite|noite.*manha/.test(q)) {
+    const baseTurnos = loja ? aplicarFiltros(vendas, intervalo, loja, null) : aplicarFiltros(vendas, intervalo, null, null);
     const porPeriodo = ["manha", "noite"].map((nome) => ({
       periodo: nome,
-      total: somar(vendasFiltradas.filter((venda) => venda.periodo === nome)),
+      total: somar(baseTurnos.filter((venda) => venda.periodo === nome)),
     }));
     const pior = /pior|menos/.test(q);
     const escolhido = [...porPeriodo].sort((a, b) => (pior ? a.total - b.total : b.total - a.total))[0];
@@ -268,7 +392,7 @@ export function responderPerguntaMetas({ pergunta, mes, vendas = [], metas = [],
     )} vendidos de ${moeda.format(alvo)}.`;
   }
 
-  if (/media|média/.test(pergunta.toLowerCase())) {
+  if (/media/.test(q)) {
     const listaDiaria = diarios(vendasFiltradas).filter((item) => item.valor > 0);
     if (!listaDiaria.length) return `Não encontrei dias com vendas ${intervalo.rotulo}${filtro}.`;
     return `A média por dia com venda ${intervalo.rotulo}${filtro} é ${moeda.format(
@@ -298,24 +422,17 @@ export function responderPerguntaMetas({ pergunta, mes, vendas = [], metas = [],
     return resposta;
   }
 
-  if (/compar|versus| vs /.test(` ${q} `)) {
-    const mencionadas = lojas.filter((item) => {
-      const codigo = normalizar(item.codigo);
-      const nome = normalizar(item.nome);
-      return (codigo && new Set(q.split(" ")).has(codigo)) || (nome && q.includes(nome));
-    });
-    if (mencionadas.length >= 2) {
-      const [a, b] = mencionadas;
-      const totalA = somar(aplicarFiltros(vendas, intervalo, a, periodo));
-      const totalB = somar(aplicarFiltros(vendas, intervalo, b, periodo));
-      const diferenca = Math.abs(totalA - totalB);
-      const maior = totalA === totalB ? null : totalA > totalB ? a : b;
-      return maior
-        ? `${a.codigo}: ${moeda.format(totalA)}. ${b.codigo}: ${moeda.format(totalB)}. ${maior.codigo} está na frente por ${moeda.format(
-            diferenca
-          )} ${intervalo.rotulo}.`
-        : `${a.codigo} e ${b.codigo} estão empatadas em ${moeda.format(totalA)} ${intervalo.rotulo}.`;
-    }
+  if (/compar|versus| vs /.test(` ${q} `) && mencionadas.length >= 2) {
+    const [a, b] = mencionadas;
+    const totalA = somar(aplicarFiltros(vendas, intervalo, a, periodo));
+    const totalB = somar(aplicarFiltros(vendas, intervalo, b, periodo));
+    const diferenca = Math.abs(totalA - totalB);
+    const maior = totalA === totalB ? null : totalA > totalB ? a : b;
+    return maior
+      ? `${a.codigo}: ${moeda.format(totalA)}. ${b.codigo}: ${moeda.format(totalB)}. ${maior.codigo} está na frente por ${moeda.format(
+          diferenca
+        )} ${intervalo.rotulo}.`
+      : `${a.codigo} e ${b.codigo} estão empatadas em ${moeda.format(totalA)} ${intervalo.rotulo}.`;
   }
 
   if (/total|quanto vendeu|quanto vendemos|vendas/.test(q)) {
@@ -331,8 +448,8 @@ export function sugestoesPerguntas(lojas = []) {
   return [
     "Qual loja vendeu mais este mês?",
     `Quanto falta para a ${primeira} bater a supermeta?`,
-    "Qual turno está vendendo menos?",
+    "Qual loja caiu mais em relação a 2025?",
     "Quanto vamos fechar o mês se continuar assim?",
-    `Compare ${primeira} e ${segunda} nos últimos 7 dias.`,
+    `Compare ${primeira} e ${segunda} deste mês até hoje com o mesmo período do ano passado.`,
   ];
 }
