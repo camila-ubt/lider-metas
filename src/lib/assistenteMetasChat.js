@@ -23,6 +23,20 @@ function normalizar(texto) {
     .trim();
 }
 
+function mensagensUsuario(historico = []) {
+  return historico
+    .filter((item) => item.papel === "usuario")
+    .map((item) => item.conteudo)
+    .filter(Boolean);
+}
+
+function contextoUsuario(pergunta, historico = [], limite = 5) {
+  return [...mensagensUsuario(historico).slice(-limite), pergunta]
+    .map(normalizar)
+    .filter(Boolean)
+    .join(" ");
+}
+
 function ehPedidoDeAcao(pergunta) {
   const q = normalizar(pergunta);
   return /o que fazer|como melhorar|melhorar (esses|estes|os) numeros|que acao|quais acoes|plano de acao|estrategia|o que voce recomenda|o que recomenda|o que sugere|como reverter|como aumentar|como recuperar/.test(q);
@@ -39,6 +53,16 @@ function aliasesLoja(loja) {
   ].filter(Boolean))];
 }
 
+function lojasNoTexto(lojas, texto) {
+  const q = normalizar(texto);
+  const tokens = new Set(q.split(" "));
+  return lojas.filter((loja) =>
+    aliasesLoja(loja).some((alias) =>
+      alias.includes(" ") ? q.includes(alias) : tokens.has(alias)
+    )
+  );
+}
+
 function encontrarLojaNoContexto(lojas, historico) {
   const contexto = [...historico]
     .reverse()
@@ -46,13 +70,8 @@ function encontrarLojaNoContexto(lojas, historico) {
     .filter(Boolean);
 
   for (const texto of contexto) {
-    const tokens = new Set(texto.split(" "));
-    const encontrada = lojas.find((loja) =>
-      aliasesLoja(loja).some((alias) =>
-        alias.includes(" ") ? texto.includes(alias) : tokens.has(alias)
-      )
-    );
-    if (encontrada) return encontrada;
+    const encontradas = lojasNoTexto(lojas, texto);
+    if (encontradas.length) return encontradas[0];
   }
 
   return null;
@@ -84,6 +103,128 @@ function dataReferencia(mes, vendas) {
     .sort();
   const ultimoDia = new Date(ano, numeroMes, 0).getDate();
   return datas.at(-1) || `${mes}-${String(ultimoDia).padStart(2, "0")}`;
+}
+
+function diaExplicito(pergunta) {
+  const q = normalizar(pergunta);
+  const padroes = [
+    /ate (?:o )?dia\s+(\d{1,2})\b/,
+    /do dia\s+\d{1,2}\s+(?:ao|ate)\s+(\d{1,2})\b/,
+    /(?:primeiro|1)\s+(?:ao|ate)\s+(\d{1,2})\b/,
+  ];
+
+  for (const padrao of padroes) {
+    const achou = q.match(padrao);
+    if (achou) return Number(achou[1]);
+  }
+  return null;
+}
+
+function diaFinalComparacao({ pergunta, mes, vendas }) {
+  const [ano, numeroMes] = mes.split("-").map(Number);
+  const ultimoDia = new Date(ano, numeroMes, 0).getDate();
+  const explicito = diaExplicito(pergunta);
+  if (Number.isFinite(explicito)) return Math.max(1, Math.min(explicito, ultimoDia));
+  return Math.max(1, Math.min(Number(dataReferencia(mes, vendas).slice(8, 10)) || ultimoDia, ultimoDia));
+}
+
+function anosDoTexto(texto) {
+  return [...new Set((normalizar(texto).match(/\b20\d{2}\b/g) || []).map(Number))];
+}
+
+function ehPerguntaTemporalAtual(pergunta) {
+  const q = normalizar(pergunta);
+  return /em relacao a|ano passado|mesmo periodo|compar|versus|\bvs\b|caiu|queda|cresceu|subiu|20\d{2}/.test(q);
+}
+
+function ehRefinamentoDePeriodo(pergunta) {
+  const q = normalizar(pergunta);
+  return /ate (?:o )?dia\s+\d{1,2}|mesmo periodo|esse periodo|este periodo|isso comparando|comparando ate|do dia\s+\d{1,2}/.test(q);
+}
+
+function formatarData(iso) {
+  return `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`;
+}
+
+function variacaoTexto(atual, anterior) {
+  const diferenca = atual - anterior;
+  if (anterior > 0) {
+    const pct = (diferenca / anterior) * 100;
+    return `${diferenca >= 0 ? "+" : "-"}${moeda.format(Math.abs(diferenca))} (${diferenca >= 0 ? "+" : ""}${percentual.format(pct)}%)`;
+  }
+  if (atual > 0) return `+${moeda.format(atual)} (sem base anterior)`;
+  return moeda.format(0);
+}
+
+function respostaComparacaoTemporal({ pergunta, mes, vendas, lojas, historico }) {
+  const contextoAnterior = mensagensUsuario(historico).slice(-5).join(" ");
+  const temContextoTemporal = ehPerguntaTemporalAtual(contextoAnterior);
+  if (!ehPerguntaTemporalAtual(pergunta) && !(ehRefinamentoDePeriodo(pergunta) && temContextoTemporal)) {
+    return null;
+  }
+
+  const [anoAtual, numeroMes] = mes.split("-").map(Number);
+  const contexto = contextoUsuario(pergunta, historico);
+  const anos = anosDoTexto(contexto);
+  let anoComparacao = [...anos].reverse().find((ano) => ano !== anoAtual);
+  if (!anoComparacao && /ano passado|mesmo periodo/.test(contexto)) anoComparacao = anoAtual - 1;
+  if (!anoComparacao) return null;
+
+  const diaFinal = diaFinalComparacao({ pergunta, mes, vendas });
+  const mm = String(numeroMes).padStart(2, "0");
+  const dd = String(diaFinal).padStart(2, "0");
+  const intervaloAtual = {
+    inicio: `${anoAtual}-${mm}-01`,
+    fim: `${anoAtual}-${mm}-${dd}`,
+  };
+  const intervaloAnterior = {
+    inicio: `${anoComparacao}-${mm}-01`,
+    fim: `${anoComparacao}-${mm}-${dd}`,
+  };
+
+  const periodo = encontrarPeriodo(pergunta, historico);
+  const mencionadas = lojasNoTexto(lojas, contexto);
+  const lojasAnalisadas = mencionadas.length ? mencionadas : lojas;
+
+  const filtrar = (loja, intervalo) => vendas.filter((item) => {
+    if (item.data < intervalo.inicio || item.data > intervalo.fim) return false;
+    if (Number(item.loja_id) !== Number(loja.id)) return false;
+    if (periodo && item.periodo !== periodo) return false;
+    return true;
+  });
+
+  const resultados = lojasAnalisadas.map((loja) => {
+    const atual = somar(filtrar(loja, intervaloAtual));
+    const anterior = somar(filtrar(loja, intervaloAnterior));
+    const diferenca = atual - anterior;
+    const pct = anterior > 0 ? (diferenca / anterior) * 100 : null;
+    return { loja, atual, anterior, diferenca, pct };
+  });
+
+  const cabecalho = `${ehRefinamentoDePeriodo(pergunta) ? "Sim — " : ""}comparando ${formatarData(intervaloAtual.inicio)} a ${formatarData(intervaloAtual.fim)} com ${formatarData(intervaloAnterior.inicio)} a ${formatarData(intervaloAnterior.fim)}`;
+  const periodoTexto = periodo ? ` no turno da ${periodo === "manha" ? "manhã" : "noite"}` : "";
+
+  if (/caiu mais|maior queda|pior queda|mais caiu/.test(contexto)) {
+    const comBase = resultados.filter((item) => item.anterior > 0);
+    if (!comBase.length) return `${cabecalho}${periodoTexto}, não encontrei dados suficientes de ${anoComparacao} para calcular a queda.`;
+    const escolhido = [...comBase].sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0))[0];
+    if ((escolhido.pct ?? 0) >= 0) {
+      return `${cabecalho}${periodoTexto}, nenhuma loja caiu. A menor variação foi da ${escolhido.loja.codigo}: ${moeda.format(escolhido.anterior)} em ${anoComparacao} para ${moeda.format(escolhido.atual)} em ${anoAtual} (${percentual.format(escolhido.pct)}%).`;
+    }
+    return `${cabecalho}${periodoTexto}, a ${escolhido.loja.codigo} foi a que mais caiu: ${moeda.format(escolhido.anterior)} em ${anoComparacao} contra ${moeda.format(escolhido.atual)} em ${anoAtual}, queda de ${moeda.format(Math.abs(escolhido.diferenca))} (${percentual.format(Math.abs(escolhido.pct))}%).`;
+  }
+
+  if (/cresceu mais|subiu mais|maior crescimento|mais cresceu/.test(contexto)) {
+    const comBase = resultados.filter((item) => item.anterior > 0);
+    if (!comBase.length) return `${cabecalho}${periodoTexto}, não encontrei dados suficientes de ${anoComparacao} para calcular o crescimento.`;
+    const escolhido = [...comBase].sort((a, b) => (b.pct ?? 0) - (a.pct ?? 0))[0];
+    return `${cabecalho}${periodoTexto}, a ${escolhido.loja.codigo} teve a maior variação: ${moeda.format(escolhido.anterior)} em ${anoComparacao} para ${moeda.format(escolhido.atual)} em ${anoAtual}, ${variacaoTexto(escolhido.atual, escolhido.anterior)}.`;
+  }
+
+  const linhas = resultados.map((item) =>
+    `${item.loja.codigo}: ${moeda.format(item.atual)} em ${anoAtual} vs. ${moeda.format(item.anterior)} em ${anoComparacao} — ${variacaoTexto(item.atual, item.anterior)}`
+  );
+  return `${cabecalho}${periodoTexto}: ${linhas.join(" | ")}.`;
 }
 
 function dadosLoja({ loja, periodo, mes, vendas, metas }) {
@@ -194,8 +335,12 @@ function respostaDeAcao({ pergunta, mes, vendas, metas, lojas, historico }) {
 }
 
 export function responderPerguntaMetas(parametros) {
-  const resposta = respostaDeAcao(parametros);
-  if (resposta) return resposta;
+  const respostaAcao = respostaDeAcao(parametros);
+  if (respostaAcao) return respostaAcao;
+
+  const respostaTemporal = respostaComparacaoTemporal(parametros);
+  if (respostaTemporal) return respostaTemporal;
+
   return responderBase(parametros);
 }
 
