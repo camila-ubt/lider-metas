@@ -242,6 +242,69 @@ function nomeLojaPorId(lojas, id) {
   return lojas.find((loja) => Number(loja.id) === Number(id))?.codigo || `Loja ${id}`;
 }
 
+function responderLojaAtencao({ q, mes, vendas, metas, lojas, periodo }) {
+  if (!/(precisa|merece|necessita).*(atencao|cuidado)|mais atencao|mais cuidado|mais preocup|preocupante|pior desempenho/.test(q)) {
+    return null;
+  }
+
+  const { inicio, totalDias } = inicioFimMes(mes);
+  const referencia = dataReferenciaMes(mes, vendas);
+  const diaAtual = Math.max(1, Number(referencia.slice(8, 10)) || 1);
+  const intervaloAteAgora = { inicio, fim: referencia };
+
+  const resultados = lojas.map((item) => {
+    const vendasLoja = aplicarFiltros(vendas, intervaloAteAgora, item, periodo);
+    const vendido = somar(vendasLoja);
+    const meta = somar(metasDoFiltro(metas, item, periodo, mes), "valor_meta");
+    const vendasParaProjetar = vendas.filter((venda) => {
+      if (Number(venda.loja_id) !== Number(item.id)) return false;
+      if (periodo && venda.periodo !== periodo) return false;
+      return true;
+    });
+    const projecao = projetarFechamento(vendasParaProjetar, mes);
+    const atingimento = meta > 0 ? (vendido / meta) * 100 : null;
+    const esperadoAteAgora = meta > 0 ? meta * (diaAtual / totalDias) : 0;
+    const ritmo = esperadoAteAgora > 0 ? (vendido / esperadoAteAgora) * 100 : null;
+    const projecaoPercentual = meta > 0 && projecao ? (projecao.centro / meta) * 100 : null;
+
+    return {
+      loja: item,
+      vendido,
+      meta,
+      atingimento,
+      ritmo,
+      projecao,
+      projecaoPercentual,
+    };
+  });
+
+  const comMeta = resultados.filter((item) => item.meta > 0);
+  if (comMeta.length) {
+    const escolhido = [...comMeta].sort((a, b) => {
+      const projA = a.projecaoPercentual ?? a.atingimento ?? 999;
+      const projB = b.projecaoPercentual ?? b.atingimento ?? 999;
+      if (projA !== projB) return projA - projB;
+      return (a.ritmo ?? 999) - (b.ritmo ?? 999);
+    })[0];
+
+    let resposta = `A ${escolhido.loja.codigo} é a loja que mais precisa de atenção neste mês`;
+    if (periodo) resposta += ` no turno da ${periodo === "manha" ? "manhã" : "noite"}`;
+    resposta += `. Até agora vendeu ${moeda.format(escolhido.vendido)} de uma meta de ${moeda.format(escolhido.meta)}, atingindo ${percentual.format(escolhido.atingimento)}%.`;
+
+    if (escolhido.projecao) {
+      resposta += ` Pelo ritmo atual, a projeção de fechamento é ${moeda.format(escolhido.projecao.centro)} (${percentual.format(escolhido.projecaoPercentual)}% da meta).`;
+    }
+
+    const falta = Math.max(escolhido.meta - escolhido.vendido, 0);
+    if (falta > 0) resposta += ` Ainda faltam ${moeda.format(falta)} para a Meta.`;
+    return resposta;
+  }
+
+  const escolhido = [...resultados].sort((a, b) => a.vendido - b.vendido)[0];
+  if (!escolhido) return "Não encontrei dados suficientes para avaliar qual loja precisa de mais atenção.";
+  return `Como não há metas cadastradas para esse recorte, usei o volume vendido como referência. A ${escolhido.loja.codigo} é a que merece mais atenção, com ${moeda.format(escolhido.vendido)} vendidos no período.`;
+}
+
 function anosMencionados(q) {
   return [...new Set((q.match(/\b20\d{2}\b/g) || []).map(Number))];
 }
@@ -362,6 +425,9 @@ export function responderPerguntaMetas({ pergunta, mes, vendas = [], metas = [],
     mencionadas,
   });
   if (respostaTemporal) return respostaTemporal;
+
+  const respostaAtencao = responderLojaAtencao({ q, mes, vendas, metas, lojas, periodo });
+  if (respostaAtencao) return respostaAtencao;
 
   const intervalo = intervaloPergunta(q, mes, vendas);
   const vendasFiltradas = aplicarFiltros(vendas, intervalo, loja, periodo);
