@@ -18,8 +18,10 @@ function texto(elemento) {
 }
 
 function valorMoeda(valor) {
-  const numero = String(valor || "")
-    .replace(/[^\d,.-]/g, "")
+  const textoValor = String(valor || "");
+  const encontrado = textoValor.match(/R\$\s*(-?[\d.]+,\d{2})/);
+  const valorNumerico = encontrado?.[1] || textoValor.replace(/[^\d,.-]/g, "");
+  const numero = valorNumerico
     .replace(/\./g, "")
     .replace(",", ".");
   return Number(numero) || 0;
