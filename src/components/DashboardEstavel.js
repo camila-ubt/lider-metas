@@ -27,10 +27,13 @@ export default function DashboardEstavel(props) {
     const proxima = etapas.find((etapa) => vendido < etapa.valor);
 
     return {
+      vendido,
+      etapas,
       nome: proxima?.nome || "Megameta",
       falta: proxima ? Math.max(proxima.valor - vendido, 0) : 0,
+      quantidadeLojas: Math.max((props.lojas || []).length, 1),
     };
-  }, [props.vendas, props.metas]);
+  }, [props.vendas, props.metas, props.lojas]);
 
   useEffect(() => {
     const corrigirCard = () => {
@@ -50,6 +53,52 @@ export default function DashboardEstavel(props) {
     };
 
     const quadro = requestAnimationFrame(corrigirCard);
+    return () => cancelAnimationFrame(quadro);
+  }, [resumo]);
+
+  useEffect(() => {
+    const incluirFaltaPorLoja = () => {
+      const primeiroArticle = document.querySelector("section article");
+      if (!primeiroArticle) return;
+
+      const nomesAceitos = {
+        Meta: "Meta",
+        Super: "Supermeta",
+        Supermeta: "Supermeta",
+        Mega: "Megameta",
+        Megameta: "Megameta",
+      };
+
+      const titulos = [...primeiroArticle.querySelectorAll("strong")];
+
+      titulos.forEach((titulo) => {
+        const nomeExibido = titulo.textContent?.trim();
+        const nomeEtapa = nomesAceitos[nomeExibido];
+        if (!nomeEtapa) return;
+
+        const etapa = resumo.etapas.find((item) => item.nome === nomeEtapa);
+        if (!etapa) return;
+
+        const falta = Math.max(etapa.valor - resumo.vendido, 0);
+        if (falta <= 0) return;
+
+        const cardNivel = titulo.closest("div")?.parentElement;
+        const detalhe = cardNivel?.querySelector("em");
+        if (!detalhe) return;
+
+        const porLoja = falta / resumo.quantidadeLojas;
+        const textoPorLoja = `${dinheiro.format(porLoja)}/loja`;
+        const textoAtual = detalhe.textContent?.trim() || "";
+
+        if (!textoAtual.includes("/loja")) {
+          detalhe.textContent = textoAtual
+            ? `${textoAtual} · ${textoPorLoja}`
+            : textoPorLoja;
+        }
+      });
+    };
+
+    const quadro = requestAnimationFrame(incluirFaltaPorLoja);
     return () => cancelAnimationFrame(quadro);
   }, [resumo]);
 
