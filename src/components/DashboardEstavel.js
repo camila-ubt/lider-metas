@@ -86,15 +86,24 @@ export default function DashboardEstavel(props) {
         const detalhe = cardNivel?.querySelector("em");
         if (!detalhe) return;
 
-        const porLoja = falta / resumo.quantidadeLojas;
-        const textoPorLoja = `${dinheiro.format(porLoja)}/loja`;
         const textoAtual = detalhe.textContent?.trim() || "";
+        const matchDia = textoAtual.match(/R\$\s*[\d.]+,\d{2}\/dia/);
+        if (!matchDia) return;
 
-        if (!textoAtual.includes("/loja")) {
-          detalhe.textContent = textoAtual
-            ? `${textoAtual} · ${textoPorLoja}`
-            : textoPorLoja;
-        }
+        const valorDia = Number(
+          matchDia[0]
+            .replace("R$", "")
+            .replace("/dia", "")
+            .trim()
+            .replace(/\./g, "")
+            .replace(",", ".")
+        );
+        if (!Number.isFinite(valorDia)) return;
+
+        const porLojaDia = valorDia / resumo.quantidadeLojas;
+        const textoPorLoja = `${dinheiro.format(porLojaDia)}/loja/dia`;
+        const textoSemLoja = textoAtual.replace(/\s*·\s*R\$\s*[\d.]+,\d{2}\/loja(?:\/dia)?/g, "");
+        detalhe.textContent = `${textoSemLoja} · ${textoPorLoja}`;
       });
     };
 
