@@ -57,58 +57,63 @@ export default function DashboardEstavel(props) {
   }, [resumo]);
 
   useEffect(() => {
-    const incluirFaltaPorLoja = () => {
-      const primeiroArticle = document.querySelector("section article");
-      if (!primeiroArticle) return;
+    const nomesAceitos = new Set(["Meta", "Super", "Supermeta", "Mega", "Megameta"]);
 
-      const nomesAceitos = {
-        Meta: "Meta",
-        Super: "Supermeta",
-        Supermeta: "Supermeta",
-        Mega: "Megameta",
-        Megameta: "Megameta",
-      };
+    const aplicar = () => {
+      let atualizados = 0;
 
-      const titulos = [...primeiroArticle.querySelectorAll("strong")];
+      document.querySelectorAll("section article").forEach((article) => {
+        article.querySelectorAll("em").forEach((detalhe) => {
+          const cardNivel = detalhe.closest("div");
+          if (!cardNivel) return;
 
-      titulos.forEach((titulo) => {
-        const nomeExibido = titulo.textContent?.trim();
-        const nomeEtapa = nomesAceitos[nomeExibido];
-        if (!nomeEtapa) return;
+          const titulo = cardNivel.querySelector("strong");
+          const nome = titulo?.textContent?.trim();
+          if (!nome || !nomesAceitos.has(nome)) return;
 
-        const etapa = resumo.etapas.find((item) => item.nome === nomeEtapa);
-        if (!etapa) return;
+          const textoAtual = detalhe.textContent?.trim() || "";
+          const matchDia = textoAtual.match(/R\$\s*[\d.]+,\d{2}\/dia/);
+          if (!matchDia) return;
 
-        const falta = Math.max(etapa.valor - resumo.vendido, 0);
-        if (falta <= 0) return;
+          const valorDia = Number(
+            matchDia[0]
+              .replace("R$", "")
+              .replace("/dia", "")
+              .trim()
+              .replace(/\./g, "")
+              .replace(",", ".")
+          );
+          if (!Number.isFinite(valorDia)) return;
 
-        const cardNivel = titulo.closest("div")?.parentElement;
-        const detalhe = cardNivel?.querySelector("em");
-        if (!detalhe) return;
-
-        const textoAtual = detalhe.textContent?.trim() || "";
-        const matchDia = textoAtual.match(/R\$\s*[\d.]+,\d{2}\/dia/);
-        if (!matchDia) return;
-
-        const valorDia = Number(
-          matchDia[0]
-            .replace("R$", "")
-            .replace("/dia", "")
-            .trim()
-            .replace(/\./g, "")
-            .replace(",", ".")
-        );
-        if (!Number.isFinite(valorDia)) return;
-
-        const porLojaDia = valorDia / resumo.quantidadeLojas;
-        const textoPorLoja = `${dinheiro.format(porLojaDia)}/loja/dia`;
-        const textoSemLoja = textoAtual.replace(/\s*·\s*R\$\s*[\d.]+,\d{2}\/loja(?:\/dia)?/g, "");
-        detalhe.textContent = `${textoSemLoja} · ${textoPorLoja}`;
+          const porLojaDia = valorDia / resumo.quantidadeLojas;
+          const textoSemLoja = textoAtual.replace(
+            /\s*·\s*R\$\s*[\d.]+,\d{2}\/loja(?:\/dia)?/g,
+            ""
+          );
+          detalhe.textContent = `${textoSemLoja} · ${dinheiro.format(porLojaDia)}/loja/dia`;
+          atualizados += 1;
+        });
       });
+
+      return atualizados;
     };
 
-    const quadro = requestAnimationFrame(incluirFaltaPorLoja);
-    return () => cancelAnimationFrame(quadro);
+    const tentar = () => {
+      const atualizados = aplicar();
+      if (atualizados >= 3) observador.disconnect();
+    };
+
+    const observador = new MutationObserver(tentar);
+    observador.observe(document.body, { childList: true, subtree: true });
+
+    const quadro = requestAnimationFrame(tentar);
+    const atraso = setTimeout(tentar, 300);
+
+    return () => {
+      cancelAnimationFrame(quadro);
+      clearTimeout(atraso);
+      observador.disconnect();
+    };
   }, [resumo]);
 
   return <DashboardEstavelV2 {...props} />;
