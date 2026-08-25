@@ -56,8 +56,11 @@ export default function DashboardEstavel(props) {
 
   useEffect(() => {
     const aplicar = () => {
-      const detalhes = [...document.querySelectorAll("section article em")].slice(0, 3);
-      if (detalhes.length < 3) return false;
+      const hero = document.querySelector("section article");
+      if (!hero) return;
+
+      const detalhes = [...hero.querySelectorAll("em")].slice(0, 3);
+      if (detalhes.length < 3) return;
 
       detalhes.forEach((detalhe) => {
         const texto = detalhe.textContent?.trim() || "";
@@ -74,27 +77,37 @@ export default function DashboardEstavel(props) {
         );
         if (!Number.isFinite(valorDia)) return;
 
-        const porLojaDia = valorDia / resumo.quantidadeLojas;
-        detalhe.innerHTML = `${match[0]}<br><strong style="display:block;margin-top:2px;color:inherit;font-size:9px;font-weight:900">${dinheiro.format(porLojaDia)}/loja/dia</strong>`;
-      });
+        const cardNivel = detalhe.closest("div");
+        if (!cardNivel) return;
 
-      return true;
+        let extra = cardNivel.querySelector('[data-loja-dia="true"]');
+        if (!extra) {
+          extra = document.createElement("div");
+          extra.setAttribute("data-loja-dia", "true");
+          extra.style.gridColumn = "1 / -1";
+          extra.style.marginTop = "2px";
+          extra.style.fontSize = "9px";
+          extra.style.fontWeight = "900";
+          extra.style.lineHeight = "1.2";
+          extra.style.color = "#5b5164";
+          extra.style.textAlign = "center";
+          cardNivel.appendChild(extra);
+        }
+
+        extra.textContent = `${dinheiro.format(valorDia / resumo.quantidadeLojas)}/loja/dia`;
+      });
     };
 
-    const observador = new MutationObserver(() => {
-      if (aplicar()) observador.disconnect();
-    });
-    observador.observe(document.body, { childList: true, subtree: true });
-
-    const quadro = requestAnimationFrame(aplicar);
-    const atraso = setTimeout(aplicar, 250);
+    const timers = [0, 100, 300, 700, 1200, 2000].map((atraso) =>
+      setTimeout(aplicar, atraso)
+    );
+    const intervalo = setInterval(aplicar, 1500);
 
     return () => {
-      cancelAnimationFrame(quadro);
-      clearTimeout(atraso);
-      observador.disconnect();
+      timers.forEach(clearTimeout);
+      clearInterval(intervalo);
     };
-  }, [resumo.quantidadeLojas]);
+  }, [resumo.quantidadeLojas, props.vendas]);
 
   return <DashboardEstavelV2 {...props} />;
 }
