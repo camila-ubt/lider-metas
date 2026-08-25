@@ -143,16 +143,22 @@ function GraficoAcumulado({ dados, maximo }) {
   );
 }
 
-function textoNivel(nivel, vendido, encerrado, diasRestantes) {
+function textoNivel(nivel, vendido, encerrado, diasRestantes, quantidadeLojas = 0) {
   const falta = Math.max(nivel.valor - vendido, 0);
   if (!(nivel.valor > 0)) return "Sem meta";
   if (vendido >= nivel.valor) return encerrado ? "Conquistada" : "Batida";
   if (encerrado) return `Faltaram ${dinheiro.format(falta)}`;
-  if (diasRestantes > 0) return `${dinheiro.format(falta / diasRestantes)}/dia`;
+  if (diasRestantes > 0) {
+    const porDia = falta / diasRestantes;
+    if (quantidadeLojas > 0) {
+      return `${dinheiro.format(porDia)}/dia · ${dinheiro.format(porDia / quantidadeLojas)}/loja/dia`;
+    }
+    return `${dinheiro.format(porDia)}/dia`;
+  }
   return `Faltam ${dinheiro.format(falta)}`;
 }
 
-function Niveis({ vendido, jornada, encerrado = false, diasRestantes = 0, compacto: compactoVisual = false }) {
+function Niveis({ vendido, jornada, encerrado = false, diasRestantes = 0, quantidadeLojas = 0, compacto: compactoVisual = false }) {
   return (
     <div className={compactoVisual ? styles.levelsCompact : styles.levels}>
       {jornada.niveis.map((nivel) => {
@@ -162,7 +168,7 @@ function Niveis({ vendido, jornada, encerrado = false, diasRestantes = 0, compac
           <div className={`${styles.level} ${batida ? styles.levelDone : ""} ${atual ? styles.levelCurrent : ""}`} key={nivel.nome}>
             <span>{nivel.simbolo}</span>
             <div><strong>{nivel.nome}</strong><small>{dinheiro.format(nivel.valor)}</small></div>
-            <em>{textoNivel(nivel, vendido, encerrado, diasRestantes)}</em>
+            <em>{textoNivel(nivel, vendido, encerrado, diasRestantes, quantidadeLojas)}</em>
           </div>
         );
       })}
@@ -391,7 +397,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas }) {
           <div className={styles.activeTrack}><span style={{ width: `${dados.jornada.progresso}%` }} /></div>
           <small>{dados.mesPassado ? `${textoPercentual(porcentagem(dados.totalVendido, dados.meta))} da Meta` : `${textoPercentual(dados.jornada.progresso)} desta etapa`}</small>
         </div>
-        <Niveis vendido={dados.totalVendido} jornada={dados.jornada} encerrado={dados.mesPassado} diasRestantes={dados.diasRestantes} />
+        <Niveis vendido={dados.totalVendido} jornada={dados.jornada} encerrado={dados.mesPassado} diasRestantes={dados.diasRestantes} quantidadeLojas={Math.max(lojas.length, 1)} />
       </article>
 
       <div className={styles.kpiGrid}>
