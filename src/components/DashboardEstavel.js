@@ -27,8 +27,6 @@ export default function DashboardEstavel(props) {
     const proxima = etapas.find((etapa) => vendido < etapa.valor);
 
     return {
-      vendido,
-      etapas,
       nome: proxima?.nome || "Megameta",
       falta: proxima ? Math.max(proxima.valor - vendido, 0) : 0,
       quantidadeLojas: Math.max((props.lojas || []).length, 1),
@@ -57,64 +55,46 @@ export default function DashboardEstavel(props) {
   }, [resumo]);
 
   useEffect(() => {
-    const nomesAceitos = new Set(["Meta", "Super", "Supermeta", "Mega", "Megameta"]);
-
     const aplicar = () => {
-      let atualizados = 0;
+      const detalhes = [...document.querySelectorAll("section article em")].slice(0, 3);
+      if (detalhes.length < 3) return false;
 
-      document.querySelectorAll("section article").forEach((article) => {
-        article.querySelectorAll("em").forEach((detalhe) => {
-          const cardNivel = detalhe.closest("div");
-          if (!cardNivel) return;
+      detalhes.forEach((detalhe) => {
+        const texto = detalhe.textContent?.trim() || "";
+        const match = texto.match(/R\$\s*[\d.]+,\d{2}\/dia/);
+        if (!match) return;
 
-          const titulo = cardNivel.querySelector("strong");
-          const nome = titulo?.textContent?.trim();
-          if (!nome || !nomesAceitos.has(nome)) return;
+        const valorDia = Number(
+          match[0]
+            .replace("R$", "")
+            .replace("/dia", "")
+            .trim()
+            .replace(/\./g, "")
+            .replace(",", ".")
+        );
+        if (!Number.isFinite(valorDia)) return;
 
-          const textoAtual = detalhe.textContent?.trim() || "";
-          const matchDia = textoAtual.match(/R\$\s*[\d.]+,\d{2}\/dia/);
-          if (!matchDia) return;
-
-          const valorDia = Number(
-            matchDia[0]
-              .replace("R$", "")
-              .replace("/dia", "")
-              .trim()
-              .replace(/\./g, "")
-              .replace(",", ".")
-          );
-          if (!Number.isFinite(valorDia)) return;
-
-          const porLojaDia = valorDia / resumo.quantidadeLojas;
-          const textoSemLoja = textoAtual.replace(
-            /\s*·\s*R\$\s*[\d.]+,\d{2}\/loja(?:\/dia)?/g,
-            ""
-          );
-          detalhe.textContent = `${textoSemLoja} · ${dinheiro.format(porLojaDia)}/loja/dia`;
-          atualizados += 1;
-        });
+        const porLojaDia = valorDia / resumo.quantidadeLojas;
+        detalhe.innerHTML = `${match[0]}<br><strong style="display:block;margin-top:2px;color:inherit;font-size:9px;font-weight:900">${dinheiro.format(porLojaDia)}/loja/dia</strong>`;
       });
 
-      return atualizados;
+      return true;
     };
 
-    const tentar = () => {
-      const atualizados = aplicar();
-      if (atualizados >= 3) observador.disconnect();
-    };
-
-    const observador = new MutationObserver(tentar);
+    const observador = new MutationObserver(() => {
+      if (aplicar()) observador.disconnect();
+    });
     observador.observe(document.body, { childList: true, subtree: true });
 
-    const quadro = requestAnimationFrame(tentar);
-    const atraso = setTimeout(tentar, 300);
+    const quadro = requestAnimationFrame(aplicar);
+    const atraso = setTimeout(aplicar, 250);
 
     return () => {
       cancelAnimationFrame(quadro);
       clearTimeout(atraso);
       observador.disconnect();
     };
-  }, [resumo]);
+  }, [resumo.quantidadeLojas]);
 
   return <DashboardEstavelV2 {...props} />;
 }
