@@ -58,6 +58,44 @@
   cursor: pointer;
 }
 
+.insightsPainel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.insightCard {
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #eee7f0;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.insightRotulo {
+  color: #8b808e;
+  font-size: 0.64rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.insightValor {
+  color: #443b49;
+  font-size: 1.05rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.insightDescricao {
+  color: #978c99;
+  font-size: 0.62rem;
+  line-height: 1.35;
+}
+
 .periodosResumo,
 .insightsPeriodos {
   display: grid;
@@ -405,6 +443,10 @@
 }
 
 @media (max-width: 1050px) {
+  .insightsPainel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .insightsPeriodos {
     grid-template-columns: 1fr;
   }
@@ -427,6 +469,10 @@
   .registroTopo {
     flex-direction: column;
     gap: 9px;
+  }
+
+  .insightsPainel {
+    grid-template-columns: 1fr;
   }
 
   .climaPeriodoGrid {
