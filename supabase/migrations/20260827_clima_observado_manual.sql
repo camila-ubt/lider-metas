@@ -9,27 +9,55 @@ create table if not exists public.clima_observado (
 
 alter table public.clima_observado enable row level security;
 
-create policy "usuarios_ativos_visualizam_clima_observado"
-on public.clima_observado
-for select
-to authenticated
-using ((select private.usuario_ativo()));
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'clima_observado'
+      and policyname = 'usuarios_ativos_visualizam_clima_observado'
+  ) then
+    create policy "usuarios_ativos_visualizam_clima_observado"
+    on public.clima_observado
+    for select
+    to authenticated
+    using ((select private.usuario_ativo()));
+  end if;
 
-create policy "usuarios_ativos_registram_clima_observado"
-on public.clima_observado
-for insert
-to authenticated
-with check ((select private.usuario_ativo()));
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'clima_observado'
+      and policyname = 'usuarios_ativos_registram_clima_observado'
+  ) then
+    create policy "usuarios_ativos_registram_clima_observado"
+    on public.clima_observado
+    for insert
+    to authenticated
+    with check ((select private.usuario_ativo()));
+  end if;
 
-create policy "usuarios_ativos_atualizam_clima_observado"
-on public.clima_observado
-for update
-to authenticated
-using ((select private.usuario_ativo()))
-with check ((select private.usuario_ativo()));
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'clima_observado'
+      and policyname = 'usuarios_ativos_atualizam_clima_observado'
+  ) then
+    create policy "usuarios_ativos_atualizam_clima_observado"
+    on public.clima_observado
+    for update
+    to authenticated
+    using ((select private.usuario_ativo()))
+    with check ((select private.usuario_ativo()));
+  end if;
 
-create policy "usuarios_ativos_excluem_clima_observado"
-on public.clima_observado
-for delete
-to authenticated
-using ((select private.usuario_ativo()));
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public' and tablename = 'clima_observado'
+      and policyname = 'usuarios_ativos_excluem_clima_observado'
+  ) then
+    create policy "usuarios_ativos_excluem_clima_observado"
+    on public.clima_observado
+    for delete
+    to authenticated
+    using ((select private.usuario_ativo()));
+  end if;
+end
+$$;
