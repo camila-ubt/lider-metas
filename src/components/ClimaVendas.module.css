@@ -61,7 +61,7 @@
 .iconesResumo,
 .cardsDetalhe {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   margin-top: 16px;
 }
@@ -262,7 +262,7 @@
 
   .iconesResumo,
   .cardsDetalhe {
-    grid-template-columns: repeat(4, minmax(68px, 1fr));
+    grid-template-columns: repeat(5, minmax(68px, 1fr));
     overflow-x: auto;
   }
 
