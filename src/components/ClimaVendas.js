@@ -138,13 +138,12 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     );
     const voltarPainel = () => setAtivo(false);
     botaoPainel?.addEventListener("click", voltarPainel);
+
     if (ativo) botaoPainel?.classList.remove("active");
+    else botaoPainel?.classList.add("active");
 
     return () => {
       botaoPainel?.removeEventListener("click", voltarPainel);
-      if (botaoPainel && !botaoPainel.classList.contains("active")) {
-        botaoPainel.classList.add("active");
-      }
     };
   }, [alvoTabs, ativo]);
 
