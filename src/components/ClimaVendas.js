@@ -131,6 +131,12 @@ function media(valores) {
   return validos.reduce((total, valor) => total + valor, 0) / validos.length;
 }
 
+function formatarPercentual(valor) {
+  if (!Number.isFinite(valor)) return "—";
+  const arredondado = Math.round(valor);
+  return `${arredondado > 0 ? "+" : ""}${arredondado}%`;
+}
+
 function dataBonita(data) {
   return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -515,6 +521,129 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     return resultado;
   }, [climaEfetivo, vendas, climaPorSlot, periodos]);
 
+  const insightsPainel = useMemo(() => {
+    function compararChuva(periodoId) {
+      const firme = vendas
+        .filter((venda) => {
+          if (venda.periodo !== periodoId) return false;
+          return climaPorSlot.get(`${venda.data}-${venda.periodo}`)?.tipo === "sol";
+        })
+        .map((venda) => Number(venda.valor_vendido || 0));
+
+      const chuva = vendas
+        .filter((venda) => {
+          if (venda.periodo !== periodoId) return false;
+          const tipo = climaPorSlot.get(`${venda.data}-${venda.periodo}`)?.tipo;
+          return ["chuva", "forte"].includes(tipo);
+        })
+        .map((venda) => Number(venda.valor_vendido || 0));
+
+      const mediaFirme = media(firme);
+      const mediaChuva = media(chuva);
+      const diasFirme = climaEfetivo.filter(
+        (item) => item.periodo === periodoId && item.tipo === "sol",
+      ).length;
+      const diasChuva = climaEfetivo.filter(
+        (item) => item.periodo === periodoId && ["chuva", "forte"].includes(item.tipo),
+      ).length;
+
+      return {
+        mediaFirme,
+        mediaChuva,
+        diasFirme,
+        diasChuva,
+        variacao:
+          mediaFirme > 0 && mediaChuva > 0
+            ? ((mediaChuva - mediaFirme) / mediaFirme) * 100
+            : null,
+      };
+    }
+
+    const manha = compararChuva("manha");
+    const noite = compararChuva("noite");
+
+    const lojasImpacto = lojas
+      .map((loja) => {
+        const firmes = vendas
+          .filter((venda) => {
+            if (Number(venda.loja_id) !== Number(loja.id)) return false;
+            return climaPorSlot.get(`${venda.data}-${venda.periodo}`)?.tipo === "sol";
+          })
+          .map((venda) => Number(venda.valor_vendido || 0));
+
+        const chuvosos = vendas
+          .filter((venda) => {
+            if (Number(venda.loja_id) !== Number(loja.id)) return false;
+            const tipo = climaPorSlot.get(`${venda.data}-${venda.periodo}`)?.tipo;
+            return ["chuva", "forte"].includes(tipo);
+          })
+          .map((venda) => Number(venda.valor_vendido || 0));
+
+        const mediaFirme = media(firmes);
+        const mediaChuva = media(chuvosos);
+        if (!(mediaFirme > 0 && mediaChuva > 0)) return null;
+
+        return {
+          loja,
+          variacao: ((mediaChuva - mediaFirme) / mediaFirme) * 100,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.variacao - b.variacao);
+
+    let melhorCenario = null;
+    periodos.forEach((periodo) => {
+      TIPOS_CLIMA.forEach((tipo) => {
+        const dado = insightsPorPeriodo[periodo.id]?.tipos?.[tipo.tipo];
+        if (!dado?.mediaVenda) return;
+        if (!melhorCenario || dado.mediaVenda > melhorCenario.mediaVenda) {
+          melhorCenario = {
+            periodo: periodo.nome,
+            clima: tipo.rotulo,
+            mediaVenda: dado.mediaVenda,
+          };
+        }
+      });
+    });
+
+    const lojaMaisSensivel = lojasImpacto[0] || null;
+
+    return [
+      {
+        rotulo: "Chuva na manhã",
+        valor: Number.isFinite(manha.variacao) ? formatarPercentual(manha.variacao) : "Sem base",
+        descricao:
+          manha.diasFirme && manha.diasChuva
+            ? `${manha.diasChuva} período(s) com chuva x ${manha.diasFirme} firme(s)`
+            : "Ainda faltam períodos comparáveis",
+      },
+      {
+        rotulo: "Chuva à noite",
+        valor: Number.isFinite(noite.variacao) ? formatarPercentual(noite.variacao) : "Sem base",
+        descricao:
+          noite.diasFirme && noite.diasChuva
+            ? `${noite.diasChuva} período(s) com chuva x ${noite.diasFirme} firme(s)`
+            : "Ainda faltam períodos comparáveis",
+      },
+      {
+        rotulo: "Loja mais sensível à chuva",
+        valor: lojaMaisSensivel
+          ? lojaMaisSensivel.loja.codigo || lojaMaisSensivel.loja.nome
+          : "Sem base",
+        descricao: lojaMaisSensivel
+          ? `${formatarPercentual(lojaMaisSensivel.variacao)} na média com chuva`
+          : "Ainda faltam períodos comparáveis",
+      },
+      {
+        rotulo: "Melhor cenário observado",
+        valor: melhorCenario ? `${melhorCenario.periodo} · ${melhorCenario.clima}` : "Sem base",
+        descricao: melhorCenario
+          ? `Média ${dinheiro.format(melhorCenario.mediaVenda)}`
+          : "Ainda não há vendas suficientes",
+      },
+    ];
+  }, [vendas, climaPorSlot, climaEfetivo, lojas, insightsPorPeriodo, periodos]);
+
   const linhas = useMemo(() => {
     return climaEfetivo
       .flatMap((itemClima) =>
@@ -590,7 +719,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
       <div className={styles.resumoCabecalho}>
         <div>
           <span className={styles.eyebrow}>Clima e vendas</span>
-          <h2>Como o clima acompanhou as vendas</h2>
+          <h2>Insights do mês</h2>
         </div>
         <button type="button" className={styles.verDetalhes} onClick={() => setAtivo(true)}>
           Ver análise completa
@@ -604,9 +733,14 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
       ) : climaEfetivo.length === 0 ? (
         <p className={styles.estado}>Ainda não há períodos passados para analisar neste mês.</p>
       ) : (
-        <div className={styles.periodosResumo}>
-          {blocoPeriodo("manha", true)}
-          {blocoPeriodo("noite", true)}
+        <div className={styles.insightsPainel}>
+          {insightsPainel.map((insight) => (
+            <article className={styles.insightCard} key={insight.rotulo}>
+              <small className={styles.insightRotulo}>{insight.rotulo}</small>
+              <strong className={styles.insightValor}>{insight.valor}</strong>
+              <span className={styles.insightDescricao}>{insight.descricao}</span>
+            </article>
+          ))}
         </div>
       )}
     </section>
