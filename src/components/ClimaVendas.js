@@ -7,8 +7,15 @@ import styles from "./ClimaVendas.module.css";
 const LATITUDE_UBATUBA = -23.4339;
 const LONGITUDE_UBATUBA = -45.0839;
 const PERIODOS = [
-  { id: "manha", nome: "Manhã", inicio: 9, fim: 15 },
-  { id: "noite", nome: "Noite", inicio: 16, fim: 21 },
+  { id: "manha", nome: "Manhã", inicio: 9, fim: 15, icone: "🌤️" },
+  { id: "noite", nome: "Noite", inicio: 16, fim: 21, icone: "🌙" },
+];
+const TIPOS_CLIMA = [
+  { tipo: "sol", rotulo: "Firme", icone: "☀️" },
+  { tipo: "nublado", rotulo: "Nublado", icone: "☁️" },
+  { tipo: "garoa", rotulo: "Sereno/garoa", icone: "💧" },
+  { tipo: "chuva", rotulo: "Chuva", icone: "🌧️" },
+  { tipo: "forte", rotulo: "Chuva forte", icone: "⛈️" },
 ];
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -41,9 +48,6 @@ function classificarPeriodo(registros) {
   const temperaturas = registros.map((item) => item.temperatura);
   const codigos = registros.map((item) => item.codigo);
 
-  // Acumulados muito pequenos (ex.: 0,2–0,8 mm) podem representar
-  // sereno/garoa leve no dado histórico modelado e não devem inflar
-  // a contagem de períodos efetivamente chuvosos.
   const chuvaForte =
     chuva >= 5 ||
     codigos.some((codigo) => [65, 67, 82, 95, 96, 99].includes(codigo));
@@ -198,41 +202,38 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     return mapa;
   }, [clima]);
 
-  const resumo = useMemo(() => {
-    const contagem = { sol: 0, nublado: 0, garoa: 0, chuva: 0, forte: 0 };
-    let chuvaManha = 0;
-    let chuvaNoite = 0;
+  const insightsPorPeriodo = useMemo(() => {
+    const resultado = {};
 
-    clima.forEach((item) => {
-      contagem[item.tipo] += 1;
-      if (item.tipo === "chuva" || item.tipo === "forte") {
-        if (item.periodo === "manha") chuvaManha += 1;
-        if (item.periodo === "noite") chuvaNoite += 1;
-      }
+    PERIODOS.forEach((periodo) => {
+      const climaDoPeriodo = clima.filter((item) => item.periodo === periodo.id);
+      const tipos = {};
+
+      TIPOS_CLIMA.forEach((tipo) => {
+        const dias = climaDoPeriodo.filter((item) => item.tipo === tipo.tipo).length;
+        const valores = vendas
+          .filter((venda) => {
+            if (venda.periodo !== periodo.id) return false;
+            const climaVenda = climaPorSlot.get(`${venda.data}-${venda.periodo}`);
+            return climaVenda?.tipo === tipo.tipo;
+          })
+          .map((venda) => Number(venda.valor_vendido || 0));
+
+        tipos[tipo.tipo] = {
+          ...tipo,
+          dias,
+          mediaVenda: media(valores),
+        };
+      });
+
+      resultado[periodo.id] = {
+        ...periodo,
+        totalDias: climaDoPeriodo.length,
+        tipos,
+      };
     });
 
-    const vendasComClima = vendas
-      .map((venda) => ({
-        valor: Number(venda.valor_vendido || 0),
-        clima: climaPorSlot.get(`${venda.data}-${venda.periodo}`),
-      }))
-      .filter((item) => item.clima && item.valor > 0);
-
-    const semChuva = media(
-      vendasComClima
-        .filter((item) => ["sol", "nublado", "garoa"].includes(item.clima.tipo))
-        .map((item) => item.valor)
-    );
-    const comChuva = media(
-      vendasComClima
-        .filter((item) => item.clima.tipo === "chuva" || item.clima.tipo === "forte")
-        .map((item) => item.valor)
-    );
-    const diferenca = semChuva > 0 && comChuva > 0
-      ? ((comChuva - semChuva) / semChuva) * 100
-      : null;
-
-    return { contagem, chuvaManha, chuvaNoite, semChuva, comChuva, diferenca };
+    return resultado;
   }, [clima, vendas, climaPorSlot]);
 
   const linhas = useMemo(() => {
@@ -261,12 +262,49 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
       });
   }, [clima, lojas, vendas, lojaFiltro, periodoFiltro, climaFiltro]);
 
+  function blocoPeriodo(periodoId, compacto = false) {
+    const insight = insightsPorPeriodo[periodoId];
+    if (!insight) return null;
+
+    return (
+      <section className={`${styles.periodoInsight} ${compacto ? styles.periodoCompacto : ""}`} key={periodoId}>
+        <div className={styles.periodoTitulo}>
+          <div>
+            <span>{insight.icone}</span>
+            <div>
+              <h3>{insight.nome}</h3>
+              <small>{insight.inicio}h–{insight.fim}h · {insight.totalDias} dias analisados</small>
+            </div>
+          </div>
+        </div>
+        <div className={styles.climaPeriodoGrid}>
+          {TIPOS_CLIMA.map((tipo) => {
+            const item = insight.tipos[tipo.tipo];
+            return (
+              <article className={styles.climaPeriodoCard} key={`${periodoId}-${tipo.tipo}`}>
+                <span className={styles.climaIcone}>{tipo.icone}</span>
+                <div className={styles.climaPeriodoTexto}>
+                  <strong>{item.dias} {item.dias === 1 ? "dia" : "dias"}</strong>
+                  <small>{tipo.rotulo}</small>
+                </div>
+                <div className={styles.mediaClima}>
+                  <small>média de venda</small>
+                  <b>{item.mediaVenda > 0 ? dinheiro.format(item.mediaVenda) : "—"}</b>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
   const resumoCompacto = (
     <section className={styles.resumo} aria-label="Resumo de clima e vendas">
       <div className={styles.resumoCabecalho}>
         <div>
           <span className={styles.eyebrow}>Clima e vendas</span>
-          <h2>Contexto dos dias já vendidos</h2>
+          <h2>Como o clima acompanhou as vendas</h2>
         </div>
         <button type="button" className={styles.verDetalhes} onClick={() => setAtivo(true)}>
           Ver análise completa
@@ -280,24 +318,10 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
       ) : clima.length === 0 ? (
         <p className={styles.estado}>Ainda não há períodos passados para analisar neste mês.</p>
       ) : (
-        <>
-          <div className={styles.iconesResumo}>
-            <div><span>☀️</span><strong>{resumo.contagem.sol}</strong><small>firme</small></div>
-            <div><span>☁️</span><strong>{resumo.contagem.nublado}</strong><small>nublado</small></div>
-            <div><span>💧</span><strong>{resumo.contagem.garoa}</strong><small>sereno/garoa</small></div>
-            <div><span>🌧️</span><strong>{resumo.contagem.chuva}</strong><small>chuva</small></div>
-            <div><span>⛈️</span><strong>{resumo.contagem.forte}</strong><small>forte</small></div>
-          </div>
-          <div className={styles.faixaImpacto}>
-            <span>🌧️ Manhã: <b>{resumo.chuvaManha}</b> períodos com chuva</span>
-            <span>🌙 Noite: <b>{resumo.chuvaNoite}</b> períodos com chuva</span>
-            {resumo.diferenca !== null && (
-              <span className={resumo.diferenca < 0 ? styles.negativo : styles.positivo}>
-                Venda média com chuva: <b>{resumo.diferenca > 0 ? "+" : ""}{resumo.diferenca.toFixed(1)}%</b>
-              </span>
-            )}
-          </div>
-        </>
+        <div className={styles.periodosResumo}>
+          {blocoPeriodo("manha", true)}
+          {blocoPeriodo("noite", true)}
+        </div>
       )}
     </section>
   );
@@ -308,26 +332,30 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         <div>
           <span className={styles.eyebrow}>Histórico · Ubatuba</span>
           <h2>Clima e Vendas</h2>
-          <p>Condições históricas estimadas por período, cruzadas com as vendas de cada loja.</p>
+          <p>Condições históricas estimadas, analisadas separadamente para manhã e noite.</p>
         </div>
         <button type="button" className={styles.voltar} onClick={() => setAtivo(false)}>← Voltar ao painel</button>
       </div>
 
-      <div className={styles.cardsDetalhe}>
-        <article><span>☀️</span><strong>{resumo.contagem.sol}</strong><small>períodos firmes</small></article>
-        <article><span>☁️</span><strong>{resumo.contagem.nublado}</strong><small>períodos nublados</small></article>
-        <article><span>💧</span><strong>{resumo.contagem.garoa}</strong><small>sereno/garoa</small></article>
-        <article><span>🌧️</span><strong>{resumo.contagem.chuva}</strong><small>períodos de chuva</small></article>
-        <article><span>⛈️</span><strong>{resumo.contagem.forte}</strong><small>chuva forte</small></article>
-      </div>
-
-      {(resumo.semChuva > 0 || resumo.comChuva > 0) && (
-        <div className={styles.comparacao}>
-          <div><small>Venda média sem chuva relevante</small><strong>{dinheiro.format(resumo.semChuva)}</strong></div>
-          <div><small>Venda média com chuva</small><strong>{dinheiro.format(resumo.comChuva)}</strong></div>
-          <div><small>Diferença observada</small><strong>{resumo.diferenca === null ? "—" : `${resumo.diferenca > 0 ? "+" : ""}${resumo.diferenca.toFixed(1)}%`}</strong></div>
+      {carregando ? (
+        <p className={styles.estado}>Carregando histórico climático...</p>
+      ) : erro ? (
+        <p className={styles.estado}>{erro}</p>
+      ) : clima.length === 0 ? (
+        <p className={styles.estado}>Ainda não há períodos passados para analisar neste mês.</p>
+      ) : (
+        <div className={styles.insightsPeriodos}>
+          {blocoPeriodo("manha")}
+          {blocoPeriodo("noite")}
         </div>
       )}
+
+      <div className={styles.detalheCabecalhoLista}>
+        <div>
+          <span className={styles.eyebrow}>Dia a dia</span>
+          <h3>Histórico por loja e período</h3>
+        </div>
+      </div>
 
       <div className={styles.filtros}>
         <select value={lojaFiltro} onChange={(e) => setLojaFiltro(e.target.value)} aria-label="Filtrar loja">
@@ -367,7 +395,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         </div>
       )}
 
-      <p className={styles.fonte}>Fonte climática: Open-Meteo Historical Weather, dados horários modelados para Ubatuba. Acumulados abaixo de 1 mm são tratados como sereno/garoa e não entram na contagem de chuva. A comparação mostra associação observada e não prova causalidade.</p>
+      <p className={styles.fonte}>Fonte climática: Open-Meteo Historical Weather, dados horários modelados para Ubatuba. Acumulados abaixo de 1 mm são tratados como sereno/garoa. As médias são calculadas separadamente para manhã e noite e mostram associação observada, não causalidade.</p>
     </section>
   );
 
