@@ -91,50 +91,48 @@
 }
 
 .turno {
-  padding: 9px;
-  border-radius: 12px;
+  padding: 10px;
+  border-radius: 14px;
   background: #faf7fb;
 }
 
-.turnoTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.turnoTop strong {
+.turnoNome {
+  display: block;
+  margin-bottom: 6px;
   font-size: 0.78rem;
   color: #3f3544;
 }
 
-.turnoTop span {
-  max-width: 85px;
-  text-align: right;
-  font-size: 0.65rem;
-  font-weight: 800;
-  color: #7b687f;
-}
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-}
-
-.metrics span {
+.weatherMain {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 0.58rem;
-  color: #8b808e;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
 }
 
-.metrics b {
-  font-size: 0.69rem;
-  color: #514757;
-  white-space: nowrap;
+.weatherIcon {
+  flex: 0 0 auto;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.weatherText {
+  font-size: 0.74rem;
+  font-weight: 850;
+  line-height: 1.15;
+  color: #6f5a76;
+}
+
+.weatherDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid #eee7f0;
+  color: #918696;
+  font-size: 0.62rem;
+  font-weight: 700;
 }
 
 .state {
@@ -169,5 +167,9 @@
     grid-template-columns: repeat(7, 172px);
     margin-right: -15px;
     padding-right: 15px;
+  }
+
+  .weatherIcon {
+    font-size: 2.15rem;
   }
 }
