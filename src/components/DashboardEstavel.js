@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import DashboardEstavelV2 from "./DashboardEstavelV2";
+import ClimaTurnosPreview from "./ClimaTurnosPreview";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -109,5 +110,10 @@ export default function DashboardEstavel(props) {
     };
   }, [resumo.quantidadeLojas, props.vendas]);
 
-  return <DashboardEstavelV2 {...props} />;
+  return (
+    <>
+      <DashboardEstavelV2 {...props} />
+      <ClimaTurnosPreview />
+    </>
+  );
 }
