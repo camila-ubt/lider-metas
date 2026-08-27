@@ -1,0 +1,293 @@
+.resumo,
+.pagina {
+  margin: 18px 0 26px;
+  padding: 20px;
+  border: 1px solid rgba(94, 72, 110, 0.14);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf8fc 100%);
+  box-shadow: 0 14px 34px rgba(72, 51, 82, 0.08);
+}
+
+.resumoCabecalho,
+.topoDetalhe {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.resumoCabecalho h2,
+.topoDetalhe h2 {
+  margin: 4px 0 5px;
+  color: #2f2933;
+}
+
+.resumoCabecalho h2 {
+  font-size: 1.05rem;
+}
+
+.topoDetalhe h2 {
+  font-size: 1.45rem;
+}
+
+.topoDetalhe p {
+  margin: 0;
+  color: #776e7b;
+  font-size: 0.9rem;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #795b87;
+}
+
+.verDetalhes,
+.voltar {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: #f1e9f4;
+  color: #654c71;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.iconesResumo,
+.cardsDetalhe {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.iconesResumo > div,
+.cardsDetalhe article {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 12px 8px;
+  border: 1px solid #eee7f0;
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+}
+
+.iconesResumo span,
+.cardsDetalhe span {
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.iconesResumo strong,
+.cardsDetalhe strong {
+  color: #443b49;
+  font-size: 1rem;
+}
+
+.iconesResumo small,
+.cardsDetalhe small {
+  color: #8b808e;
+  font-size: 0.68rem;
+}
+
+.faixaImpacto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.faixaImpacto span {
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #f7f3f8;
+  color: #6f6573;
+  font-size: 0.73rem;
+}
+
+.negativo {
+  color: #8a4252 !important;
+  background: #fff1f4 !important;
+}
+
+.positivo {
+  color: #3f7156 !important;
+  background: #eef8f2 !important;
+}
+
+.cardsDetalhe {
+  margin-top: 18px;
+}
+
+.comparacao {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.comparacao > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f8f4f9;
+}
+
+.comparacao small {
+  color: #887e8b;
+  font-size: 0.68rem;
+}
+
+.comparacao strong {
+  color: #403846;
+  font-size: 0.9rem;
+}
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin: 16px 0 12px;
+}
+
+.filtros select {
+  width: 100%;
+  border: 1px solid #e6dde9;
+  border-radius: 12px;
+  padding: 10px 11px;
+  background: #fff;
+  color: #514757;
+  font: inherit;
+  font-size: 0.78rem;
+}
+
+.lista {
+  display: grid;
+  gap: 8px;
+}
+
+.linha {
+  display: grid;
+  grid-template-columns: 120px 90px minmax(220px, 1fr) 140px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1px solid #eee7f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.data,
+.loja,
+.venda {
+  display: grid;
+  gap: 2px;
+}
+
+.data strong,
+.loja strong,
+.venda strong,
+.clima strong {
+  color: #463d4c;
+  font-size: 0.78rem;
+}
+
+.data small,
+.loja small,
+.venda small,
+.clima small {
+  color: #948995;
+  font-size: 0.63rem;
+}
+
+.clima {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.clima > span {
+  width: 32px;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.clima > div {
+  display: grid;
+  gap: 2px;
+}
+
+.venda {
+  justify-items: end;
+  text-align: right;
+}
+
+.estado {
+  margin: 14px 0 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f8f5f9;
+  color: #716676;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.fonte {
+  margin: 12px 0 0;
+  color: #948995;
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .resumo,
+  .pagina {
+    margin-top: 12px;
+    padding: 15px;
+    border-radius: 18px;
+  }
+
+  .resumoCabecalho,
+  .topoDetalhe {
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .iconesResumo,
+  .cardsDetalhe {
+    grid-template-columns: repeat(4, minmax(68px, 1fr));
+    overflow-x: auto;
+  }
+
+  .comparacao,
+  .filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .linha {
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+
+  .clima {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .venda {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .loja {
+    justify-items: end;
+    text-align: right;
+  }
+}
