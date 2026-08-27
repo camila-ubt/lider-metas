@@ -2,14 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { minutosDoHorario, useHorariosPeriodos } from "@/lib/horariosPeriodos";
 import styles from "./ClimaVendas.module.css";
 
 const LATITUDE_UBATUBA = -23.4339;
 const LONGITUDE_UBATUBA = -45.0839;
-const PERIODOS = [
-  { id: "manha", nome: "Manhã", inicio: 9, fim: 15, icone: "🌤️" },
-  { id: "noite", nome: "Noite", inicio: 16, fim: 21, icone: "🌙" },
-];
+
 const TIPOS_CLIMA = [
   { tipo: "sol", rotulo: "Firme", icone: "☀️" },
   { tipo: "nublado", rotulo: "Nublado", icone: "☁️" },
@@ -71,16 +69,18 @@ function classificarPeriodo(registros) {
   return { tipo: "sol", rotulo: "Tempo firme", icone: "☀️", chuva, nuvens, temperaturas };
 }
 
-function montarPeriodos(hourly) {
+function montarPeriodos(hourly, periodos) {
   if (!hourly?.time?.length) return [];
   const porDia = new Map();
 
   hourly.time.forEach((dataHora, indice) => {
     const [data, horaTexto] = dataHora.split("T");
-    const hora = Number(horaTexto.slice(0, 2));
+    const [hora, minuto = "00"] = horaTexto.split(":");
+    const minutoDoDia = Number(hora) * 60 + Number(minuto);
+
     if (!porDia.has(data)) porDia.set(data, []);
     porDia.get(data).push({
-      hora,
+      minutoDoDia,
       temperatura: Number(hourly.temperature_2m?.[indice] ?? 0),
       chuva: Number(hourly.precipitation?.[indice] ?? 0),
       codigo: Number(hourly.weather_code?.[indice] ?? 0),
@@ -89,22 +89,27 @@ function montarPeriodos(hourly) {
   });
 
   return [...porDia.entries()].flatMap(([data, registros]) =>
-    PERIODOS.map((periodo) => {
-      const resumo = classificarPeriodo(
-        registros.filter(
-          (item) => item.hora >= periodo.inicio && item.hora <= periodo.fim
-        )
-      );
-      if (!resumo) return null;
-      return {
-        data,
-        periodo: periodo.id,
-        periodoNome: periodo.nome,
-        ...resumo,
-        tempMin: Math.min(...resumo.temperaturas),
-        tempMax: Math.max(...resumo.temperaturas),
-      };
-    }).filter(Boolean)
+    periodos
+      .map((periodo) => {
+        const resumo = classificarPeriodo(
+          registros.filter(
+            (item) =>
+              item.minutoDoDia >= periodo.inicioMin &&
+              item.minutoDoDia < periodo.fimMin,
+          ),
+        );
+
+        if (!resumo) return null;
+        return {
+          data,
+          periodo: periodo.id,
+          periodoNome: periodo.nome,
+          ...resumo,
+          tempMin: Math.min(...resumo.temperaturas),
+          tempMax: Math.max(...resumo.temperaturas),
+        };
+      })
+      .filter(Boolean),
   );
 }
 
@@ -123,14 +128,41 @@ function dataBonita(data) {
 }
 
 export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) {
+  const horarios = useHorariosPeriodos();
   const [ativo, setAtivo] = useState(false);
   const [alvoTabs, setAlvoTabs] = useState(null);
-  const [clima, setClima] = useState([]);
+  const [hourly, setHourly] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [lojaFiltro, setLojaFiltro] = useState("todas");
   const [periodoFiltro, setPeriodoFiltro] = useState("todos");
   const [climaFiltro, setClimaFiltro] = useState("todos");
+
+  const periodos = useMemo(
+    () => [
+      {
+        id: "manha",
+        nome: "Manhã",
+        icone: "🌤️",
+        inicioTexto: horarios.manhaInicio,
+        fimTexto: horarios.manhaFim,
+        inicioMin: minutosDoHorario(horarios.manhaInicio),
+        fimMin: minutosDoHorario(horarios.manhaFim),
+      },
+      {
+        id: "noite",
+        nome: "Noite",
+        icone: "🌙",
+        inicioTexto: horarios.noiteInicio,
+        fimTexto: horarios.noiteFim,
+        inicioMin: minutosDoHorario(horarios.noiteInicio),
+        fimMin: minutosDoHorario(horarios.noiteFim),
+      },
+    ],
+    [horarios],
+  );
+
+  const clima = useMemo(() => montarPeriodos(hourly, periodos), [hourly, periodos]);
 
   useEffect(() => {
     setAlvoTabs(document.querySelector("nav.tabs"));
@@ -139,7 +171,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
   useEffect(() => {
     if (!alvoTabs) return undefined;
     const botaoPainel = [...alvoTabs.querySelectorAll("button")].find(
-      (botao) => botao.textContent?.trim() === "Painel"
+      (botao) => botao.textContent?.trim() === "Painel",
     );
     const voltarPainel = () => setAtivo(false);
     botaoPainel?.addEventListener("click", voltarPainel);
@@ -147,9 +179,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     if (ativo) botaoPainel?.classList.remove("active");
     else botaoPainel?.classList.add("active");
 
-    return () => {
-      botaoPainel?.removeEventListener("click", voltarPainel);
-    };
+    return () => botaoPainel?.removeEventListener("click", voltarPainel);
   }, [alvoTabs, ativo]);
 
   useEffect(() => {
@@ -161,7 +191,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
       const intervalo = intervaloDoMes(mes);
 
       if (!intervalo) {
-        setClima([]);
+        setHourly(null);
         setCarregando(false);
         return;
       }
@@ -178,11 +208,11 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
 
         const resposta = await fetch(
           `https://archive-api.open-meteo.com/v1/archive?${parametros.toString()}`,
-          { signal: controller.signal }
+          { signal: controller.signal },
         );
         if (!resposta.ok) throw new Error("Falha ao carregar histórico climático.");
         const dados = await resposta.json();
-        setClima(montarPeriodos(dados.hourly));
+        setHourly(dados.hourly || null);
       } catch (error) {
         if (error.name !== "AbortError") {
           setErro("Não foi possível carregar o histórico climático agora.");
@@ -205,7 +235,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
   const insightsPorPeriodo = useMemo(() => {
     const resultado = {};
 
-    PERIODOS.forEach((periodo) => {
+    periodos.forEach((periodo) => {
       const climaDoPeriodo = clima.filter((item) => item.periodo === periodo.id);
       const tipos = {};
 
@@ -234,7 +264,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     });
 
     return resultado;
-  }, [clima, vendas, climaPorSlot]);
+  }, [clima, vendas, climaPorSlot, periodos]);
 
   const linhas = useMemo(() => {
     return clima
@@ -244,15 +274,16 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
             (item) =>
               item.data === itemClima.data &&
               item.periodo === itemClima.periodo &&
-              Number(item.loja_id) === Number(loja.id)
+              Number(item.loja_id) === Number(loja.id),
           );
           return { ...itemClima, loja, venda };
-        })
+        }),
       )
-      .filter((item) =>
-        (lojaFiltro === "todas" || String(item.loja.id) === lojaFiltro) &&
-        (periodoFiltro === "todos" || item.periodo === periodoFiltro) &&
-        (climaFiltro === "todos" || item.tipo === climaFiltro)
+      .filter(
+        (item) =>
+          (lojaFiltro === "todas" || String(item.loja.id) === lojaFiltro) &&
+          (periodoFiltro === "todos" || item.periodo === periodoFiltro) &&
+          (climaFiltro === "todos" || item.tipo === climaFiltro),
       )
       .sort((a, b) => {
         const data = b.data.localeCompare(a.data);
@@ -267,16 +298,22 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     if (!insight) return null;
 
     return (
-      <section className={`${styles.periodoInsight} ${compacto ? styles.periodoCompacto : ""}`} key={periodoId}>
+      <section
+        className={`${styles.periodoInsight} ${compacto ? styles.periodoCompacto : ""}`}
+        key={periodoId}
+      >
         <div className={styles.periodoTitulo}>
           <div>
             <span>{insight.icone}</span>
             <div>
               <h3>{insight.nome}</h3>
-              <small>{insight.inicio}h–{insight.fim}h · {insight.totalDias} dias analisados</small>
+              <small>
+                {insight.inicioTexto}–{insight.fimTexto} · {insight.totalDias} dias analisados
+              </small>
             </div>
           </div>
         </div>
+
         <div className={styles.climaPeriodoGrid}>
           {TIPOS_CLIMA.map((tipo) => {
             const item = insight.tipos[tipo.tipo];
@@ -332,9 +369,13 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         <div>
           <span className={styles.eyebrow}>Histórico · Ubatuba</span>
           <h2>Clima e Vendas</h2>
-          <p>Condições históricas estimadas, analisadas separadamente para manhã e noite.</p>
+          <p>
+            Condições históricas estimadas, usando exatamente os horários configurados para manhã e noite.
+          </p>
         </div>
-        <button type="button" className={styles.voltar} onClick={() => setAtivo(false)}>← Voltar ao painel</button>
+        <button type="button" className={styles.voltar} onClick={() => setAtivo(false)}>
+          ← Voltar ao painel
+        </button>
       </div>
 
       {carregando ? (
@@ -360,7 +401,9 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
       <div className={styles.filtros}>
         <select value={lojaFiltro} onChange={(e) => setLojaFiltro(e.target.value)} aria-label="Filtrar loja">
           <option value="todas">Todas as lojas</option>
-          {lojas.map((loja) => <option key={loja.id} value={String(loja.id)}>{loja.codigo || loja.nome}</option>)}
+          {lojas.map((loja) => (
+            <option key={loja.id} value={String(loja.id)}>{loja.codigo || loja.nome}</option>
+          ))}
         </select>
         <select value={periodoFiltro} onChange={(e) => setPeriodoFiltro(e.target.value)} aria-label="Filtrar período">
           <option value="todos">Manhã e noite</option>
@@ -369,33 +412,44 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         </select>
         <select value={climaFiltro} onChange={(e) => setClimaFiltro(e.target.value)} aria-label="Filtrar clima">
           <option value="todos">Todos os climas</option>
-          <option value="sol">☀️ Firme</option>
-          <option value="nublado">☁️ Nublado</option>
-          <option value="garoa">💧 Sereno / garoa</option>
-          <option value="chuva">🌧️ Chuva</option>
-          <option value="forte">⛈️ Chuva forte</option>
+          {TIPOS_CLIMA.map((tipo) => (
+            <option key={tipo.tipo} value={tipo.tipo}>{tipo.icone} {tipo.rotulo}</option>
+          ))}
         </select>
       </div>
 
-      {carregando ? (
-        <p className={styles.estado}>Carregando histórico climático...</p>
-      ) : erro ? (
-        <p className={styles.estado}>{erro}</p>
-      ) : (
+      {!carregando && !erro && (
         <div className={styles.lista}>
           {linhas.map((item) => (
             <article className={styles.linha} key={`${item.data}-${item.periodo}-${item.loja.id}`}>
-              <div className={styles.data}><strong>{dataBonita(item.data)}</strong><small>{item.periodoNome}</small></div>
-              <div className={styles.loja}><strong>{item.loja.codigo || item.loja.nome}</strong><small>loja</small></div>
-              <div className={styles.clima}><span>{item.icone}</span><div><strong>{item.rotulo}</strong><small>{item.chuva.toFixed(1)} mm · {Math.round(item.tempMin)}–{Math.round(item.tempMax)}°C</small></div></div>
-              <div className={styles.venda}><small>Vendido</small><strong>{item.venda ? dinheiro.format(Number(item.venda.valor_vendido || 0)) : "—"}</strong></div>
+              <div className={styles.data}>
+                <strong>{dataBonita(item.data)}</strong>
+                <small>{item.periodoNome}</small>
+              </div>
+              <div className={styles.loja}>
+                <strong>{item.loja.codigo || item.loja.nome}</strong>
+                <small>loja</small>
+              </div>
+              <div className={styles.clima}>
+                <span>{item.icone}</span>
+                <div>
+                  <strong>{item.rotulo}</strong>
+                  <small>{item.chuva.toFixed(1)} mm · {Math.round(item.tempMin)}–{Math.round(item.tempMax)}°C</small>
+                </div>
+              </div>
+              <div className={styles.venda}>
+                <small>Vendido</small>
+                <strong>{item.venda ? dinheiro.format(Number(item.venda.valor_vendido || 0)) : "—"}</strong>
+              </div>
             </article>
           ))}
           {!linhas.length && <p className={styles.estado}>Nenhum registro para estes filtros.</p>}
         </div>
       )}
 
-      <p className={styles.fonte}>Fonte climática: Open-Meteo Historical Weather, dados horários modelados para Ubatuba. Acumulados abaixo de 1 mm são tratados como sereno/garoa. As médias são calculadas separadamente para manhã e noite e mostram associação observada, não causalidade.</p>
+      <p className={styles.fonte}>
+        Fonte climática: Open-Meteo Historical Weather. A faixa horária acompanha a configuração salva no perfil; o horário final é usado como limite de troca do período. Dados modelados para Ubatuba.
+      </p>
     </section>
   );
 
@@ -405,7 +459,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         <button type="button" className={ativo ? "active" : ""} onClick={() => setAtivo(true)}>
           Clima e Vendas
         </button>,
-        alvoTabs
+        alvoTabs,
       )}
       {ativo ? detalhe : <>{children}{resumoCompacto}</>}
     </>
