@@ -17,26 +17,36 @@ const formatarDia = new Intl.DateTimeFormat("pt-BR", {
   month: "2-digit",
 });
 
+function climaVisual(codigo, chuva, chance) {
+  if (codigo >= 95 || chuva >= 15) {
+    return { icone: "⛈️", condicao: "Chuva forte" };
+  }
+  if (codigo >= 51 || chuva >= 1) {
+    return { icone: "🌧️", condicao: "Chuva" };
+  }
+  if (codigo >= 1 || chance >= 40) {
+    return { icone: "☁️", condicao: chance >= 40 ? "Possível chuva" : "Nublado" };
+  }
+  return { icone: "☀️", condicao: "Tempo firme" };
+}
+
 function resumirTurno(registros) {
   if (!registros.length) return null;
 
   const temperaturas = registros.map((item) => item.temperatura);
   const chuva = registros.reduce((total, item) => total + item.chuva, 0);
   const chance = Math.max(...registros.map((item) => item.chance));
+  const codigo = Math.max(...registros.map((item) => item.codigo));
   const tempMin = Math.min(...temperaturas);
   const tempMax = Math.max(...temperaturas);
-
-  let condicao = "Tempo firme";
-  if (chuva >= 15) condicao = "Chuva forte";
-  else if (chuva >= 3) condicao = "Chuva";
-  else if (chance >= 50) condicao = "Possível chuva";
+  const visual = climaVisual(codigo, chuva, chance);
 
   return {
     chuva,
     chance,
     tempMin,
     tempMax,
-    condicao,
+    ...visual,
   };
 }
 
@@ -55,6 +65,7 @@ function montarDias(hourly) {
       temperatura: Number(hourly.temperature_2m?.[indice] ?? 0),
       chuva: Number(hourly.precipitation?.[indice] ?? 0),
       chance: Number(hourly.precipitation_probability?.[indice] ?? 0),
+      codigo: Number(hourly.weather_code?.[indice] ?? 0),
     });
   });
 
@@ -87,7 +98,7 @@ export default function ClimaTurnosPreview() {
         const parametros = new URLSearchParams({
           latitude: String(LATITUDE_UBATUBA),
           longitude: String(LONGITUDE_UBATUBA),
-          hourly: "temperature_2m,precipitation_probability,precipitation",
+          hourly: "temperature_2m,precipitation_probability,precipitation,weather_code",
           timezone: "America/Sao_Paulo",
           forecast_days: "7",
         });
@@ -120,9 +131,7 @@ export default function ClimaTurnosPreview() {
         <div>
           <span className={styles.eyebrow}>Teste de inteligência climática</span>
           <h2 id="titulo-clima-turnos">Clima por período</h2>
-          <p>
-            Previsão horária de Ubatuba separada nos mesmos períodos das vendas.
-          </p>
+          <p>Previsão de Ubatuba nos mesmos períodos das vendas.</p>
         </div>
         <span className={styles.badge}>Open-Meteo · 7 dias</span>
       </div>
@@ -130,7 +139,10 @@ export default function ClimaTurnosPreview() {
       <div className={styles.legend}>
         <span><b>Manhã</b> 9h–15h</span>
         <span><b>Noite</b> 16h–21h</span>
-        <span>Chuva = soma prevista no período</span>
+        <span>☀️ firme</span>
+        <span>☁️ nublado</span>
+        <span>🌧️ chuva</span>
+        <span>⛈️ chuva forte</span>
       </div>
 
       {carregando && <div className={styles.state}>Carregando previsão...</div>}
@@ -151,23 +163,17 @@ export default function ClimaTurnosPreview() {
 
                   return (
                     <div className={styles.turno} key={turno.id}>
-                      <div className={styles.turnoTop}>
-                        <strong>{turno.nome}</strong>
-                        <span>{resumo.condicao}</span>
+                      <strong className={styles.turnoNome}>{turno.nome}</strong>
+                      <div className={styles.weatherMain}>
+                        <span className={styles.weatherIcon} aria-hidden="true">
+                          {resumo.icone}
+                        </span>
+                        <span className={styles.weatherText}>{resumo.condicao}</span>
                       </div>
-                      <div className={styles.metrics}>
-                        <span>
-                          <b>{resumo.chance}%</b>
-                          chance
-                        </span>
-                        <span>
-                          <b>{resumo.chuva.toFixed(1)} mm</b>
-                          chuva
-                        </span>
-                        <span>
-                          <b>{Math.round(resumo.tempMin)}–{Math.round(resumo.tempMax)}°</b>
-                          temperatura
-                        </span>
+                      <div className={styles.weatherDetails}>
+                        <span>{Math.round(resumo.tempMin)}–{Math.round(resumo.tempMax)}°</span>
+                        {resumo.chuva > 0 && <span>{resumo.chuva.toFixed(1)} mm</span>}
+                        {resumo.chance >= 40 && <span>{resumo.chance}% chuva</span>}
                       </div>
                     </div>
                   );
