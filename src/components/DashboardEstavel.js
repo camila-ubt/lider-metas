@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import DashboardEstavelV2 from "./DashboardEstavelV2";
-import ClimaTurnosPreview from "./ClimaTurnosPreview";
+import ClimaVendas from "./ClimaVendas";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -111,9 +111,8 @@ export default function DashboardEstavel(props) {
   }, [resumo.quantidadeLojas, props.vendas]);
 
   return (
-    <>
+    <ClimaVendas mes={props.mes} vendas={props.vendas} lojas={props.lojas}>
       <DashboardEstavelV2 {...props} />
-      <ClimaTurnosPreview />
-    </>
+    </ClimaVendas>
   );
 }
