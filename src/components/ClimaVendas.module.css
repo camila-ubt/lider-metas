@@ -442,6 +442,220 @@
   line-height: 1.45;
 }
 
+.resumoSubtitulo {
+  max-width: 760px;
+  margin: 0;
+  color: #817584;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.estatisticasGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.estatisticaCard {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #eee7f0;
+  border-radius: 17px;
+  background: #fff;
+}
+
+.estatisticaLarga {
+  grid-column: 1 / -1;
+}
+
+.estatisticaTitulo {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.estatisticaTitulo > span {
+  color: #443b49;
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.estatisticaTitulo > small {
+  color: #958a97;
+  font-size: 0.61rem;
+}
+
+.mediaClimaTabela {
+  display: grid;
+  gap: 0;
+  overflow-x: auto;
+}
+
+.mediaClimaCabecalho,
+.mediaClimaLinha {
+  display: grid;
+  grid-template-columns: minmax(145px, 1.1fr) repeat(2, minmax(135px, 1fr));
+  align-items: center;
+  min-width: 450px;
+}
+
+.mediaClimaCabecalho {
+  padding: 0 10px 7px;
+  color: #877b8a;
+  font-size: 0.62rem;
+}
+
+.mediaClimaCabecalho strong {
+  text-align: center;
+}
+
+.mediaClimaLinha {
+  border-top: 1px solid #f0eaf1;
+  padding: 9px 10px;
+}
+
+.mediaClimaLinha > span {
+  color: #554a5a;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.mediaClimaLinha > div {
+  display: grid;
+  gap: 1px;
+  justify-items: center;
+  text-align: center;
+}
+
+.mediaClimaLinha > div strong {
+  color: #443b49;
+  font-size: 0.75rem;
+}
+
+.mediaClimaLinha > div small {
+  color: #9a8f9c;
+  font-size: 0.56rem;
+}
+
+.comparacaoPeriodos,
+.lojasEstatisticas,
+.dispersaoTabela {
+  display: grid;
+  gap: 8px;
+}
+
+.comparacaoLinha,
+.lojasEstatisticas > div,
+.dispersaoTabela > div {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: #faf7fb;
+}
+
+.comparacaoLinha b,
+.lojasEstatisticas b,
+.dispersaoTabela b {
+  color: #5b4f60;
+  font-size: 0.69rem;
+}
+
+.comparacaoLinha strong,
+.lojasEstatisticas strong {
+  color: #7647ad;
+  font-size: 0.83rem;
+}
+
+.comparacaoLinha small,
+.lojasEstatisticas small,
+.dispersaoTabela span {
+  min-width: 0;
+  color: #8f8492;
+  font-size: 0.61rem;
+  line-height: 1.35;
+}
+
+.lojasEstatisticas > div {
+  grid-template-columns: 48px 58px 1fr;
+}
+
+.dispersaoTabela > div {
+  grid-template-columns: 90px 1fr;
+}
+
+.frequenciaPeriodos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.frequenciaPeriodos > div {
+  padding: 11px;
+  border-radius: 13px;
+  background: #faf7fb;
+}
+
+.frequenciaPeriodos b {
+  display: block;
+  margin-bottom: 8px;
+  color: #554a5a;
+  font-size: 0.72rem;
+}
+
+.frequenciaPeriodos > div > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.frequenciaPeriodos span {
+  border: 1px solid #eee6f0;
+  border-radius: 999px;
+  padding: 5px 7px;
+  background: #fff;
+  color: #776b7a;
+  font-size: 0.59rem;
+  white-space: nowrap;
+}
+
+.correlacaoBox {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 4px 9px;
+  padding: 12px;
+  border-radius: 13px;
+  background: #faf7fb;
+}
+
+.correlacaoBox strong {
+  color: #7647ad;
+  font-size: 1.1rem;
+}
+
+.correlacaoBox span {
+  color: #554a5a;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.correlacaoBox small {
+  grid-column: 1 / -1;
+  color: #958a97;
+  font-size: 0.59rem;
+}
+
+.notaEstatistica {
+  margin: 11px 0 0;
+  color: #9a8f9c;
+  font-size: 0.61rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 1050px) {
   .insightsPainel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -471,8 +685,24 @@
     gap: 9px;
   }
 
-  .insightsPainel {
+  .insightsPainel,
+  .estatisticasGrid {
     grid-template-columns: 1fr;
+  }
+
+  .estatisticaLarga {
+    grid-column: auto;
+  }
+
+  .frequenciaPeriodos {
+    grid-template-columns: 1fr;
+  }
+
+  .comparacaoLinha,
+  .lojasEstatisticas > div,
+  .dispersaoTabela > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
   }
 
   .climaPeriodoGrid {
