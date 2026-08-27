@@ -165,6 +165,134 @@
   white-space: nowrap;
 }
 
+.registroObservado {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid #e8deeb;
+  border-radius: 18px;
+  background: #fbf8fc;
+}
+
+.registroTopo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.registroTopo h3 {
+  margin: 3px 0 4px;
+  color: #403846;
+  font-size: 1rem;
+}
+
+.registroTopo p {
+  max-width: 760px;
+  margin: 0;
+  color: #817584;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.manualBadge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #edf7f0;
+  color: #477057;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.registroGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1.2fr 1.35fr;
+  gap: 9px;
+  margin-top: 13px;
+}
+
+.registroGrid label {
+  display: grid;
+  gap: 5px;
+  color: #655a69;
+  font-size: 0.67rem;
+  font-weight: 800;
+}
+
+.registroGrid select {
+  width: 100%;
+  min-height: 43px;
+  border: 1px solid #e1d7e4;
+  border-radius: 12px;
+  padding: 9px 10px;
+  background: #fff;
+  color: #4d4352;
+  font: inherit;
+  font-size: 0.76rem;
+}
+
+.estimativaApi {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-height: 43px;
+  border: 1px solid #e8e0ea;
+  border-radius: 12px;
+  padding: 8px 11px;
+  background: #fff;
+}
+
+.estimativaApi small,
+.estimativaApi span {
+  color: #978c99;
+  font-size: 0.6rem;
+}
+
+.estimativaApi strong {
+  color: #504555;
+  font-size: 0.76rem;
+}
+
+.registroAcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.salvarObservado,
+.removerObservado {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 13px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.salvarObservado {
+  background: #7647ad;
+  color: #fff;
+}
+
+.removerObservado {
+  background: #eee8f0;
+  color: #6d5c73;
+}
+
+.salvarObservado:disabled,
+.removerObservado:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.erroRegistro {
+  margin: 9px 0 0;
+  color: #9a4658;
+  font-size: 0.69rem;
+}
+
 .detalheCabecalhoLista {
   margin-top: 22px;
 }
@@ -249,6 +377,11 @@
   gap: 2px;
 }
 
+.origemManual {
+  color: #477057 !important;
+  font-weight: 800;
+}
+
 .venda {
   justify-items: end;
   text-align: right;
@@ -275,6 +408,10 @@
   .insightsPeriodos {
     grid-template-columns: 1fr;
   }
+
+  .registroGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 760px) {
@@ -286,7 +423,8 @@
   }
 
   .resumoCabecalho,
-  .topoDetalhe {
+  .topoDetalhe,
+  .registroTopo {
     flex-direction: column;
     gap: 9px;
   }
@@ -301,6 +439,7 @@
     min-width: 112px;
   }
 
+  .registroGrid,
   .filtros {
     grid-template-columns: 1fr;
   }
