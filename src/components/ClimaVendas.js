@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { minutosDoHorario, useHorariosPeriodos } from "@/lib/horariosPeriodos";
+import ClimaResumoEstatistico from "./ClimaResumoEstatistico";
 import styles from "./ClimaVendas.module.css";
 
 const LATITUDE_UBATUBA = -23.4339;
@@ -715,35 +716,19 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
   }
 
   const resumoCompacto = (
-    <section className={styles.resumo} aria-label="Resumo de clima e vendas">
-      <div className={styles.resumoCabecalho}>
-        <div>
-          <span className={styles.eyebrow}>Clima e vendas</span>
-          <h2>Insights do mês</h2>
-        </div>
-        <button type="button" className={styles.verDetalhes} onClick={() => setAtivo(true)}>
-          Ver análise completa
-        </button>
-      </div>
-
-      {carregando ? (
-        <p className={styles.estado}>Carregando histórico climático...</p>
-      ) : erro ? (
-        <p className={styles.estado}>{erro}</p>
-      ) : climaEfetivo.length === 0 ? (
-        <p className={styles.estado}>Ainda não há períodos passados para analisar neste mês.</p>
-      ) : (
-        <div className={styles.insightsPainel}>
-          {insightsPainel.map((insight) => (
-            <article className={styles.insightCard} key={insight.rotulo}>
-              <small className={styles.insightRotulo}>{insight.rotulo}</small>
-              <strong className={styles.insightValor}>{insight.valor}</strong>
-              <span className={styles.insightDescricao}>{insight.descricao}</span>
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
+    <ClimaResumoEstatistico
+      vendas={vendas}
+      lojas={lojas}
+      periodos={periodos}
+      climaEfetivo={climaEfetivo}
+      climaApi={clima}
+      climaPorSlot={climaPorSlot}
+      insightsPorPeriodo={insightsPorPeriodo}
+      carregando={carregando}
+      erro={erro}
+      onDetalhes={() => setAtivo(true)}
+      legacyInsights={insightsPainel}
+    />
   );
 
   const detalhe = (
