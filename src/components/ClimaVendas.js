@@ -26,7 +26,7 @@ function dataIso(data) {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
 }
 
-function intervaloDoMes(mes) {
+function intervaloHistoricoDoMes(mes) {
   const [ano, numeroMes] = mes.split("-").map(Number);
   const inicio = new Date(ano, numeroMes - 1, 1, 12, 0, 0);
   const fimNatural = new Date(ano, numeroMes, 0, 12, 0, 0);
@@ -36,6 +36,17 @@ function intervaloDoMes(mes) {
 
   if (inicio > ontem) return null;
   const fim = fimNatural < ontem ? fimNatural : ontem;
+  return { inicio: dataIso(inicio), fim: dataIso(fim) };
+}
+
+function intervaloRegistrosDoMes(mes, hojeIso) {
+  const [ano, numeroMes] = mes.split("-").map(Number);
+  const inicio = new Date(ano, numeroMes - 1, 1, 12, 0, 0);
+  const fimNatural = new Date(ano, numeroMes, 0, 12, 0, 0);
+  const hoje = new Date(`${hojeIso}T12:00:00`);
+
+  if (inicio > hoje) return null;
+  const fim = fimNatural < hoje ? fimNatural : hoje;
   return { inicio: dataIso(inicio), fim: dataIso(fim) };
 }
 
@@ -141,6 +152,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
   const [hourly, setHourly] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [agora, setAgora] = useState(() => new Date());
 
   const [observados, setObservados] = useState([]);
   const [carregandoObservados, setCarregandoObservados] = useState(true);
@@ -178,7 +190,21 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     [horarios],
   );
 
+  const hojeIso = dataIso(agora);
+  const minutoAtual = agora.getHours() * 60 + agora.getMinutes();
+  const mesAtual = hojeIso.slice(0, 7);
+
+  const periodosEncerradosHoje = useMemo(
+    () => periodos.filter((periodo) => minutoAtual >= periodo.fimMin),
+    [periodos, minutoAtual],
+  );
+
   const clima = useMemo(() => montarPeriodos(hourly, periodos), [hourly, periodos]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setAgora(new Date()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     setAlvoTabs(document.querySelector("nav.tabs"));
@@ -204,7 +230,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     async function carregar() {
       setCarregando(true);
       setErro("");
-      const intervalo = intervaloDoMes(mes);
+      const intervalo = intervaloHistoricoDoMes(mes);
 
       if (!intervalo) {
         setHourly(null);
@@ -248,7 +274,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     async function carregarObservados() {
       setCarregandoObservados(true);
       setErroObservado("");
-      const intervalo = intervaloDoMes(mes);
+      const intervalo = intervaloRegistrosDoMes(mes, hojeIso);
 
       if (!intervalo) {
         setObservados([]);
@@ -279,7 +305,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     return () => {
       ativoBusca = false;
     };
-  }, [mes, supabase]);
+  }, [mes, supabase, hojeIso]);
 
   const climaApiPorSlot = useMemo(() => {
     const mapa = new Map();
@@ -293,36 +319,48 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     return mapa;
   }, [observados]);
 
-  const climaEfetivo = useMemo(
-    () =>
-      clima.map((item) => {
-        const observado = observadoPorSlot.get(`${item.data}-${item.periodo}`);
-        const tipoManual = observado ? tipoClima(observado.clima) : null;
+  const climaEfetivo = useMemo(() => {
+    const mapa = new Map();
 
-        if (!tipoManual) {
-          return {
-            ...item,
-            origem: "api",
-            estimadoTipo: item.tipo,
-            estimadoRotulo: item.rotulo,
-            estimadoIcone: item.icone,
-          };
-        }
+    clima.forEach((item) => {
+      mapa.set(`${item.data}-${item.periodo}`, {
+        ...item,
+        origem: "api",
+        estimadoTipo: item.tipo,
+        estimadoRotulo: item.rotulo,
+        estimadoIcone: item.icone,
+      });
+    });
 
-        return {
-          ...item,
-          tipo: tipoManual.tipo,
-          rotulo: tipoManual.rotulo,
-          icone: tipoManual.icone,
-          origem: "manual",
-          estimadoTipo: item.tipo,
-          estimadoRotulo: item.rotulo,
-          estimadoIcone: item.icone,
-          atualizadoEm: observado.atualizado_em,
-        };
-      }),
-    [clima, observadoPorSlot],
-  );
+    observados.forEach((observado) => {
+      const manual = tipoClima(observado.clima);
+      const periodo = periodos.find((item) => item.id === observado.periodo);
+      if (!manual || !periodo) return;
+
+      const chave = `${observado.data}-${observado.periodo}`;
+      const estimado = mapa.get(chave);
+
+      mapa.set(chave, {
+        ...(estimado || {}),
+        data: observado.data,
+        periodo: observado.periodo,
+        periodoNome: periodo.nome,
+        tipo: manual.tipo,
+        rotulo: manual.rotulo,
+        icone: manual.icone,
+        origem: "manual",
+        estimadoTipo: estimado?.estimadoTipo || null,
+        estimadoRotulo: estimado?.estimadoRotulo || null,
+        estimadoIcone: estimado?.estimadoIcone || null,
+        chuva: estimado?.chuva ?? null,
+        tempMin: estimado?.tempMin ?? null,
+        tempMax: estimado?.tempMax ?? null,
+        atualizadoEm: observado.atualizado_em,
+      });
+    });
+
+    return [...mapa.values()];
+  }, [clima, observados, periodos]);
 
   const climaPorSlot = useMemo(() => {
     const mapa = new Map();
@@ -330,10 +368,21 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     return mapa;
   }, [climaEfetivo]);
 
-  const datasDisponiveis = useMemo(
-    () => [...new Set(clima.map((item) => item.data))].sort((a, b) => b.localeCompare(a)),
-    [clima],
-  );
+  const datasDisponiveis = useMemo(() => {
+    const datas = new Set(clima.map((item) => item.data));
+    observados.forEach((item) => datas.add(item.data));
+
+    if (mes === mesAtual && periodosEncerradosHoje.length > 0) {
+      datas.add(hojeIso);
+    }
+
+    return [...datas].sort((a, b) => b.localeCompare(a));
+  }, [clima, observados, mes, mesAtual, periodosEncerradosHoje, hojeIso]);
+
+  const periodosRegistroDisponiveis = useMemo(() => {
+    if (dataRegistro === hojeIso) return periodosEncerradosHoje;
+    return periodos;
+  }, [dataRegistro, hojeIso, periodos, periodosEncerradosHoje]);
 
   useEffect(() => {
     if (!datasDisponiveis.length) {
@@ -345,6 +394,13 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     }
   }, [datasDisponiveis, dataRegistro]);
 
+  useEffect(() => {
+    if (!periodosRegistroDisponiveis.length) return;
+    if (!periodosRegistroDisponiveis.some((periodo) => periodo.id === periodoRegistro)) {
+      setPeriodoRegistro(periodosRegistroDisponiveis[0].id);
+    }
+  }, [periodosRegistroDisponiveis, periodoRegistro]);
+
   const chaveRegistro = dataRegistro ? `${dataRegistro}-${periodoRegistro}` : "";
   const registroAtual = chaveRegistro ? observadoPorSlot.get(chaveRegistro) : null;
   const estimativaAtual = chaveRegistro ? climaApiPorSlot.get(chaveRegistro) : null;
@@ -355,6 +411,18 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
 
   async function salvarClimaObservado() {
     if (!dataRegistro || !periodoRegistro || !climaRegistro) return;
+
+    const periodoSelecionado = periodos.find((periodo) => periodo.id === periodoRegistro);
+    if (
+      dataRegistro === hojeIso &&
+      periodoSelecionado &&
+      minutoAtual < periodoSelecionado.fimMin
+    ) {
+      setErroObservado(
+        `O período ${periodoSelecionado.nome.toLowerCase()} ainda não terminou. Você poderá registrar após ${periodoSelecionado.fimTexto}.`,
+      );
+      return;
+    }
 
     setSalvandoRegistro(true);
     setErroObservado("");
@@ -572,14 +640,14 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         </div>
       )}
 
-      {!carregando && !erro && climaEfetivo.length > 0 && (
+      {!carregando && !erro && datasDisponiveis.length > 0 && (
         <section className={styles.registroObservado}>
           <div className={styles.registroTopo}>
             <div>
               <span className={styles.eyebrow}>Registro real</span>
               <h3>Como estava de verdade?</h3>
               <p>
-                Escolha o dia e o período. O registro manual substitui a estimativa da API para todas as lojas daquele período.
+                O dia atual é liberado automaticamente assim que o período termina. O registro manual passa a valer para todas as lojas daquele período.
               </p>
             </div>
             {registroAtual && <span className={styles.manualBadge}>✓ Registrado manualmente</span>}
@@ -590,7 +658,9 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
               Data
               <select value={dataRegistro} onChange={(e) => setDataRegistro(e.target.value)}>
                 {datasDisponiveis.map((data) => (
-                  <option key={data} value={data}>{dataBonita(data)}</option>
+                  <option key={data} value={data}>
+                    {data === hojeIso ? `Hoje · ${dataBonita(data)}` : dataBonita(data)}
+                  </option>
                 ))}
               </select>
             </label>
@@ -598,7 +668,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
             <label>
               Período
               <select value={periodoRegistro} onChange={(e) => setPeriodoRegistro(e.target.value)}>
-                {periodos.map((periodo) => (
+                {periodosRegistroDisponiveis.map((periodo) => (
                   <option key={periodo.id} value={periodo.id}>
                     {periodo.nome} · {periodo.inicioTexto}–{periodo.fimTexto}
                   </option>
@@ -609,13 +679,15 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
             <div className={styles.estimativaApi}>
               <small>Estimativa da API</small>
               <strong>
-                {estimativaAtual ? `${estimativaAtual.icone} ${estimativaAtual.rotulo}` : "—"}
+                {estimativaAtual ? `${estimativaAtual.icone} ${estimativaAtual.rotulo}` : "Ainda não disponível"}
               </strong>
-              {estimativaAtual && (
+              {estimativaAtual ? (
                 <span>
                   {estimativaAtual.chuva.toFixed(1)} mm · {Math.round(estimativaAtual.tempMin)}–{Math.round(estimativaAtual.tempMax)}°C
                 </span>
-              )}
+              ) : dataRegistro === hojeIso ? (
+                <span>Para hoje, registre o que realmente aconteceu no período.</span>
+              ) : null}
             </div>
 
             <label>
@@ -705,9 +777,13 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
                   {item.origem === "manual" ? (
                     <>
                       <small className={styles.origemManual}>✓ Registrado manualmente</small>
-                      <small>
-                        API: {item.estimadoIcone} {item.estimadoRotulo} · {item.chuva.toFixed(1)} mm · {Math.round(item.tempMin)}–{Math.round(item.tempMax)}°C
-                      </small>
+                      {item.estimadoRotulo ? (
+                        <small>
+                          API: {item.estimadoIcone} {item.estimadoRotulo} · {item.chuva.toFixed(1)} mm · {Math.round(item.tempMin)}–{Math.round(item.tempMax)}°C
+                        </small>
+                      ) : (
+                        <small>Sem estimativa histórica disponível para este período.</small>
+                      )}
                     </>
                   ) : (
                     <small>
@@ -727,7 +803,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
       )}
 
       <p className={styles.fonte}>
-        Fonte climática: Open-Meteo Historical Weather. A faixa horária acompanha a configuração salva no perfil; o horário final é usado como limite de troca do período. Quando há registro manual, ele tem prioridade sobre a estimativa da API nos insights e médias. Dados modelados para Ubatuba.
+        Fonte climática: Open-Meteo Historical Weather. A faixa horária acompanha a configuração salva no perfil; o horário final é usado como limite de troca do período. O dia atual é liberado para registro manual assim que o respectivo período termina. Quando há registro manual, ele tem prioridade sobre a estimativa da API nos insights e médias. Dados modelados para Ubatuba.
       </p>
     </section>
   );
