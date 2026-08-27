@@ -58,103 +58,128 @@
   cursor: pointer;
 }
 
-.iconesResumo,
-.cardsDetalhe {
+.periodosResumo,
+.insightsPeriodos {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: 14px;
   margin-top: 16px;
 }
 
-.iconesResumo > div,
-.cardsDetalhe article {
-  display: grid;
-  justify-items: center;
-  gap: 3px;
-  padding: 12px 8px;
+.insightsPeriodos {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.periodoInsight {
+  padding: 15px;
   border: 1px solid #eee7f0;
-  border-radius: 16px;
+  border-radius: 18px;
   background: #fff;
-  text-align: center;
 }
 
-.iconesResumo span,
-.cardsDetalhe span {
-  font-size: 1.55rem;
-  line-height: 1;
+.periodoCompacto {
+  padding: 13px;
 }
 
-.iconesResumo strong,
-.cardsDetalhe strong {
-  color: #443b49;
+.periodoTitulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 11px;
+}
+
+.periodoTitulo > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.periodoTitulo > div > span {
+  font-size: 1.35rem;
+}
+
+.periodoTitulo h3 {
+  margin: 0;
+  color: #403846;
   font-size: 1rem;
 }
 
-.iconesResumo small,
-.cardsDetalhe small {
-  color: #8b808e;
-  font-size: 0.68rem;
+.periodoTitulo small {
+  color: #928794;
+  font-size: 0.66rem;
 }
 
-.faixaImpacto {
-  display: flex;
-  flex-wrap: wrap;
+.climaPeriodoGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 12px;
 }
 
-.faixaImpacto span {
-  border-radius: 999px;
-  padding: 7px 10px;
-  background: #f7f3f8;
-  color: #6f6573;
-  font-size: 0.73rem;
-}
-
-.negativo {
-  color: #8a4252 !important;
-  background: #fff1f4 !important;
-}
-
-.positivo {
-  color: #3f7156 !important;
-  background: #eef8f2 !important;
-}
-
-.cardsDetalhe {
-  margin-top: 18px;
-}
-
-.comparacao {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.comparacao > div {
-  display: grid;
-  gap: 4px;
-  padding: 12px;
+.climaPeriodoCard {
+  min-width: 0;
+  padding: 10px 8px;
   border-radius: 14px;
-  background: #f8f4f9;
+  background: #f9f6fa;
+  text-align: center;
 }
 
-.comparacao small {
-  color: #887e8b;
-  font-size: 0.68rem;
+.climaIcone {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 1.45rem;
+  line-height: 1;
 }
 
-.comparacao strong {
+.climaPeriodoTexto {
+  display: grid;
+  gap: 2px;
+}
+
+.climaPeriodoTexto strong {
+  color: #443b49;
+  font-size: 0.82rem;
+}
+
+.climaPeriodoTexto small {
+  min-height: 28px;
+  color: #8b808e;
+  font-size: 0.61rem;
+  line-height: 1.2;
+}
+
+.mediaClima {
+  display: grid;
+  gap: 2px;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid #e9e1eb;
+}
+
+.mediaClima small {
+  color: #9b909d;
+  font-size: 0.55rem;
+}
+
+.mediaClima b {
+  color: #5a4c60;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.detalheCabecalhoLista {
+  margin-top: 22px;
+}
+
+.detalheCabecalhoLista h3 {
+  margin: 3px 0 0;
   color: #403846;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .filtros {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 9px;
-  margin: 16px 0 12px;
+  margin: 12px 0;
 }
 
 .filtros select {
@@ -246,6 +271,12 @@
   line-height: 1.45;
 }
 
+@media (max-width: 1050px) {
+  .insightsPeriodos {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 760px) {
   .resumo,
   .pagina {
@@ -260,13 +291,16 @@
     gap: 9px;
   }
 
-  .iconesResumo,
-  .cardsDetalhe {
-    grid-template-columns: repeat(5, minmax(68px, 1fr));
+  .climaPeriodoGrid {
+    grid-template-columns: repeat(5, minmax(112px, 1fr));
     overflow-x: auto;
+    padding-bottom: 5px;
   }
 
-  .comparacao,
+  .climaPeriodoCard {
+    min-width: 112px;
+  }
+
   .filtros {
     grid-template-columns: 1fr;
   }
