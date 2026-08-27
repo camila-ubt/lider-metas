@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { createClient } from "@/lib/supabase/client";
 import { minutosDoHorario, useHorariosPeriodos } from "@/lib/horariosPeriodos";
 import styles from "./ClimaVendas.module.css";
 
@@ -127,13 +128,28 @@ function dataBonita(data) {
   });
 }
 
+function tipoClima(tipo) {
+  return TIPOS_CLIMA.find((item) => item.tipo === tipo);
+}
+
 export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) {
   const horarios = useHorariosPeriodos();
+  const supabase = useMemo(() => createClient(), []);
+
   const [ativo, setAtivo] = useState(false);
   const [alvoTabs, setAlvoTabs] = useState(null);
   const [hourly, setHourly] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+
+  const [observados, setObservados] = useState([]);
+  const [carregandoObservados, setCarregandoObservados] = useState(true);
+  const [erroObservado, setErroObservado] = useState("");
+  const [dataRegistro, setDataRegistro] = useState("");
+  const [periodoRegistro, setPeriodoRegistro] = useState("manha");
+  const [climaRegistro, setClimaRegistro] = useState("");
+  const [salvandoRegistro, setSalvandoRegistro] = useState(false);
+
   const [lojaFiltro, setLojaFiltro] = useState("todas");
   const [periodoFiltro, setPeriodoFiltro] = useState("todos");
   const [climaFiltro, setClimaFiltro] = useState("todos");
@@ -226,17 +242,182 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     return () => controller.abort();
   }, [mes]);
 
-  const climaPorSlot = useMemo(() => {
+  useEffect(() => {
+    let ativoBusca = true;
+
+    async function carregarObservados() {
+      setCarregandoObservados(true);
+      setErroObservado("");
+      const intervalo = intervaloDoMes(mes);
+
+      if (!intervalo) {
+        setObservados([]);
+        setCarregandoObservados(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("clima_observado")
+        .select("data, periodo, clima, atualizado_em")
+        .gte("data", intervalo.inicio)
+        .lte("data", intervalo.fim);
+
+      if (!ativoBusca) return;
+
+      if (error) {
+        setErroObservado("Não foi possível carregar os registros observados.");
+        setObservados([]);
+      } else {
+        setObservados(data || []);
+      }
+
+      setCarregandoObservados(false);
+    }
+
+    carregarObservados();
+
+    return () => {
+      ativoBusca = false;
+    };
+  }, [mes, supabase]);
+
+  const climaApiPorSlot = useMemo(() => {
     const mapa = new Map();
     clima.forEach((item) => mapa.set(`${item.data}-${item.periodo}`, item));
     return mapa;
   }, [clima]);
 
+  const observadoPorSlot = useMemo(() => {
+    const mapa = new Map();
+    observados.forEach((item) => mapa.set(`${item.data}-${item.periodo}`, item));
+    return mapa;
+  }, [observados]);
+
+  const climaEfetivo = useMemo(
+    () =>
+      clima.map((item) => {
+        const observado = observadoPorSlot.get(`${item.data}-${item.periodo}`);
+        const tipoManual = observado ? tipoClima(observado.clima) : null;
+
+        if (!tipoManual) {
+          return {
+            ...item,
+            origem: "api",
+            estimadoTipo: item.tipo,
+            estimadoRotulo: item.rotulo,
+            estimadoIcone: item.icone,
+          };
+        }
+
+        return {
+          ...item,
+          tipo: tipoManual.tipo,
+          rotulo: tipoManual.rotulo,
+          icone: tipoManual.icone,
+          origem: "manual",
+          estimadoTipo: item.tipo,
+          estimadoRotulo: item.rotulo,
+          estimadoIcone: item.icone,
+          atualizadoEm: observado.atualizado_em,
+        };
+      }),
+    [clima, observadoPorSlot],
+  );
+
+  const climaPorSlot = useMemo(() => {
+    const mapa = new Map();
+    climaEfetivo.forEach((item) => mapa.set(`${item.data}-${item.periodo}`, item));
+    return mapa;
+  }, [climaEfetivo]);
+
+  const datasDisponiveis = useMemo(
+    () => [...new Set(clima.map((item) => item.data))].sort((a, b) => b.localeCompare(a)),
+    [clima],
+  );
+
+  useEffect(() => {
+    if (!datasDisponiveis.length) {
+      setDataRegistro("");
+      return;
+    }
+    if (!datasDisponiveis.includes(dataRegistro)) {
+      setDataRegistro(datasDisponiveis[0]);
+    }
+  }, [datasDisponiveis, dataRegistro]);
+
+  const chaveRegistro = dataRegistro ? `${dataRegistro}-${periodoRegistro}` : "";
+  const registroAtual = chaveRegistro ? observadoPorSlot.get(chaveRegistro) : null;
+  const estimativaAtual = chaveRegistro ? climaApiPorSlot.get(chaveRegistro) : null;
+
+  useEffect(() => {
+    setClimaRegistro(registroAtual?.clima || "");
+  }, [registroAtual, dataRegistro, periodoRegistro]);
+
+  async function salvarClimaObservado() {
+    if (!dataRegistro || !periodoRegistro || !climaRegistro) return;
+
+    setSalvandoRegistro(true);
+    setErroObservado("");
+
+    const atualizadoEm = new Date().toISOString();
+    const registro = {
+      data: dataRegistro,
+      periodo: periodoRegistro,
+      clima: climaRegistro,
+      atualizado_em: atualizadoEm,
+    };
+
+    const { error } = await supabase
+      .from("clima_observado")
+      .upsert(registro, { onConflict: "data,periodo" });
+
+    if (error) {
+      setErroObservado("Não foi possível salvar o clima observado.");
+    } else {
+      setObservados((atuais) => [
+        ...atuais.filter(
+          (item) =>
+            !(item.data === dataRegistro && item.periodo === periodoRegistro),
+        ),
+        registro,
+      ]);
+    }
+
+    setSalvandoRegistro(false);
+  }
+
+  async function removerClimaObservado() {
+    if (!dataRegistro || !periodoRegistro || !registroAtual) return;
+
+    setSalvandoRegistro(true);
+    setErroObservado("");
+
+    const { error } = await supabase
+      .from("clima_observado")
+      .delete()
+      .eq("data", dataRegistro)
+      .eq("periodo", periodoRegistro);
+
+    if (error) {
+      setErroObservado("Não foi possível remover o registro observado.");
+    } else {
+      setObservados((atuais) =>
+        atuais.filter(
+          (item) =>
+            !(item.data === dataRegistro && item.periodo === periodoRegistro),
+        ),
+      );
+      setClimaRegistro("");
+    }
+
+    setSalvandoRegistro(false);
+  }
+
   const insightsPorPeriodo = useMemo(() => {
     const resultado = {};
 
     periodos.forEach((periodo) => {
-      const climaDoPeriodo = clima.filter((item) => item.periodo === periodo.id);
+      const climaDoPeriodo = climaEfetivo.filter((item) => item.periodo === periodo.id);
       const tipos = {};
 
       TIPOS_CLIMA.forEach((tipo) => {
@@ -264,10 +445,10 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
     });
 
     return resultado;
-  }, [clima, vendas, climaPorSlot, periodos]);
+  }, [climaEfetivo, vendas, climaPorSlot, periodos]);
 
   const linhas = useMemo(() => {
-    return clima
+    return climaEfetivo
       .flatMap((itemClima) =>
         lojas.map((loja) => {
           const venda = vendas.find(
@@ -291,7 +472,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         if (a.periodo !== b.periodo) return a.periodo === "manha" ? -1 : 1;
         return Number(a.loja.ordem || a.loja.id) - Number(b.loja.ordem || b.loja.id);
       });
-  }, [clima, lojas, vendas, lojaFiltro, periodoFiltro, climaFiltro]);
+  }, [climaEfetivo, lojas, vendas, lojaFiltro, periodoFiltro, climaFiltro]);
 
   function blocoPeriodo(periodoId, compacto = false) {
     const insight = insightsPorPeriodo[periodoId];
@@ -352,7 +533,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         <p className={styles.estado}>Carregando histórico climático...</p>
       ) : erro ? (
         <p className={styles.estado}>{erro}</p>
-      ) : clima.length === 0 ? (
+      ) : climaEfetivo.length === 0 ? (
         <p className={styles.estado}>Ainda não há períodos passados para analisar neste mês.</p>
       ) : (
         <div className={styles.periodosResumo}>
@@ -370,7 +551,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
           <span className={styles.eyebrow}>Histórico · Ubatuba</span>
           <h2>Clima e Vendas</h2>
           <p>
-            Condições históricas estimadas, usando exatamente os horários configurados para manhã e noite.
+            A API serve como referência. Quando o clima real é registrado, ele passa a valer nos insights e médias.
           </p>
         </div>
         <button type="button" className={styles.voltar} onClick={() => setAtivo(false)}>
@@ -382,13 +563,100 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
         <p className={styles.estado}>Carregando histórico climático...</p>
       ) : erro ? (
         <p className={styles.estado}>{erro}</p>
-      ) : clima.length === 0 ? (
+      ) : climaEfetivo.length === 0 ? (
         <p className={styles.estado}>Ainda não há períodos passados para analisar neste mês.</p>
       ) : (
         <div className={styles.insightsPeriodos}>
           {blocoPeriodo("manha")}
           {blocoPeriodo("noite")}
         </div>
+      )}
+
+      {!carregando && !erro && climaEfetivo.length > 0 && (
+        <section className={styles.registroObservado}>
+          <div className={styles.registroTopo}>
+            <div>
+              <span className={styles.eyebrow}>Registro real</span>
+              <h3>Como estava de verdade?</h3>
+              <p>
+                Escolha o dia e o período. O registro manual substitui a estimativa da API para todas as lojas daquele período.
+              </p>
+            </div>
+            {registroAtual && <span className={styles.manualBadge}>✓ Registrado manualmente</span>}
+          </div>
+
+          <div className={styles.registroGrid}>
+            <label>
+              Data
+              <select value={dataRegistro} onChange={(e) => setDataRegistro(e.target.value)}>
+                {datasDisponiveis.map((data) => (
+                  <option key={data} value={data}>{dataBonita(data)}</option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Período
+              <select value={periodoRegistro} onChange={(e) => setPeriodoRegistro(e.target.value)}>
+                {periodos.map((periodo) => (
+                  <option key={periodo.id} value={periodo.id}>
+                    {periodo.nome} · {periodo.inicioTexto}–{periodo.fimTexto}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className={styles.estimativaApi}>
+              <small>Estimativa da API</small>
+              <strong>
+                {estimativaAtual ? `${estimativaAtual.icone} ${estimativaAtual.rotulo}` : "—"}
+              </strong>
+              {estimativaAtual && (
+                <span>
+                  {estimativaAtual.chuva.toFixed(1)} mm · {Math.round(estimativaAtual.tempMin)}–{Math.round(estimativaAtual.tempMax)}°C
+                </span>
+              )}
+            </div>
+
+            <label>
+              Clima observado
+              <select
+                value={climaRegistro}
+                onChange={(e) => setClimaRegistro(e.target.value)}
+                disabled={carregandoObservados}
+              >
+                <option value="">Selecione o que aconteceu</option>
+                {TIPOS_CLIMA.map((tipo) => (
+                  <option key={tipo.tipo} value={tipo.tipo}>{tipo.icone} {tipo.rotulo}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className={styles.registroAcoes}>
+            <button
+              type="button"
+              className={styles.salvarObservado}
+              onClick={salvarClimaObservado}
+              disabled={!climaRegistro || salvandoRegistro || carregandoObservados}
+            >
+              {salvandoRegistro ? "Salvando..." : registroAtual ? "Atualizar clima real" : "Salvar clima real"}
+            </button>
+
+            {registroAtual && (
+              <button
+                type="button"
+                className={styles.removerObservado}
+                onClick={removerClimaObservado}
+                disabled={salvandoRegistro}
+              >
+                Voltar a usar a API
+              </button>
+            )}
+          </div>
+
+          {erroObservado && <p className={styles.erroRegistro}>{erroObservado}</p>}
+        </section>
       )}
 
       <div className={styles.detalheCabecalhoLista}>
@@ -434,7 +702,18 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
                 <span>{item.icone}</span>
                 <div>
                   <strong>{item.rotulo}</strong>
-                  <small>{item.chuva.toFixed(1)} mm · {Math.round(item.tempMin)}–{Math.round(item.tempMax)}°C</small>
+                  {item.origem === "manual" ? (
+                    <>
+                      <small className={styles.origemManual}>✓ Registrado manualmente</small>
+                      <small>
+                        API: {item.estimadoIcone} {item.estimadoRotulo} · {item.chuva.toFixed(1)} mm · {Math.round(item.tempMin)}–{Math.round(item.tempMax)}°C
+                      </small>
+                    </>
+                  ) : (
+                    <small>
+                      Estimativa da API · {item.chuva.toFixed(1)} mm · {Math.round(item.tempMin)}–{Math.round(item.tempMax)}°C
+                    </small>
+                  )}
                 </div>
               </div>
               <div className={styles.venda}>
@@ -448,7 +727,7 @@ export default function ClimaVendas({ mes, vendas = [], lojas = [], children }) 
       )}
 
       <p className={styles.fonte}>
-        Fonte climática: Open-Meteo Historical Weather. A faixa horária acompanha a configuração salva no perfil; o horário final é usado como limite de troca do período. Dados modelados para Ubatuba.
+        Fonte climática: Open-Meteo Historical Weather. A faixa horária acompanha a configuração salva no perfil; o horário final é usado como limite de troca do período. Quando há registro manual, ele tem prioridade sobre a estimativa da API nos insights e médias. Dados modelados para Ubatuba.
       </p>
     </section>
   );
