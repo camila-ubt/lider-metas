@@ -12,6 +12,20 @@ Aplicação publicada em:
 
 O acesso é restrito a usuários cadastrados e aprovados.
 
+## Release atual
+
+### Líder Metas v1.0.0 — Primeira versão oficial
+
+A versão **v1.0.0** marca a primeira versão oficial e estável do Líder Metas.
+
+Principais recursos disponíveis nesta release:
+
+- acompanhamento de metas;
+- cálculo dos valores necessários para atingir os objetivos;
+- visualização do desempenho por loja;
+- indicadores para acompanhamento das vendas;
+- interface responsiva para uso em diferentes dispositivos.
+
 ## Principais funcionalidades
 
 ### Painel de acompanhamento
