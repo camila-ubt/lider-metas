@@ -157,32 +157,6 @@ src/
     └── horários e regras auxiliares
 ```
 
-## Variáveis de ambiente
-
-Para executar o projeto localmente, configure as credenciais do Supabase no arquivo `.env.local`.
-
-Exemplo:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-```
-
-Não publique credenciais privadas no repositório.
-
-## Execução local
-
-```bash
-npm install
-npm run dev
-```
-
-Depois, abra:
-
-```text
-http://localhost:3000
-```
-
 ## Autoria
 
 Produzido por [@camila-ubt](https://github.com/camila-ubt).
