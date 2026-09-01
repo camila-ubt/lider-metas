@@ -13,6 +13,12 @@ Aplicação web de uso interno para acompanhamento de vendas, metas e indicadore
 
 Next.js, React, Supabase, Recharts e Vercel.
 
+## Captura de tela
+
+### Tela de login
+
+![Tela de login do Líder Metas](./docs/images/tela-login.png)
+
 ## Documentação
 
 A documentação detalhada do projeto será mantida na Wiki do repositório.
