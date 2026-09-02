@@ -344,9 +344,7 @@ export default function ConferenciaAthos() {
                 </div>
 
                 <div className={styles.tableWrap}>
-                  <div className={styles.tableHeader}>
-                    <span>Data</span>
-                    <span>Total</span>
+                  <div className={styles.tableToolbar}>
                     <label className={styles.orderControl}>
                       <span className={styles.srOnly}>Ordenar datas</span>
                       <select
@@ -358,6 +356,12 @@ export default function ConferenciaAthos() {
                         <option value="antigas">Mais antigas</option>
                       </select>
                     </label>
+                  </div>
+
+                  <div className={styles.tableHeader}>
+                    <span>Data</span>
+                    <span>Total</span>
+                    <span aria-hidden="true" />
                   </div>
 
                   <div className={styles.rows}>

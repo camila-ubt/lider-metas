@@ -13,7 +13,7 @@ export default function RodapeAutoria() {
         <span>© 2026 Líder Metas</span>
         <span aria-hidden="true"> • </span>
         <a href="https://github.com/camila-ubt/lider-metas/releases" target="_blank" rel="noopener noreferrer" aria-label="Ver releases do Líder Metas">
-          v1.1.0
+          v1.1.1
         </a>
         <span aria-hidden="true"> • </span>
         <span>Desenvolvido por</span>
