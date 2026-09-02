@@ -1,0 +1,43 @@
+name: Publicar release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - .github/workflows/publicar-release.yml
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    name: Publicar versão do package.json
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Ler a versão
+        id: versao
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Criar a release se ela ainda não existir
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.versao.outputs.tag }}
+        shell: bash
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "A release $TAG já existe."
+            exit 0
+          fi
+
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "Líder Metas $TAG" \
+            --generate-notes
