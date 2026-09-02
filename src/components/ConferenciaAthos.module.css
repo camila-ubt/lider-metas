@@ -153,7 +153,7 @@
 .tableHeader,
 .row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.8fr) 40px;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.8fr) minmax(126px, auto);
   align-items: center;
   gap: 10px;
 }
@@ -178,6 +178,37 @@
 .row > b,
 .totalRow strong {
   text-align: right;
+}
+
+.orderControl {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.orderControl select {
+  max-width: 100%;
+  border: 1px solid #d8cde0;
+  border-radius: 9px;
+  padding: 7px 26px 7px 9px;
+  background: #fff;
+  color: #5f3c91;
+  font: inherit;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.orderControl select:focus-visible {
+  outline: 3px solid rgba(118, 80, 167, 0.25);
+  outline-offset: 2px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .rows {
@@ -326,8 +357,17 @@
 
   .tableHeader,
   .row {
-    grid-template-columns: minmax(0, 1fr) minmax(94px, 0.8fr) 36px;
+    grid-template-columns: minmax(0, 1fr) minmax(82px, 0.7fr) minmax(108px, auto);
     gap: 7px;
+  }
+
+  .tableHeader {
+    padding: 8px 9px;
+  }
+
+  .orderControl select {
+    padding: 6px 20px 6px 7px;
+    font-size: 10px;
   }
 
   .totalRow {
