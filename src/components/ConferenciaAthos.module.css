@@ -153,7 +153,7 @@
 .tableHeader,
 .row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.8fr) minmax(126px, auto);
+  grid-template-columns: minmax(0, 1fr) minmax(120px, auto) 36px;
   align-items: center;
   gap: 10px;
 }
@@ -165,8 +165,15 @@
   gap: 14px;
 }
 
+.tableToolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 14px 4px;
+  background: #f2edf6;
+}
+
 .tableHeader {
-  padding: 10px 14px;
+  padding: 4px 14px 10px;
   background: #f2edf6;
   color: #675a70;
   font-size: 11px;
@@ -357,12 +364,16 @@
 
   .tableHeader,
   .row {
-    grid-template-columns: minmax(0, 1fr) minmax(82px, 0.7fr) minmax(108px, auto);
+    grid-template-columns: minmax(0, 1fr) minmax(92px, auto) 34px;
     gap: 7px;
   }
 
+  .tableToolbar {
+    padding: 8px 9px 4px;
+  }
+
   .tableHeader {
-    padding: 8px 9px;
+    padding: 4px 9px 8px;
   }
 
   .orderControl select {
