@@ -50,6 +50,7 @@ export default function ConferenciaAthos() {
   const [lojas, setLojas] = useState([]);
   const [vendas, setVendas] = useState([]);
   const [lojaId, setLojaId] = useState("");
+  const [ordem, setOrdem] = useState("recentes");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
 
@@ -248,9 +249,13 @@ export default function ConferenciaAthos() {
       };
     });
 
-    linhas.reverse();
     return { linhas, total, completos, parciais, pendentes };
   }, [lojaId, mes, vendas]);
+
+  const linhasOrdenadas = useMemo(() => {
+    const linhas = [...resumo.linhas];
+    return ordem === "recentes" ? linhas.reverse() : linhas;
+  }, [ordem, resumo.linhas]);
 
   function abrirEdicaoDoDia(data) {
     window.dispatchEvent(
@@ -342,11 +347,21 @@ export default function ConferenciaAthos() {
                   <div className={styles.tableHeader}>
                     <span>Data</span>
                     <span>Total</span>
-                    <span aria-hidden="true" />
+                    <label className={styles.orderControl}>
+                      <span className={styles.srOnly}>Ordenar datas</span>
+                      <select
+                        value={ordem}
+                        onChange={(evento) => setOrdem(evento.target.value)}
+                        aria-label="Ordenar datas"
+                      >
+                        <option value="recentes">Mais recentes</option>
+                        <option value="antigas">Mais antigas</option>
+                      </select>
+                    </label>
                   </div>
 
                   <div className={styles.rows}>
-                    {resumo.linhas.map((linha) => (
+                    {linhasOrdenadas.map((linha) => (
                       <div
                         className={`${styles.row} ${
                           linha.preenchidos === 2
