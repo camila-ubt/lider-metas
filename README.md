@@ -37,7 +37,7 @@ Next.js, React, Supabase, Recharts e Vercel.
 
 ## Documentação
 
-A documentação detalhada do projeto será mantida na Wiki do repositório.
+A documentação detalhada do projeto está disponível na [Wiki do Líder Metas](https://github.com/camila-ubt/lider-metas/wiki).
 
 ## Autoria
 
