@@ -49,6 +49,10 @@ export default function PAVendedoras() {
   const [lojas, setLojas] = useState([]);
   const [loja, setLoja] = useState(null);
   const [detalhes, setDetalhes] = useState([]);
+  const [aprovacoes, setAprovacoes] = useState([]);
+  const [salvandoAprovacao, setSalvandoAprovacao] = useState(null);
+  const [erroAprovacao, setErroAprovacao] = useState("");
+  const [mensagemAprovacao, setMensagemAprovacao] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
@@ -94,10 +98,13 @@ export default function PAVendedoras() {
     async function carregarResumo() {
       setCarregando(true);
       setErro("");
+      setErroAprovacao("");
+      setMensagemAprovacao("");
       setVendedora(null);
       setLoja(null);
       setLojas([]);
       setDetalhes([]);
+      setAprovacoes([]);
 
       const { data, error } = await supabase
         .from("resumo_pa_mensal")
@@ -128,23 +135,41 @@ export default function PAVendedoras() {
     async function carregarLojas() {
       setCarregando(true);
       setErro("");
+      setErroAprovacao("");
+      setMensagemAprovacao("");
       setLoja(null);
       setDetalhes([]);
 
-      const { data, error } = await supabase
-        .from("resumo_pa_mensal_loja")
-        .select("*")
-        .eq("usuario_id", vendedora.usuario_id)
-        .eq("mes", inicioMes(mes))
-        .order("loja_id", { ascending: true });
+      const [lojasResp, aprovacoesResp] = await Promise.all([
+        supabase
+          .from("resumo_pa_mensal_loja")
+          .select("*")
+          .eq("usuario_id", vendedora.usuario_id)
+          .eq("mes", inicioMes(mes))
+          .order("loja_id", { ascending: true }),
+        supabase
+          .from("conferencias_pa")
+          .select("usuario_id,mes,loja_id,aprovado_por,aprovado_em")
+          .eq("usuario_id", vendedora.usuario_id)
+          .eq("mes", inicioMes(mes)),
+      ]);
 
       if (cancelado) return;
-      if (error) {
-        setErro(error.message);
+
+      if (lojasResp.error) {
+        setErro(lojasResp.error.message);
         setLojas([]);
       } else {
-        setLojas(data || []);
+        setLojas(lojasResp.data || []);
       }
+
+      if (aprovacoesResp.error) {
+        setErroAprovacao("A aprovação por loja ainda precisa ser configurada no banco.");
+        setAprovacoes([]);
+      } else {
+        setAprovacoes(aprovacoesResp.data || []);
+      }
+
       setCarregando(false);
     }
 
@@ -186,6 +211,68 @@ export default function PAVendedoras() {
       cancelado = true;
     };
   }, [loja, mes, supabase, vendedora]);
+
+  function estaAprovada(lojaId) {
+    return aprovacoes.some((item) => Number(item.loja_id) === Number(lojaId));
+  }
+
+  async function alternarAprovacao(item) {
+    if (!sessao || !vendedora || erroAprovacao) return;
+
+    const aprovada = estaAprovada(item.loja_id);
+    setSalvandoAprovacao(item.loja_id);
+    setMensagemAprovacao("");
+
+    if (aprovada) {
+      const confirmou = window.confirm(`Desfazer a aprovação dos lançamentos de ${item.loja}?`);
+      if (!confirmou) {
+        setSalvandoAprovacao(null);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("conferencias_pa")
+        .delete()
+        .eq("usuario_id", vendedora.usuario_id)
+        .eq("mes", inicioMes(mes))
+        .eq("loja_id", item.loja_id);
+
+      if (error) {
+        setErroAprovacao(error.message);
+      } else {
+        setAprovacoes((atuais) => atuais.filter((registro) => Number(registro.loja_id) !== Number(item.loja_id)));
+        setMensagemAprovacao(`${item.loja}: aprovação removida.`);
+      }
+      setSalvandoAprovacao(null);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("conferencias_pa")
+      .upsert(
+        {
+          usuario_id: vendedora.usuario_id,
+          mes: inicioMes(mes),
+          loja_id: Number(item.loja_id),
+          aprovado_por: sessao.user.id,
+          aprovado_em: new Date().toISOString(),
+        },
+        { onConflict: "usuario_id,mes,loja_id" },
+      )
+      .select("usuario_id,mes,loja_id,aprovado_por,aprovado_em")
+      .single();
+
+    if (error) {
+      setErroAprovacao(error.message);
+    } else {
+      setAprovacoes((atuais) => [
+        ...atuais.filter((registro) => Number(registro.loja_id) !== Number(item.loja_id)),
+        data,
+      ]);
+      setMensagemAprovacao(`${item.loja}: lançamentos aprovados.`);
+    }
+    setSalvandoAprovacao(null);
+  }
 
   if (carregando && !sessao) {
     return <main className={styles.page}><div className={styles.center}>Carregando...</div></main>;
@@ -278,23 +365,41 @@ export default function PAVendedoras() {
           </div>
 
           {carregando && !loja && <p className={styles.muted}>Carregando lojas...</p>}
+          {erroAprovacao && <p className={styles.approvalWarning}>{erroAprovacao}</p>}
+          {mensagemAprovacao && <p className={styles.approvalMessage}>{mensagemAprovacao}</p>}
+
           <div className={styles.storeGrid}>
-            {lojas.map((item) => (
-              <button
-                type="button"
-                className={`${styles.storeCard} ${loja?.loja_id === item.loja_id ? styles.selected : ""}`}
-                key={item.loja_id}
-                onClick={() => setLoja(item)}
-              >
-                <strong>{item.loja}</strong>
-                <span>{item.loja_nome}</span>
-                <div className={styles.storeMetrics}>
-                  <b>{Number(item.vendas || 0)} vendas</b>
-                  <b>{Number(item.pecas || 0)} peças</b>
-                  <b>PA {formatarPa(item.pa)}</b>
-                </div>
-              </button>
-            ))}
+            {lojas.map((item) => {
+              const aprovada = estaAprovada(item.loja_id);
+              const salvando = Number(salvandoAprovacao) === Number(item.loja_id);
+
+              return (
+                <article
+                  className={`${styles.storeCard} ${loja?.loja_id === item.loja_id ? styles.selected : ""} ${aprovada ? styles.approvedStore : ""}`}
+                  key={item.loja_id}
+                >
+                  <button type="button" className={styles.storeMain} onClick={() => setLoja(item)}>
+                    <strong>{item.loja}</strong>
+                    <span>{item.loja_nome}</span>
+                    <div className={styles.storeMetrics}>
+                      <b>{Number(item.vendas || 0)} vendas</b>
+                      <b>{Number(item.pecas || 0)} peças</b>
+                      <b>PA {formatarPa(item.pa)}</b>
+                    </div>
+                    <small>Ver lançamentos</small>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.approveButton} ${aprovada ? styles.approvedButton : ""}`}
+                    onClick={() => alternarAprovacao(item)}
+                    disabled={salvando || Boolean(erroAprovacao)}
+                  >
+                    {salvando ? "Salvando..." : aprovada ? "✓ Aprovado" : "Aprovar lançamentos"}
+                  </button>
+                </article>
+              );
+            })}
           </div>
         </section>
       )}
