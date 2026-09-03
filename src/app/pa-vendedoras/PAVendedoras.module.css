@@ -301,3 +301,75 @@
     padding: 9px 8px;
   }
 }
+
+/* Resumo mensal compacto: nome, premiação e PA em uma única linha. */
+.sellerCard {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.sellerName,
+.metrics {
+  display: contents;
+}
+
+.sellerName strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sellerName span {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.metrics span {
+  display: none;
+}
+
+.metrics span:last-child {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  white-space: nowrap;
+}
+
+.metrics span:last-child small {
+  color: #7a7080;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.metrics span:last-child b {
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .sellerCard {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .sellerName strong {
+    font-size: 14px;
+  }
+
+  .sellerName span {
+    font-size: 12px;
+  }
+
+  .metrics {
+    display: contents;
+  }
+
+  .metrics span:last-child b {
+    font-size: 13px;
+  }
+}
