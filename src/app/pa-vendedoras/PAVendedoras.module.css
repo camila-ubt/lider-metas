@@ -1,0 +1,303 @@
+.page {
+  min-height: 100vh;
+  padding: 24px;
+  background: linear-gradient(180deg, #f8f6fb 0%, #f3f0f7 100%);
+  color: #2f2835;
+}
+
+.header {
+  max-width: 1180px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header h1,
+.sectionTitle h2 {
+  margin: 0;
+}
+
+.header h1 {
+  font-size: clamp(28px, 4vw, 42px);
+  color: #503b69;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: #7650a7;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.muted {
+  margin: 6px 0 0;
+  color: #736a7a;
+}
+
+.back,
+.textButton {
+  border: 0;
+  background: transparent;
+  color: #7650a7;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.back {
+  padding: 0;
+  margin-bottom: 14px;
+}
+
+.month {
+  display: grid;
+  gap: 6px;
+  color: #503b69;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.month input {
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid #ddd5e6;
+  border-radius: 12px;
+  background: #fff;
+  color: #503b69;
+  font: inherit;
+}
+
+.panel {
+  max-width: 1180px;
+  margin: 0 auto 16px;
+  padding: 18px;
+  border: 1px solid #e1dbe8;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 12px 34px rgba(79, 57, 104, .08);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.sectionTitle > span {
+  color: #736a7a;
+  font-size: 12px;
+}
+
+.sellerList {
+  display: grid;
+  gap: 10px;
+}
+
+.sellerCard,
+.storeCard {
+  width: 100%;
+  border: 1px solid #e4deea;
+  border-radius: 14px;
+  background: #fbf9fd;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.sellerCard {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) minmax(420px, 1.5fr);
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.sellerCard:hover,
+.storeCard:hover,
+.selected {
+  border-color: #9c7fbd;
+  box-shadow: 0 8px 20px rgba(118, 80, 167, .10);
+}
+
+.sellerCard:active,
+.storeCard:active {
+  transform: translateY(1px);
+}
+
+.sellerName {
+  display: grid;
+  gap: 4px;
+}
+
+.sellerName strong {
+  color: #4f3a67;
+  font-size: 16px;
+}
+
+.sellerName span {
+  color: #7650a7;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.metrics span {
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f2edf7;
+}
+
+.metrics small {
+  color: #7a7080;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.metrics b {
+  color: #503b69;
+  font-size: 16px;
+}
+
+.storeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.storeCard {
+  padding: 14px;
+}
+
+.storeCard > strong {
+  display: block;
+  color: #503b69;
+  font-size: 18px;
+}
+
+.storeCard > span {
+  display: block;
+  margin-top: 2px;
+  color: #7a7080;
+  font-size: 12px;
+}
+
+.storeMetrics {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  color: #4f3a67;
+  font-size: 13px;
+}
+
+.table {
+  overflow: hidden;
+  border: 1px solid #e3ddea;
+  border-radius: 12px;
+}
+
+.tableHeader,
+.tableRow {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.tableHeader {
+  background: #f1ecf6;
+  color: #6f6376;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.tableRow {
+  border-top: 1px solid #eee9f2;
+  background: #fff;
+  font-size: 13px;
+}
+
+.tableRow strong {
+  color: #503b69;
+}
+
+.error {
+  max-width: 1180px;
+  margin: 0 auto 16px;
+  padding: 10px 12px;
+  border: 1px solid #e4b8c4;
+  border-radius: 12px;
+  background: #fff1f4;
+  color: #8a2e48;
+  font-weight: 700;
+}
+
+.empty,
+.center {
+  max-width: 560px;
+  margin: 12vh auto 0;
+  padding: 22px;
+  border: 1px solid #e1dbe8;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+}
+
+.empty button {
+  margin-top: 12px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #7650a7;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .page {
+    padding: 14px;
+  }
+
+  .header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .month input {
+    width: 100%;
+  }
+
+  .sellerCard {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .storeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tableHeader,
+  .tableRow {
+    grid-template-columns: 1.25fr repeat(3, .8fr);
+    padding: 9px 8px;
+  }
+}
