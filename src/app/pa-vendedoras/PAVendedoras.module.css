@@ -3,6 +3,22 @@
   color: #2f2835;
 }
 
+.tableHeader.editableRow,
+.tableRow.editableRow {
+  grid-template-columns: minmax(85px, 1.4fr) repeat(3, minmax(30px, 1fr)) auto;
+  gap: 6px;
+}
+.dailyEntry { min-width: 0; }
+.editableRow button { padding: 6px 0; font-size: 12px; }
+.correctionForm { display: grid; gap: 12px; padding: 16px; background: #f7f3fb; border-top: 1px solid #e3ddea; }
+.correctionForm p { margin: 0; font-size: 13px; }
+.correctionForm label { display: grid; gap: 5px; font-size: 13px; font-weight: 700; }
+.correctionFields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.correctionForm input, .correctionForm textarea { min-width: 0; width: 100%; box-sizing: border-box; border: 1px solid #ccc0dd; border-radius: 8px; padding: 9px; font: inherit; background: white; color: #503b69; }
+.correctionActions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.saveCorrection { border: 0; border-radius: 10px; padding: 10px 14px; background: #7650a7; color: white; font-weight: 700; cursor: pointer; }
+.saveCorrection:disabled { opacity: .6; cursor: wait; }
+
 .header {
   max-width: 1180px;
   margin: 0 auto 18px;

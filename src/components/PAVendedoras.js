@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import CorrecaoLancamentoPA from "@/components/CorrecaoLancamentoPA";
 import styles from "@/app/pa-vendedoras/PAVendedoras.module.css";
 
 function inicioMes(mes) {
@@ -11,11 +12,6 @@ function inicioMes(mes) {
 function fimMes(mes) {
   const [ano, numeroMes] = mes.split("-").map(Number);
   return `${ano}-${String(numeroMes).padStart(2, "0")}-${String(new Date(ano, numeroMes, 0).getDate()).padStart(2, "0")}`;
-}
-
-function formatarData(data) {
-  if (!data) return "";
-  return data.split("-").reverse().join("/");
 }
 
 function formatarPa(valor) {
@@ -54,8 +50,19 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
   const [mensagemAprovacao, setMensagemAprovacao] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [revisao, setRevisao] = useState(0);
+  const [mensagemCorrecao, setMensagemCorrecao] = useState("");
 
   const permitido = Boolean(perfil?.ativo) && ["admin", "gestora"].includes(perfil?.papel);
+
+  useEffect(() => {
+    setVendedora(null);
+    setLoja(null);
+    setLojas([]);
+    setDetalhes([]);
+    setAprovacoes([]);
+    setMensagemCorrecao("");
+  }, [mes, sessao]);
 
   useEffect(() => {
     if (!sessao || !permitido) return undefined;
@@ -66,11 +73,6 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
       setErro("");
       setErroAprovacao("");
       setMensagemAprovacao("");
-      setVendedora(null);
-      setLoja(null);
-      setLojas([]);
-      setDetalhes([]);
-      setAprovacoes([]);
       setLojasDoMes([]);
       setAprovacoesDoMes([]);
 
@@ -120,7 +122,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
     return () => {
       cancelado = true;
     };
-  }, [mes, permitido, sessao, supabase]);
+  }, [mes, permitido, sessao, supabase, revisao]);
 
   useEffect(() => {
     if (!vendedora) return undefined;
@@ -131,8 +133,6 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
       setErro("");
       setErroAprovacao("");
       setMensagemAprovacao("");
-      setLoja(null);
-      setDetalhes([]);
 
       const [lojasResp, aprovacoesResp] = await Promise.all([
         supabase
@@ -171,7 +171,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
     return () => {
       cancelado = true;
     };
-  }, [mes, supabase, vendedora]);
+  }, [mes, supabase, vendedora, revisao]);
 
   useEffect(() => {
     if (!vendedora || !loja) return undefined;
@@ -204,7 +204,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
     return () => {
       cancelado = true;
     };
-  }, [loja, mes, supabase, vendedora]);
+  }, [loja, mes, supabase, vendedora, revisao]);
 
   function estaAprovada(lojaId) {
     return aprovacoes.some((item) => Number(item.loja_id) === Number(lojaId));
@@ -314,6 +314,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
       </header>
 
       {erro && <p className={styles.error}>{erro}</p>}
+      {mensagemCorrecao && <p className={styles.approvalMessage} role="status">{mensagemCorrecao}</p>}
 
       <section className={styles.panel}>
         <div className={styles.sectionTitle}>
@@ -336,7 +337,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
                 className={`${styles.sellerCard} ${vendedora?.usuario_id === item.usuario_id ? styles.selected : ""}`}
                 type="button"
                 key={item.usuario_id}
-                onClick={() => setVendedora(item)}
+                onClick={() => { setVendedora(item); setLoja(null); setDetalhes([]); }}
               >
                 <div className={styles.sellerName}>
                   <strong>{conferida ? "✓ " : ""}{nomeExibicao(item)}</strong>
@@ -393,7 +394,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
                     type="button"
                     className={`${styles.approveButton} ${aprovada ? styles.approvedButton : ""}`}
                     onClick={() => alternarAprovacao(item)}
-                    disabled={salvando || Boolean(erroAprovacao)}
+                    disabled={salvando || carregando || Boolean(erroAprovacao)}
                   >
                     {salvando ? "Salvando..." : aprovada ? "✓ Aprovado" : "Aprovar lançamentos"}
                   </button>
@@ -418,16 +419,15 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
           {!carregando && detalhes.length === 0 && <p className={styles.muted}>Nenhum lançamento nesta loja.</p>}
 
           <div className={styles.table}>
-            <div className={styles.tableHeader}>
-              <span>Data</span><span>Vendas</span><span>Peças</span><span>PA</span>
+            <div className={`${styles.tableHeader} ${styles.editableRow}`}>
+              <span>Data</span><span>Vendas</span><span>Peças</span><span>PA</span><span>Ação</span>
             </div>
             {detalhes.map((item) => (
-              <div className={styles.tableRow} key={`${item.dia_id}-${item.loja_id}`}>
-                <strong>{formatarData(item.data)}</strong>
-                <span>{Number(item.vendas || 0)}</span>
-                <span>{Number(item.pecas || 0)}</span>
-                <span>{formatarPa(item.pa)}</span>
-              </div>
+              <CorrecaoLancamentoPA key={`${item.dia_id}-${item.loja_id}`} item={item} supabase={supabase}
+                onSalvou={() => {
+                  setMensagemCorrecao("Correção salva e aviso registrado no PA da vendedora. Confira os totais atualizados antes de aprovar novamente.");
+                  setRevisao((valor) => valor + 1);
+                }} />
             ))}
           </div>
         </section>
