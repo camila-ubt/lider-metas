@@ -52,6 +52,8 @@ export default function PAVendedoras() {
   const [perfil, setPerfil] = useState(null);
   const [mes, setMes] = useState(hojeMes());
   const [resumos, setResumos] = useState([]);
+  const [lojasDoMes, setLojasDoMes] = useState([]);
+  const [aprovacoesDoMes, setAprovacoesDoMes] = useState([]);
   const [vendedora, setVendedora] = useState(null);
   const [lojas, setLojas] = useState([]);
   const [loja, setLoja] = useState(null);
@@ -112,20 +114,48 @@ export default function PAVendedoras() {
       setLojas([]);
       setDetalhes([]);
       setAprovacoes([]);
+      setLojasDoMes([]);
+      setAprovacoesDoMes([]);
 
-      const { data, error } = await supabase
-        .from("resumo_pa_mensal")
-        .select("*")
-        .eq("mes", inicioMes(mes))
-        .order("nome", { ascending: true });
+      const [resumosResp, lojasResp, aprovacoesResp] = await Promise.all([
+        supabase
+          .from("resumo_pa_mensal")
+          .select("*")
+          .eq("mes", inicioMes(mes))
+          .order("nome", { ascending: true }),
+        supabase
+          .from("resumo_pa_mensal_loja")
+          .select("usuario_id,loja_id")
+          .eq("mes", inicioMes(mes)),
+        supabase
+          .from("conferencias_pa")
+          .select("usuario_id,mes,loja_id,aprovado_por,aprovado_em")
+          .eq("mes", inicioMes(mes)),
+      ]);
 
       if (cancelado) return;
-      if (error) {
-        setErro(error.message);
+
+      if (resumosResp.error) {
+        setErro(resumosResp.error.message);
         setResumos([]);
       } else {
-        setResumos([...(data || [])].sort(compararVendedoras));
+        setResumos([...(resumosResp.data || [])].sort(compararVendedoras));
       }
+
+      if (lojasResp.error) {
+        setErro(lojasResp.error.message);
+        setLojasDoMes([]);
+      } else {
+        setLojasDoMes(lojasResp.data || []);
+      }
+
+      if (aprovacoesResp.error) {
+        setErroAprovacao("A aprovação por loja ainda precisa ser configurada no banco.");
+        setAprovacoesDoMes([]);
+      } else {
+        setAprovacoesDoMes(aprovacoesResp.data || []);
+      }
+
       setCarregando(false);
     }
 
@@ -223,6 +253,19 @@ export default function PAVendedoras() {
     return aprovacoes.some((item) => Number(item.loja_id) === Number(lojaId));
   }
 
+  function vendedoraTodaAprovada(usuarioId) {
+    const lojasDaVendedora = lojasDoMes.filter((item) => item.usuario_id === usuarioId);
+    if (lojasDaVendedora.length === 0) return false;
+
+    return lojasDaVendedora.every((lojaResumo) =>
+      aprovacoesDoMes.some(
+        (aprovacao) =>
+          aprovacao.usuario_id === usuarioId
+          && Number(aprovacao.loja_id) === Number(lojaResumo.loja_id),
+      ),
+    );
+  }
+
   async function alternarAprovacao(item) {
     if (!sessao || !vendedora || erroAprovacao) return;
 
@@ -248,6 +291,12 @@ export default function PAVendedoras() {
         setErroAprovacao(error.message);
       } else {
         setAprovacoes((atuais) => atuais.filter((registro) => Number(registro.loja_id) !== Number(item.loja_id)));
+        setAprovacoesDoMes((atuais) => atuais.filter(
+          (registro) => !(
+            registro.usuario_id === vendedora.usuario_id
+            && Number(registro.loja_id) === Number(item.loja_id)
+          ),
+        ));
         setMensagemAprovacao(`${item.loja}: aprovação removida.`);
       }
       setSalvandoAprovacao(null);
@@ -274,6 +323,13 @@ export default function PAVendedoras() {
     } else {
       setAprovacoes((atuais) => [
         ...atuais.filter((registro) => Number(registro.loja_id) !== Number(item.loja_id)),
+        data,
+      ]);
+      setAprovacoesDoMes((atuais) => [
+        ...atuais.filter((registro) => !(
+          registro.usuario_id === vendedora.usuario_id
+          && Number(registro.loja_id) === Number(item.loja_id)
+        )),
         data,
       ]);
       setMensagemAprovacao(`${item.loja}: lançamentos aprovados.`);
@@ -339,25 +395,29 @@ export default function PAVendedoras() {
         {!carregando && resumos.length === 0 && <p className={styles.muted}>Nenhum lançamento de PA neste mês.</p>}
 
         <div className={styles.sellerList}>
-          {resumos.map((item) => (
-            <button
-              className={`${styles.sellerCard} ${vendedora?.usuario_id === item.usuario_id ? styles.selected : ""}`}
-              type="button"
-              key={item.usuario_id}
-              onClick={() => setVendedora(item)}
-            >
-              <div className={styles.sellerName}>
-                <strong>{nomeExibicao(item)}</strong>
-                <span>{textoPremiacao(item.premiacao_prevista)}</span>
-              </div>
-              <div className={styles.metrics}>
-                <span><small>Dias</small><b>{Number(item.dias_validos || 0)}</b></span>
-                <span><small>Vendas</small><b>{Number(item.vendas || 0)}</b></span>
-                <span><small>Peças</small><b>{Number(item.pecas || 0)}</b></span>
-                <span><small>PA</small><b>{formatarPa(item.pa)}</b></span>
-              </div>
-            </button>
-          ))}
+          {resumos.map((item) => {
+            const conferida = vendedoraTodaAprovada(item.usuario_id);
+
+            return (
+              <button
+                className={`${styles.sellerCard} ${vendedora?.usuario_id === item.usuario_id ? styles.selected : ""}`}
+                type="button"
+                key={item.usuario_id}
+                onClick={() => setVendedora(item)}
+              >
+                <div className={styles.sellerName}>
+                  <strong>{conferida ? "✓ " : ""}{nomeExibicao(item)}</strong>
+                  <span>{textoPremiacao(item.premiacao_prevista)}</span>
+                </div>
+                <div className={styles.metrics}>
+                  <span><small>Dias</small><b>{Number(item.dias_validos || 0)}</b></span>
+                  <span><small>Vendas</small><b>{Number(item.vendas || 0)}</b></span>
+                  <span><small>Peças</small><b>{Number(item.pecas || 0)}</b></span>
+                  <span><small>PA</small><b>{formatarPa(item.pa)}</b></span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
 
