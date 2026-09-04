@@ -29,7 +29,14 @@ function formatarPa(valor) {
 }
 
 function nomeExibicao(item) {
-  return item?.numero_athos ? `${item.nome} (${item.numero_athos})` : item?.nome || "Vendedora";
+  const nome = item?.nome || "Vendedora";
+  return item?.numero_athos ? `${item.numero_athos} — ${nome}` : nome;
+}
+
+function compararVendedoras(a, b) {
+  const numeroA = Number(a.numero_athos) || Infinity;
+  const numeroB = Number(b.numero_athos) || Infinity;
+  return numeroA - numeroB || (a.nome || "").localeCompare(b.nome || "", "pt-BR");
 }
 
 function textoPremiacao(valor) {
@@ -117,7 +124,7 @@ export default function PAVendedoras() {
         setErro(error.message);
         setResumos([]);
       } else {
-        setResumos(data || []);
+        setResumos([...(data || [])].sort(compararVendedoras));
       }
       setCarregando(false);
     }
