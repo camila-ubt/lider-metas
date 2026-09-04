@@ -237,15 +237,17 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
         return;
       }
 
-      const { error } = await supabase
+      const { data: removida, error } = await supabase
         .from("conferencias_pa")
         .delete()
         .eq("usuario_id", vendedora.usuario_id)
         .eq("mes", inicioMes(mes))
-        .eq("loja_id", item.loja_id);
+        .eq("loja_id", item.loja_id)
+        .select("usuario_id,mes,loja_id")
+        .maybeSingle();
 
-      if (error) {
-        setErroAprovacao(error.message);
+      if (error || !removida) {
+        setErroAprovacao(error?.message || "A remoção não foi confirmada. Atualize a página e tente novamente.");
       } else {
         setAprovacoes((atuais) => atuais.filter((registro) => Number(registro.loja_id) !== Number(item.loja_id)));
         setAprovacoesDoMes((atuais) => atuais.filter(
