@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const CHAVE_MES = "lider-metas:mes-selecionado";
 const CHAVE_TELA = "lider-metas:tela-selecionada";
 const CHAVE_SCROLL = "lider-metas:posicao-scroll";
-const TELAS_VALIDAS = ["painel", "lancamentos", "metas", "manual"];
+const TELAS_VALIDAS = ["painel", "lancamentos", "metas", "manual", "pa"];
 
 function mesAtual() {
   const data = new Date();
@@ -18,6 +18,7 @@ function campoMes() {
 
 function telaDoBotao(botao) {
   if (botao?.hasAttribute?.("data-manual-botao")) return "manual";
+  if (botao?.hasAttribute?.("data-pa-botao")) return "pa";
 
   const texto = botao?.textContent?.trim().toLocaleLowerCase("pt-BR") || "";
   if (texto === "painel") return "painel";
@@ -65,7 +66,8 @@ export default function PersistenciaNavegacao() {
       if (restaurado) return;
 
       const mesSalvo = localStorage.getItem(CHAVE_MES);
-      const telaSalva = localStorage.getItem(CHAVE_TELA);
+      const telaInicial = document.querySelector("nav.tabs")?.dataset.telaInicial;
+      const telaSalva = telaInicial === "pa" ? "pa" : localStorage.getItem(CHAVE_TELA);
       const scrollSalvo = Number(localStorage.getItem(CHAVE_SCROLL) || 0);
 
       if (/^\d{4}-\d{2}$/.test(mesSalvo || "") && campo.value !== mesSalvo) {
@@ -76,11 +78,8 @@ export default function PersistenciaNavegacao() {
       if (TELAS_VALIDAS.includes(telaSalva || "")) {
         const botao = botoes.find((item) => telaDoBotao(item) === telaSalva);
 
-        // O botão do Manual é inserido depois dos demais. Aguarda ele existir
-        // antes de concluir a restauração da tela selecionada.
-        if (!botao) return;
-
-        if (!botao.classList.contains("active")) botao.click();
+        // Abas restritas podem não existir para o perfil atual.
+        if (botao && !botao.classList.contains("active")) botao.click();
       }
 
       restaurado = true;

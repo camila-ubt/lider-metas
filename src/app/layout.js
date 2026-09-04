@@ -12,9 +12,7 @@ import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
 import ConfiguracaoHorarios from "@/components/ConfiguracaoHorarios";
 import OrdenarGraficoPainel from "@/components/OrdenarGraficoPainel";
 import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
-import ManualUsuario from "@/components/ManualUsuario";
 import PesquisaManual from "@/components/PesquisaManual";
-import CorrecaoAbaManual from "@/components/CorrecaoAbaManual";
 import AtualizarTextosNiveis from "@/components/AtualizarTextosNiveis";
 import RodapeAutoria from "@/components/RodapeAutoria";
 import "./globals.css";
@@ -83,9 +81,7 @@ export default function RootLayout({ children }) {
         <ConfiguracaoHorarios />
         <OrdenarGraficoPainel />
         <DetalhesMetasRanking />
-        <ManualUsuario />
         <PesquisaManual />
-        <CorrecaoAbaManual />
         <AtualizarTextosNiveis />
         <RodapeAutoria />
       </body>
