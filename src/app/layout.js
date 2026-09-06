@@ -1,20 +1,5 @@
+import AppEnhancements from "@/components/AppEnhancements";
 import { Geist, Geist_Mono } from "next/font/google";
-import PersistenciaNavegacao from "@/components/PersistenciaNavegacao";
-import MascaraMoeda from "@/components/MascaraMoeda";
-import ConferenciaAthos from "@/components/ConferenciaAthos";
-import InteligenciaGerencial from "@/components/InteligenciaGerencial";
-import PainelReuniao from "@/components/PainelReuniao";
-import AjusteProbabilidades from "@/components/AjusteProbabilidades";
-import FeedbackTurnos from "@/components/FeedbackTurnos";
-import RemoverLancamento from "@/components/RemoverLancamento";
-import AjusteDiasEquivalentes from "@/components/AjusteDiasEquivalentes";
-import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
-import ConfiguracaoHorarios from "@/components/ConfiguracaoHorarios";
-import OrdenarGraficoPainel from "@/components/OrdenarGraficoPainel";
-import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
-import PesquisaManual from "@/components/PesquisaManual";
-import AtualizarTextosNiveis from "@/components/AtualizarTextosNiveis";
-import RodapeAutoria from "@/components/RodapeAutoria";
 import "./globals.css";
 import "./branding.css";
 import "./meta-status.css";
@@ -68,22 +53,7 @@ export default function RootLayout({ children }) {
     <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         {children}
-        <PersistenciaNavegacao />
-        <ConferenciaAthos />
-        <PainelReuniao />
-        <InteligenciaGerencial />
-        <MascaraMoeda />
-        <AjusteProbabilidades />
-        <FeedbackTurnos />
-        <RemoverLancamento />
-        <AjusteDiasEquivalentes />
-        <FluxoPendenciasLancamento />
-        <ConfiguracaoHorarios />
-        <OrdenarGraficoPainel />
-        <DetalhesMetasRanking />
-        <PesquisaManual />
-        <AtualizarTextosNiveis />
-        <RodapeAutoria />
+        <AppEnhancements />
       </body>
     </html>
   );
