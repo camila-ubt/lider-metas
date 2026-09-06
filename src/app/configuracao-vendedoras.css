@@ -48,6 +48,42 @@
   font-size: .86rem;
 }
 
+.config-vendedoras-secoes,
+.config-vendedoras-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.config-vendedoras-secoes {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border, #e7e2ec);
+}
+
+.config-vendedoras-filtros {
+  margin-bottom: 16px;
+}
+
+.config-vendedoras-secoes button,
+.config-vendedoras-filtros button {
+  border: 1px solid var(--border, #e7e2ec);
+  background: #fff;
+  border-radius: 999px;
+  padding: 9px 13px;
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.config-vendedoras-secoes button.active,
+.config-vendedoras-filtros button.active {
+  border-color: #7650a7;
+  background: #f1eafb;
+  color: #5f3f8c;
+}
+
 .config-vendedoras-lista {
   display: grid;
   gap: 10px;
@@ -67,6 +103,10 @@
 .config-vendedora-card.is-pending {
   border-color: #e3c77a;
   background: #fffaf0;
+}
+
+.config-vendedora-card.is-disabled {
+  background: #f8f7f9;
 }
 
 .config-vendedora-info {
@@ -100,6 +140,11 @@
   color: #805d00;
 }
 
+.config-vendedora-status.desativado {
+  background: #ece9ef;
+  color: #655e6b;
+}
+
 .config-vendedora-info > span,
 .config-vendedora-info > small {
   color: var(--muted, #6f6877);
@@ -129,6 +174,17 @@
 
   .config-vendedora-card button,
   .config-vendedoras-cabecalho button {
+    width: 100%;
+  }
+
+  .config-vendedoras-secoes,
+  .config-vendedoras-filtros {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .config-vendedoras-secoes button,
+  .config-vendedoras-filtros button {
     width: 100%;
   }
 }
