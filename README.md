@@ -1,13 +1,21 @@
 # Líder Metas
 
-Aplicação web de uso interno para acompanhamento de vendas, metas e indicadores gerenciais.
+Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vendedoras e indicadores gerenciais.
 
 ## Principais recursos
 
 - lançamento e conferência de vendas;
 - acompanhamento de metas por período;
 - painéis, projeções e comparativos;
+- conferência do PA por loja e por vendedora;
+- correção de lançamentos de PA com notificação para a vendedora;
+- aprovação e gestão de acesso das vendedoras;
+- separação entre solicitações pendentes, perfis ativos e desativados;
 - acesso restrito a usuários autorizados.
+
+## Versão atual
+
+**v1.2.0** — integração e gestão do PA dentro do Líder Metas.
 
 ## Tecnologias
 
