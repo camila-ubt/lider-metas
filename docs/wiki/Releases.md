@@ -32,6 +32,26 @@ Publicada em **6 de setembro de 2026**.
 - registro da primeira aprovação para distinguir novos pedidos de perfis desativados;
 - operações de correção e notificação do PA gravadas de forma integrada no banco.
 
+## v1.1.1 — Ajuste na Conferência com o Athos
+
+Publicada em **2 de setembro de 2026**.
+
+### Correção
+
+- alinhamento dos valores e totais na Conferência com o Athos;
+- melhoria da organização visual para facilitar a comparação dos lançamentos.
+
+## v1.1.0 — Conferência e segurança
+
+Publicada em **2 de setembro de 2026**.
+
+### Destaques
+
+- filtro para ordenar as datas da Conferência com o Athos do mais recente para o mais antigo ou na ordem inversa;
+- reforço das configurações de segurança do projeto;
+- resumo do README;
+- criação da publicação automática de releases com base na versão do aplicativo.
+
 ## v1.0.0 — Primeira versão oficial
 
 Publicada em **31 de agosto de 2026**.
