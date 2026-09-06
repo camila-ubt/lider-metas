@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import DashboardEstavel from "@/components/DashboardEstavel";
 import { createClient } from "@/lib/supabase/client";
+import { RECOVERY_URL } from "@/lib/recuperacao.mjs";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -462,6 +463,7 @@ export default function Home() {
           >
             {modoCadastro ? "Já tenho acesso" : "Primeiro acesso"}
           </button>
+          {!modoCadastro && <a className="text-button" href={RECOVERY_URL}>Esqueci minha senha</a>}
         </section>
       </main>
     );
