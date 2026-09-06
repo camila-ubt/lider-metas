@@ -8,6 +8,8 @@ export default function ConfiguracaoVendedoras() {
   const supabase = useMemo(() => createClient(), []);
   const [admin, setAdmin] = useState(false);
   const [aberta, setAberta] = useState(false);
+  const [secao, setSecao] = useState("pendentes");
+  const [filtro, setFiltro] = useState("ativas");
   const [alvos, setAlvos] = useState({ tabs: null, app: null });
   const [vendedoras, setVendedoras] = useState([]);
   const [carregando, setCarregando] = useState(false);
@@ -45,9 +47,8 @@ export default function ConfiguracaoVendedoras() {
     const [perfisResp, paResp] = await Promise.all([
       supabase
         .from("perfis")
-        .select("id,nome,papel,ativo,criado_em")
+        .select("id,nome,papel,ativo,criado_em,aprovado_em")
         .eq("papel", "vendedora")
-        .order("ativo", { ascending: true })
         .order("criado_em", { ascending: false }),
       supabase
         .from("usuarios_pa")
@@ -112,8 +113,8 @@ export default function ConfiguracaoVendedoras() {
     if (!alvos.app || !alvos.tabs) return undefined;
 
     alvos.app.classList.toggle("config-vendedoras-aberta", aberta && admin);
-
     const outrosBotoes = [...alvos.tabs.querySelectorAll("button:not([data-config-vendedoras-botao])")];
+
     if (aberta && admin) {
       outrosBotoes.forEach((botao) => {
         botao.dataset.configVendedorasActiveAnterior = botao.classList.contains("active") ? "true" : "false";
@@ -141,9 +142,15 @@ export default function ConfiguracaoVendedoras() {
     setAlterando(vendedora.id);
     setMensagem("");
 
+    const eraPendente = !vendedora.aprovado_em;
+    const agora = new Date().toISOString();
+    const atualizacaoPerfil = ativo && eraPendente
+      ? { ativo: true, aprovado_em: agora }
+      : { ativo };
+
     const perfilResp = await supabase
       .from("perfis")
-      .update({ ativo })
+      .update(atualizacaoPerfil)
       .eq("id", vendedora.id)
       .eq("papel", "vendedora");
 
@@ -160,25 +167,43 @@ export default function ConfiguracaoVendedoras() {
       .eq("tipo_usuario", "vendedora");
 
     if (paResp.error) {
-      await supabase.from("perfis").update({ ativo: !ativo }).eq("id", vendedora.id);
+      await supabase
+        .from("perfis")
+        .update({ ativo: vendedora.ativo, aprovado_em: vendedora.aprovado_em })
+        .eq("id", vendedora.id);
       setMensagem(`Não foi possível atualizar o acesso ao PA: ${paResp.error.message}`);
       setAlterando("");
       return;
     }
 
-    setMensagem(
-      ativo
-        ? `${vendedora.nome} foi aprovada e está com o perfil ativo.`
-        : `${vendedora.nome} foi desativada. O histórico foi preservado.`
-    );
+    if (eraPendente && ativo) {
+      setMensagem(`${vendedora.nome} foi aprovada e está com o perfil ativo.`);
+      setSecao("cadastradas");
+      setFiltro("ativas");
+    } else {
+      setMensagem(
+        ativo
+          ? `${vendedora.nome} foi reativada.`
+          : `${vendedora.nome} foi desativada. O histórico foi preservado.`
+      );
+    }
+
     await carregar();
     setAlterando("");
   }
 
   if (!admin || !alvos.tabs || !alvos.app) return null;
 
-  const pendentes = vendedoras.filter((item) => !item.ativo).length;
-  const ativas = vendedoras.filter((item) => item.ativo).length;
+  const pendentes = vendedoras.filter((item) => !item.aprovado_em);
+  const cadastradas = vendedoras.filter((item) => Boolean(item.aprovado_em));
+  const ativas = cadastradas.filter((item) => item.ativo && item.pa_ativo);
+  const desativadas = cadastradas.filter((item) => !(item.ativo && item.pa_ativo));
+  const listaCadastradas = filtro === "ativas"
+    ? ativas
+    : filtro === "desativadas"
+      ? desativadas
+      : cadastradas;
+  const listaExibida = secao === "pendentes" ? pendentes : listaCadastradas;
 
   return (
     <>
@@ -190,7 +215,7 @@ export default function ConfiguracaoVendedoras() {
           aria-pressed={aberta}
           onClick={() => setAberta(true)}
         >
-          Vendedoras{pendentes > 0 ? ` (${pendentes})` : ""}
+          Vendedoras{pendentes.length > 0 ? ` (${pendentes.length})` : ""}
         </button>,
         alvos.tabs
       )}
@@ -202,34 +227,68 @@ export default function ConfiguracaoVendedoras() {
               <div>
                 <p className="eyebrow">Acessos do PA</p>
                 <h2>Configuração das vendedoras</h2>
-                <p className="muted">Aprove novos cadastros e ative ou desative o acesso sem apagar o histórico.</p>
+                <p className="muted">Pedidos novos ficam separados das vendedoras que já foram aprovadas.</p>
               </div>
               <button type="button" className="secondary-button" onClick={carregar}>Atualizar</button>
             </div>
 
             <div className="config-vendedoras-resumo">
-              <div><strong>{pendentes}</strong><span>Aguardando aprovação</span></div>
-              <div><strong>{ativas}</strong><span>Perfis ativos</span></div>
-              <div><strong>{vendedoras.length}</strong><span>Total de vendedoras</span></div>
+              <div><strong>{pendentes.length}</strong><span>Solicitações pendentes</span></div>
+              <div><strong>{ativas.length}</strong><span>Vendedoras ativas</span></div>
+              <div><strong>{desativadas.length}</strong><span>Vendedoras desativadas</span></div>
             </div>
+
+            <div className="config-vendedoras-secoes" role="tablist" aria-label="Visualização de vendedoras">
+              <button
+                type="button"
+                className={secao === "pendentes" ? "active" : ""}
+                onClick={() => setSecao("pendentes")}
+              >
+                Solicitações pendentes{pendentes.length ? ` (${pendentes.length})` : ""}
+              </button>
+              <button
+                type="button"
+                className={secao === "cadastradas" ? "active" : ""}
+                onClick={() => setSecao("cadastradas")}
+              >
+                Vendedoras cadastradas ({cadastradas.length})
+              </button>
+            </div>
+
+            {secao === "cadastradas" && (
+              <div className="config-vendedoras-filtros" aria-label="Filtrar vendedoras cadastradas">
+                <button type="button" className={filtro === "ativas" ? "active" : ""} onClick={() => setFiltro("ativas")}>Ativas ({ativas.length})</button>
+                <button type="button" className={filtro === "desativadas" ? "active" : ""} onClick={() => setFiltro("desativadas")}>Desativadas ({desativadas.length})</button>
+                <button type="button" className={filtro === "todas" ? "active" : ""} onClick={() => setFiltro("todas")}>Todas ({cadastradas.length})</button>
+              </div>
+            )}
 
             {mensagem && <p className="message">{mensagem}</p>}
             {carregando && <p className="muted">Atualizando vendedoras...</p>}
 
-            {!carregando && vendedoras.length === 0 && (
-              <div className="config-vendedoras-vazio">Nenhuma vendedora cadastrada.</div>
+            {!carregando && listaExibida.length === 0 && (
+              <div className="config-vendedoras-vazio">
+                {secao === "pendentes"
+                  ? "Nenhuma solicitação aguardando aprovação."
+                  : filtro === "ativas"
+                    ? "Nenhuma vendedora ativa."
+                    : filtro === "desativadas"
+                      ? "Nenhuma vendedora desativada."
+                      : "Nenhuma vendedora cadastrada."}
+              </div>
             )}
 
             <div className="config-vendedoras-lista">
-              {vendedoras.map((vendedora) => {
+              {listaExibida.map((vendedora) => {
                 const ativa = Boolean(vendedora.ativo && vendedora.pa_ativo);
+                const pendente = !vendedora.aprovado_em;
                 return (
-                  <article className={`config-vendedora-card ${ativa ? "is-active" : "is-pending"}`} key={vendedora.id}>
+                  <article className={`config-vendedora-card ${pendente ? "is-pending" : ativa ? "is-active" : "is-disabled"}`} key={vendedora.id}>
                     <div className="config-vendedora-info">
                       <div className="config-vendedora-nome">
                         <strong>{vendedora.nome}</strong>
-                        <span className={`config-vendedora-status ${ativa ? "ativo" : "pendente"}`}>
-                          {ativa ? "Ativa" : "Aguardando aprovação"}
+                        <span className={`config-vendedora-status ${pendente ? "pendente" : ativa ? "ativo" : "desativado"}`}>
+                          {pendente ? "Aguardando aprovação" : ativa ? "Ativa" : "Desativada"}
                         </span>
                       </div>
                       <span>Nº Athos: {vendedora.numero_athos ?? "não informado"}</span>
@@ -237,15 +296,17 @@ export default function ConfiguracaoVendedoras() {
                     </div>
                     <button
                       type="button"
-                      className={ativa ? "secondary-button danger-button" : "primary-button"}
+                      className={pendente || !ativa ? "primary-button" : "secondary-button danger-button"}
                       disabled={alterando === vendedora.id}
-                      onClick={() => alterarStatus(vendedora, !ativa)}
+                      onClick={() => alterarStatus(vendedora, pendente ? true : !ativa)}
                     >
                       {alterando === vendedora.id
                         ? "Salvando..."
-                        : ativa
-                          ? "Desativar perfil"
-                          : "Aprovar e ativar"}
+                        : pendente
+                          ? "Aprovar e ativar"
+                          : ativa
+                            ? "Desativar perfil"
+                            : "Reativar perfil"}
                     </button>
                   </article>
                 );
