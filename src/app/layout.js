@@ -16,6 +16,7 @@ import "./fechamento-print-fix.css";
 import "./fechamento-botao-final.css";
 import "./mobile-tabs.css";
 import "./rodape-autoria.css";
+import "./configuracao-vendedoras.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

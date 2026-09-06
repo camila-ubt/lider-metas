@@ -1,0 +1,134 @@
+.app-shell.config-vendedoras-aberta > :not(.topbar):not(.tabs):not(.config-vendedoras-portal) {
+  display: none !important;
+}
+
+.config-vendedoras-portal {
+  width: 100%;
+}
+
+.config-vendedoras-panel {
+  margin-top: 18px;
+}
+
+.config-vendedoras-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.config-vendedoras-cabecalho h2 {
+  margin: 2px 0 6px;
+}
+
+.config-vendedoras-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.config-vendedoras-resumo > div {
+  border: 1px solid var(--border, #e7e2ec);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--surface, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-vendedoras-resumo strong {
+  font-size: 1.45rem;
+}
+
+.config-vendedoras-resumo span {
+  color: var(--muted, #6f6877);
+  font-size: .86rem;
+}
+
+.config-vendedoras-lista {
+  display: grid;
+  gap: 10px;
+}
+
+.config-vendedora-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--border, #e7e2ec);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+.config-vendedora-card.is-pending {
+  border-color: #e3c77a;
+  background: #fffaf0;
+}
+
+.config-vendedora-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-vendedora-nome {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.config-vendedora-status {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.config-vendedora-status.ativo {
+  background: #e7f6ec;
+  color: #267143;
+}
+
+.config-vendedora-status.pendente {
+  background: #fff0c7;
+  color: #805d00;
+}
+
+.config-vendedora-info > span,
+.config-vendedora-info > small {
+  color: var(--muted, #6f6877);
+}
+
+.danger-button {
+  border-color: #d8a8a8 !important;
+  color: #8c2f2f !important;
+}
+
+.config-vendedoras-vazio {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted, #6f6877);
+}
+
+@media (max-width: 700px) {
+  .config-vendedoras-cabecalho,
+  .config-vendedora-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .config-vendedoras-resumo {
+    grid-template-columns: 1fr;
+  }
+
+  .config-vendedora-card button,
+  .config-vendedoras-cabecalho button {
+    width: 100%;
+  }
+}

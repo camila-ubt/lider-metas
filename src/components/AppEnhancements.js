@@ -17,6 +17,7 @@ import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
 import PesquisaManual from "@/components/PesquisaManual";
 import AtualizarTextosNiveis from "@/components/AtualizarTextosNiveis";
 import RodapeAutoria from "@/components/RodapeAutoria";
+import ConfiguracaoVendedoras from "@/components/ConfiguracaoVendedoras";
 
 export default function AppEnhancements() {
   const pathname = usePathname();
@@ -40,6 +41,7 @@ export default function AppEnhancements() {
       <DetalhesMetasRanking />
       <PesquisaManual />
       <AtualizarTextosNiveis />
+      <ConfiguracaoVendedoras />
       <RodapeAutoria />
     </>
   );
