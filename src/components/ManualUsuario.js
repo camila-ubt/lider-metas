@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import styles from "./ManualUsuario.module.css";
 
 const secoes = [
@@ -189,7 +187,7 @@ const secoes = [
   },
 ];
 
-function Manual() {
+export default function ManualUsuario() {
   return (
     <section className={styles.manual} data-manual-usuario>
       <div className={styles.hero}>
@@ -225,83 +223,5 @@ function Manual() {
         Antes de tomar uma decisão pelo painel, confirme se todos os lançamentos do período foram preenchidos corretamente.
       </div>
     </section>
-  );
-}
-
-export default function ManualUsuario() {
-  const [nav, setNav] = useState(null);
-  const [main, setMain] = useState(null);
-  const [aberto, setAberto] = useState(false);
-
-  useEffect(() => {
-    const localizar = () => {
-      setNav(document.querySelector("nav.tabs"));
-      setMain(document.querySelector("main.app-shell"));
-    };
-    localizar();
-    const observador = new MutationObserver(localizar);
-    observador.observe(document.body, { childList: true, subtree: true });
-    return () => observador.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!main || !nav) return undefined;
-
-    const filhos = Array.from(main.children).filter(
-      (elemento) => elemento !== nav && !elemento.matches("header.topbar") && !elemento.hasAttribute("data-manual-usuario"),
-    );
-
-    if (aberto) {
-      filhos.forEach((elemento) => {
-        elemento.dataset.manualDisplay = elemento.style.display || "";
-        elemento.style.display = "none";
-      });
-      Array.from(nav.querySelectorAll("button")).forEach((botao) => botao.classList.remove("active"));
-    } else {
-      filhos.forEach((elemento) => {
-        if (elemento.dataset.manualDisplay !== undefined) {
-          elemento.style.display = elemento.dataset.manualDisplay;
-          delete elemento.dataset.manualDisplay;
-        }
-      });
-    }
-
-    return () => {
-      filhos.forEach((elemento) => {
-        if (elemento.dataset.manualDisplay !== undefined) {
-          elemento.style.display = elemento.dataset.manualDisplay;
-          delete elemento.dataset.manualDisplay;
-        }
-      });
-    };
-  }, [aberto, main, nav]);
-
-  useEffect(() => {
-    if (!nav) return undefined;
-    const fecharAoTrocar = (evento) => {
-      const botao = evento.target.closest("button");
-      if (botao && !botao.hasAttribute("data-manual-botao")) setAberto(false);
-    };
-    nav.addEventListener("click", fecharAoTrocar, true);
-    return () => nav.removeEventListener("click", fecharAoTrocar, true);
-  }, [nav]);
-
-  if (!nav || !main) return null;
-
-  return (
-    <>
-      {createPortal(
-        <button
-          type="button"
-          data-manual-botao
-          className={aberto ? "active" : ""}
-          onClick={() => setAberto((valor) => !valor)}
-        >
-          Manual do usuário
-        </button>,
-        nav,
-      )}
-      {aberto && createPortal(<Manual />, main)}
-    </>
   );
 }

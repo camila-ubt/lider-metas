@@ -14,9 +14,7 @@ import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
 import ConfiguracaoHorarios from "@/components/ConfiguracaoHorarios";
 import OrdenarGraficoPainel from "@/components/OrdenarGraficoPainel";
 import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
-import ManualUsuario from "@/components/ManualUsuario";
 import PesquisaManual from "@/components/PesquisaManual";
-import CorrecaoAbaManual from "@/components/CorrecaoAbaManual";
 import AtualizarTextosNiveis from "@/components/AtualizarTextosNiveis";
 import RodapeAutoria from "@/components/RodapeAutoria";
 
@@ -24,24 +22,25 @@ export default function AppEnhancements() {
   const pathname = usePathname();
   // The recovery route must not mount dashboard clients that consume auth codes.
   if (pathname === "/recuperar-senha") return null;
-  return <>
-        <PersistenciaNavegacao />
-        <ConferenciaAthos />
-        <PainelReuniao />
-        <InteligenciaGerencial />
-        <MascaraMoeda />
-        <AjusteProbabilidades />
-        <FeedbackTurnos />
-        <RemoverLancamento />
-        <AjusteDiasEquivalentes />
-        <FluxoPendenciasLancamento />
-        <ConfiguracaoHorarios />
-        <OrdenarGraficoPainel />
-        <DetalhesMetasRanking />
-        <ManualUsuario />
-        <PesquisaManual />
-        <CorrecaoAbaManual />
-        <AtualizarTextosNiveis />
-        <RodapeAutoria />
-  </>;
+
+  return (
+    <>
+      <PersistenciaNavegacao />
+      <ConferenciaAthos />
+      <PainelReuniao />
+      <InteligenciaGerencial />
+      <MascaraMoeda />
+      <AjusteProbabilidades />
+      <FeedbackTurnos />
+      <RemoverLancamento />
+      <AjusteDiasEquivalentes />
+      <FluxoPendenciasLancamento />
+      <ConfiguracaoHorarios />
+      <OrdenarGraficoPainel />
+      <DetalhesMetasRanking />
+      <PesquisaManual />
+      <AtualizarTextosNiveis />
+      <RodapeAutoria />
+    </>
+  );
 }
