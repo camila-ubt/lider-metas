@@ -5,6 +5,7 @@ import DashboardEstavel from "@/components/DashboardEstavel";
 import ManualUsuario from "@/components/ManualUsuario";
 import PAVendedoras from "@/components/PAVendedoras";
 import { createClient } from "@/lib/supabase/client";
+import { RECOVERY_URL } from "@/lib/recuperacao.mjs";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -464,6 +465,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
           >
             {modoCadastro ? "Já tenho acesso" : "Primeiro acesso"}
           </button>
+          {!modoCadastro && <a className="text-button" href={RECOVERY_URL}>Esqueci minha senha</a>}
         </section>
       </main>
     );
