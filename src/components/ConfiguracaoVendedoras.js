@@ -91,14 +91,51 @@ export default function ConfiguracaoVendedoras() {
   }, [localizarAlvos, supabase, verificarAdmin]);
 
   useEffect(() => {
+    if (!alvos.tabs) return undefined;
+
+    function aoClicarNasAbas(evento) {
+      const botao = evento.target.closest("button");
+      if (!botao || !alvos.tabs.contains(botao)) return;
+      if (botao.hasAttribute("data-config-vendedoras-botao")) return;
+      setAberta(false);
+    }
+
+    alvos.tabs.addEventListener("click", aoClicarNasAbas);
+    return () => alvos.tabs?.removeEventListener("click", aoClicarNasAbas);
+  }, [alvos.tabs]);
+
+  useEffect(() => {
     if (aberta && admin) carregar();
   }, [aberta, admin, carregar]);
 
   useEffect(() => {
-    if (!alvos.app) return;
+    if (!alvos.app || !alvos.tabs) return undefined;
+
     alvos.app.classList.toggle("config-vendedoras-aberta", aberta && admin);
-    return () => alvos.app?.classList.remove("config-vendedoras-aberta");
-  }, [aberta, admin, alvos.app]);
+
+    const outrosBotoes = [...alvos.tabs.querySelectorAll("button:not([data-config-vendedoras-botao])")];
+    if (aberta && admin) {
+      outrosBotoes.forEach((botao) => {
+        botao.dataset.configVendedorasActiveAnterior = botao.classList.contains("active") ? "true" : "false";
+        botao.dataset.configVendedorasPressedAnterior = botao.getAttribute("aria-pressed") ?? "";
+        botao.classList.remove("active");
+        if (botao.hasAttribute("aria-pressed")) botao.setAttribute("aria-pressed", "false");
+      });
+    }
+
+    return () => {
+      alvos.app?.classList.remove("config-vendedoras-aberta");
+      outrosBotoes.forEach((botao) => {
+        if (botao.dataset.configVendedorasActiveAnterior === "true") botao.classList.add("active");
+        if (botao.dataset.configVendedorasPressedAnterior !== undefined) {
+          const anterior = botao.dataset.configVendedorasPressedAnterior;
+          if (anterior) botao.setAttribute("aria-pressed", anterior);
+          delete botao.dataset.configVendedorasPressedAnterior;
+        }
+        delete botao.dataset.configVendedorasActiveAnterior;
+      });
+    };
+  }, [aberta, admin, alvos.app, alvos.tabs]);
 
   async function alterarStatus(vendedora, ativo) {
     setAlterando(vendedora.id);
@@ -151,7 +188,7 @@ export default function ConfiguracaoVendedoras() {
           data-config-vendedoras-botao
           className={aberta ? "active" : ""}
           aria-pressed={aberta}
-          onClick={() => setAberta((valor) => !valor)}
+          onClick={() => setAberta(true)}
         >
           Vendedoras{pendentes > 0 ? ` (${pendentes})` : ""}
         </button>,
