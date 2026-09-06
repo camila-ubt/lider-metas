@@ -90,7 +90,7 @@ export default function RecuperarSenha() {
         <div className={styles.brands}><span>PA</span><span>LM</span></div>
         <p className={styles.eyebrow}>PA · Líder Metas</p>
         <h1>{etapa === "redefinir" ? "Crie sua nova senha" : etapa === "concluido" ? "Senha alterada" : etapa === "enviado" ? "Confira seu e-mail" : "Recuperar senha"}</h1>
-        <p className={styles.description}>Uma única senha para sua conta no PA e no Líder Metas. O acesso autorizado em cada aplicativo permanece o mesmo.</p>
+        <p className={styles.description}>Esta página de recuperação é compartilhada entre o PA e o Líder Metas. Seu acesso continua restrito ao sistema para o qual sua conta está autorizada.</p>
         {etapa === "carregando" && <p role="status">Verificando seu link…</p>}
         {etapa === "solicitar" && <form onSubmit={enviar} className={styles.form}>
           <label>E-mail da sua conta<input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} disabled={ocupado} /></label>
