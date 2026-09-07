@@ -1,5 +1,15 @@
 # Releases
 
+## v1.2.1 — Manutenção da documentação e política de segurança
+
+Publicada em **7 de setembro de 2026**.
+
+- Política de segurança com orientações para relatar vulnerabilidades.
+- Correção da versão no rodapé da Wiki e alinhamento do README e do aplicativo.
+- Histórico completo das releases na Wiki.
+
+Proteção da `main` verificada: PR obrigatório, sem bypass de administradores, bloqueio de exclusão e de sobrescrita forçada do histórico. Essa configuração pertence ao repositório, não ao pacote da aplicação.
+
 ## v1.2.0 — Integração e gestão do PA
 
 Publicada em **6 de setembro de 2026**.

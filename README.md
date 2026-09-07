@@ -15,7 +15,7 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 
 ## Versão atual
 
-**v1.2.0** — integração e gestão do PA dentro do Líder Metas.
+**v1.2.1** — Manutenção da documentação e política de segurança.
 
 ## Tecnologias
 
