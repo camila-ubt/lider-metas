@@ -37,7 +37,7 @@ Os valores de venda e as metas reais não fazem parte desta documentação públ
 
 ## Estado do projeto
 
-- versão estável atual: **v1.2.0**;
+- versão estável atual: **v1.2.1**;
 - branch principal protegida por Pull Request;
 - aplicação integrada ao Supabase e publicada pela Vercel;
 - acesso aos dados condicionado à autenticação e às políticas do banco.
