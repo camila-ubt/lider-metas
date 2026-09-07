@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const CHAVE_MES = "lider-metas:mes-selecionado";
 const CHAVE_TELA = "lider-metas:tela-selecionada";
 const CHAVE_SCROLL = "lider-metas:posicao-scroll";
-const TELAS_VALIDAS = ["painel", "lancamentos", "metas", "manual", "pa"];
+const TELAS_VALIDAS = ["painel", "lancamentos", "metas", "manual", "pa", "vendedoras"];
 
 function mesAtual() {
   const data = new Date();
@@ -19,6 +19,7 @@ function campoMes() {
 function telaDoBotao(botao) {
   if (botao?.hasAttribute?.("data-manual-botao")) return "manual";
   if (botao?.hasAttribute?.("data-pa-botao")) return "pa";
+  if (botao?.hasAttribute?.("data-config-vendedoras-botao")) return "vendedoras";
 
   const texto = botao?.textContent?.trim().toLocaleLowerCase("pt-BR") || "";
   if (texto === "painel") return "painel";
@@ -77,6 +78,10 @@ export default function PersistenciaNavegacao() {
 
       if (TELAS_VALIDAS.includes(telaSalva || "")) {
         const botao = botoes.find((item) => telaDoBotao(item) === telaSalva);
+
+        // Vendedoras é inserida depois que o perfil admin é confirmado.
+        // Aguarda o botão existir antes de concluir a restauração.
+        if (!botao && telaSalva === "vendedoras") return;
 
         // Abas restritas podem não existir para o perfil atual.
         if (botao && !botao.classList.contains("active")) botao.click();
