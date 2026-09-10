@@ -1,0 +1,5 @@
+/* Padroniza visualmente os nomes das vendedoras em caixa alta, inclusive cadastros antigos. */
+[class*="sellerName"] > strong,
+.config-vendedora-nome > strong {
+  text-transform: uppercase;
+}
