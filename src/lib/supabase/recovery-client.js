@@ -8,7 +8,7 @@ export function getRecoveryClient() {
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
       { auth: {
-        flowType: "pkce",
+        flowType: "implicit",
         detectSessionInUrl: false,
         storageKey: "lider-pa-password-recovery-v1",
         persistSession: true,
