@@ -18,6 +18,21 @@ function abaMetasAtiva() {
   );
 }
 
+function horarioBancoParaTela(valor) {
+  return typeof valor === "string" ? valor.slice(0, 5) : valor;
+}
+
+function mapearHorarioCompartilhado(linha) {
+  if (!linha) return null;
+
+  return normalizarHorariosPeriodos({
+    manhaInicio: horarioBancoParaTela(linha.manha_inicio),
+    manhaFim: horarioBancoParaTela(linha.manha_fim),
+    noiteInicio: horarioBancoParaTela(linha.noite_inicio),
+    noiteFim: horarioBancoParaTela(linha.noite_fim),
+  });
+}
+
 export default function ConfiguracaoHorarios() {
   const supabase = useMemo(() => createClient(), []);
   const [visivel, setVisivel] = useState(false);
@@ -58,23 +73,36 @@ export default function ConfiguracaoHorarios() {
   useEffect(() => {
     let ativo = true;
 
-    function aplicarSessao(sessao) {
-      if (!ativo || !sessao) return;
+    async function carregarHorarios() {
+      const { data, error } = await supabase
+        .from("configuracao_horarios_periodos")
+        .select("manha_inicio, manha_fim, noite_inicio, noite_fim")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (!ativo) return;
+
+      if (!error && data) {
+        const compartilhados = mapearHorarioCompartilhado(data);
+        setHorarios(compartilhados);
+        publicarHorariosPeriodos(compartilhados);
+        return;
+      }
+
+      const { data: sessaoData } = await supabase.auth.getSession();
+      if (!ativo || !sessaoData.session) return;
+
       const salvos = normalizarHorariosPeriodos(
-        sessao.user.user_metadata?.horarios_periodos,
+        sessaoData.session.user.user_metadata?.horarios_periodos,
       );
       setHorarios(salvos);
       publicarHorariosPeriodos(salvos);
     }
 
-    supabase.auth.getSession().then(({ data }) => aplicarSessao(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_evento, sessao) => aplicarSessao(sessao),
-    );
+    carregarHorarios();
 
     return () => {
       ativo = false;
-      listener.subscription.unsubscribe();
     };
   }, [supabase]);
 
@@ -91,18 +119,36 @@ export default function ConfiguracaoHorarios() {
 
     setSalvando(true);
     const normalizados = normalizarHorariosPeriodos(horarios);
-    const { error } = await supabase.auth.updateUser({
+    const { data: usuarioData } = await supabase.auth.getUser();
+
+    const { error: erroBanco } = await supabase
+      .from("configuracao_horarios_periodos")
+      .update({
+        manha_inicio: normalizados.manhaInicio,
+        manha_fim: normalizados.manhaFim,
+        noite_inicio: normalizados.noiteInicio,
+        noite_fim: normalizados.noiteFim,
+        atualizado_em: new Date().toISOString(),
+        atualizado_por: usuarioData.user?.id ?? null,
+      })
+      .eq("id", 1);
+
+    if (erroBanco) {
+      setErro(erroBanco.message);
+      setSalvando(false);
+      return;
+    }
+
+    // Mantém o perfil sincronizado por compatibilidade com versões anteriores.
+    await supabase.auth.updateUser({
       data: { horarios_periodos: normalizados },
     });
 
-    if (error) {
-      setErro(error.message);
-    } else {
-      setHorarios(normalizados);
-      publicarHorariosPeriodos(normalizados);
-      setMensagem("Horários atualizados. O painel já está usando a nova configuração.");
-    }
-
+    setHorarios(normalizados);
+    publicarHorariosPeriodos(normalizados);
+    setMensagem(
+      "Horários atualizados. O Líder Metas e a Calculadora de Metas já usam a mesma configuração.",
+    );
     setSalvando(false);
   }
 
@@ -131,7 +177,7 @@ export default function ConfiguracaoHorarios() {
           </div>
 
           <div className={styles.toggleSide}>
-            <span className={styles.profileBadge}>Salvo no seu perfil</span>
+            <span className={styles.profileBadge}>Compartilhado entre os apps</span>
             <span className={styles.arrow} aria-hidden="true">⌄</span>
           </div>
         </button>
@@ -142,7 +188,7 @@ export default function ConfiguracaoHorarios() {
           hidden={!aberto}
         >
           <p className={styles.help}>
-            Esses horários definem quando cada período deixa de entrar no cálculo do valor necessário por dia.
+            Esses horários definem os períodos usados nos cálculos do Líder Metas e da Calculadora de Metas.
           </p>
 
           <form className={styles.form} onSubmit={salvar}>
