@@ -50,7 +50,11 @@ Não existem oportunidades restantes. O aplicativo apresenta o resultado final e
 
 Os horários definem quando cada período começa e termina. As regras impedem término anterior ao início e sobreposição entre períodos.
 
-Depois do encerramento de um período, o dia atual deixa de contar como oportunidade para ele. A configuração é mantida no perfil e sincronizada com o navegador.
+A partir da **v1.3.0**, essa configuração é mantida de forma compartilhada no banco de dados. O Líder Metas e a Calculadora de Metas consultam os mesmos horários de manhã e noite. Quando uma administradora altera essa configuração no Líder Metas, os dois sistemas passam a utilizar a nova referência.
+
+A leitura da configuração é disponibilizada aos sistemas integrados, enquanto a alteração permanece restrita aos perfis administrativos autorizados.
+
+Depois do encerramento de um período, o dia atual deixa de contar como oportunidade para ele. Na Calculadora de Metas, os mesmos horários também servem de referência para o cálculo proporcional dos dias com jornada diferente do turno normal.
 
 ## Projeção
 
