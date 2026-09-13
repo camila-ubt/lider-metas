@@ -16,15 +16,15 @@ Um usuário ativo pode consultar as informações necessárias à operação e t
 Além das funções operacionais, pode:
 
 - cadastrar e editar metas;
-- alterar horários dos períodos;
-- acessar recursos gerenciais reservados.
+- alterar horários dos períodos compartilhados com a Calculadora de Metas;
+- acessar recursos gerenciais reservados;
 - conferir e corrigir o PA das vendedoras;
 - aprovar novos cadastros de vendedoras;
 - desativar ou reativar perfis já aprovados.
 
 A interface oculta a área administrativa para outros perfis, e o banco repete essa proteção por políticas de acesso.
 
-A gestão das vendedoras fica na aba **Vendedoras**, exibida somente para administradoras.
+A gestão das vendedoras fica na aba **Vendedoras**, exibida somente para administradoras. A aba selecionada é preservada quando a página é atualizada.
 
 ## Solicitações pendentes
 
@@ -39,6 +39,10 @@ O fluxo é:
 
 O número ao lado da aba **Vendedoras** indica quantas solicitações aguardam análise.
 
+## Padronização dos nomes
+
+Os nomes das vendedoras são exibidos em **caixa alta** nas áreas de gestão e PA. A padronização também é aplicada visualmente aos cadastros antigos, evitando diferenças entre nomes digitados com letras maiúsculas ou minúsculas.
+
 ## Vendedoras cadastradas
 
 Depois da primeira aprovação, o perfil passa para **Vendedoras cadastradas**. A lista pode ser filtrada por:
@@ -50,6 +54,12 @@ Depois da primeira aprovação, o perfil passa para **Vendedoras cadastradas**. 
 Use **Desativar perfil** quando uma vendedora sair da equipe. O histórico é preservado e o perfil pode ser recuperado depois com **Reativar perfil**, sem novo cadastro.
 
 Uma vendedora desativada não volta para as solicitações pendentes. Essa separação evita confundir ex-integrantes da equipe com novos pedidos de acesso.
+
+## Recuperação de senha
+
+Para senha esquecida, utilize o fluxo oficial de recuperação. O link enviado por e-mail deve abrir diretamente a etapa de criação da nova senha quando ainda estiver válido.
+
+A partir da **v1.3.0**, o fluxo aceita a sessão de recuperação enviada no próprio link do e-mail e mantém compatibilidade com links anteriores baseados em código. Links expirados, já utilizados ou inválidos são recusados e exigem uma nova solicitação.
 
 ## Responsabilidades
 
