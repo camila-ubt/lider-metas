@@ -1,5 +1,29 @@
 # Releases
 
+## v1.3.0 — Integração de horários e melhorias de acesso
+
+Publicada em **13 de setembro de 2026**.
+
+### Integração com a Calculadora de Metas
+
+- horários de manhã e noite passam a ser armazenados em configuração compartilhada no banco;
+- Líder Metas e Calculadora de Metas usam a mesma referência de horários;
+- alterações feitas pela gestão são refletidas nos cálculos dos dois sistemas;
+- leitura pública controlada dos horários e alteração restrita a administradoras.
+
+### Acesso e cadastro
+
+- correção do link de recuperação de senha recebido por e-mail;
+- suporte ao fluxo de recuperação enviado pelo provedor de autenticação e compatibilidade com links anteriores;
+- nomes das vendedoras padronizados visualmente em caixa alta, inclusive em cadastros antigos;
+- aba **Vendedoras** permanece selecionada após atualizar a página.
+
+### Manutenção técnica
+
+- atualização de dependências de produção e desenvolvimento;
+- atualização do `actions/checkout` usado nos workflows;
+- configuração de atualizações automáticas com Dependabot.
+
 ## v1.2.1 — Manutenção da documentação e política de segurança
 
 Publicada em **7 de setembro de 2026**.
