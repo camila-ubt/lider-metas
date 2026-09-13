@@ -11,11 +11,18 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 - correção de lançamentos de PA com notificação para a vendedora;
 - aprovação e gestão de acesso das vendedoras;
 - separação entre solicitações pendentes, perfis ativos e desativados;
+- horários de manhã e noite compartilhados com a Calculadora de Metas;
+- recuperação de senha pelo link recebido por e-mail;
+- padronização visual dos nomes das vendedoras em caixa alta;
 - acesso restrito a usuários autorizados.
+
+## Integração com a Calculadora de Metas
+
+Os horários configurados para os períodos da manhã e da noite são mantidos no banco e compartilhados com a Calculadora de Metas. Assim, os dois sistemas usam a mesma referência de horários nos cálculos, inclusive nos dias com jornada diferente do turno normal.
 
 ## Versão atual
 
-**v1.2.1** — Manutenção da documentação e política de segurança.
+**v1.3.0** — Integração de horários e melhorias de acesso.
 
 ## Tecnologias
 
