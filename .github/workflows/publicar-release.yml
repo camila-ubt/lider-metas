@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - package.json
+      - RELEASE.md
       - .github/workflows/publicar-release.yml
 
 permissions:
@@ -40,4 +41,4 @@ jobs:
           gh release create "$TAG" \
             --target "$GITHUB_SHA" \
             --title "Líder Metas $TAG" \
-            --generate-notes
+            --notes-file RELEASE.md

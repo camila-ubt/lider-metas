@@ -4,6 +4,10 @@
 
 O perfil provavelmente aguarda aprovação. Solicite a ativação à administradora e evite criar outra conta.
 
+## Esqueci minha senha. O que devo fazer?
+
+Use a recuperação oficial de senha. O link enviado por e-mail deve abrir a etapa para criar uma nova senha. Se o link estiver expirado, já tiver sido usado ou for inválido, solicite outro.
+
 ## Os meses anteriores ficam salvos?
 
 Sim. Vendas e metas são persistidas por mês e podem ser consultadas pelo seletor.
@@ -15,6 +19,10 @@ Confirme o mês, as metas e as pendências. Uma venda ausente ou incorreta alter
 ## O que significam M e N?
 
 Representam manhã e noite. O indicador fica completo quando todos os slots esperados do período foram registrados.
+
+## Os horários da manhã e da noite são os mesmos da Calculadora de Metas?
+
+Sim. A partir da v1.3.0, os dois sistemas usam a mesma configuração compartilhada de horários. Alterações feitas pela gestão no Líder Metas passam a valer também como referência na Calculadora de Metas.
 
 ## Valor zero conta como lançamento?
 
@@ -32,7 +40,7 @@ Não integralmente. Ela usa apenas os dados disponíveis e pode ficar artificial
 
 Cada período possui meta, vendas e oportunidades restantes próprias.
 
-## Quem pode alterar metas?
+## Quem pode alterar metas e horários dos períodos?
 
 Somente perfis administrativos. A interface e o banco aplicam essa restrição.
 
