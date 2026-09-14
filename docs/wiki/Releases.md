@@ -1,5 +1,16 @@
 # Releases
 
+## v1.3.1 — Segurança e atualização de dependências
+
+Publicada em **14 de setembro de 2026**.
+
+- correção preventiva no tratamento do percentual exibido no feedback dos turnos;
+- ajuste recomendado pela análise de código do GitHub;
+- atualização do React, React DOM, Supabase e dependências de desenvolvimento;
+- verificações automatizadas concluídas com sucesso.
+
+Esta versão não altera as regras de vendas, metas, PA ou integração de horários.
+
 ## v1.3.0 — Integração de horários e melhorias de acesso
 
 Publicada em **13 de setembro de 2026**.

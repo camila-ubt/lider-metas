@@ -22,7 +22,7 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.3.0** — Integração de horários e melhorias de acesso.
+**v1.3.1** — Segurança e atualização de dependências.
 
 ## Tecnologias
 

@@ -1,29 +1,23 @@
-## v1.3.0 — Integração de horários e melhorias de acesso
+## v1.3.1 — Segurança e atualização de dependências
 
-Publicada em **13 de setembro de 2026**.
+Publicada em **14 de setembro de 2026**.
 
-Esta versão amplia a integração entre o Líder Metas e as ferramentas usadas pelas vendedoras e corrige pontos importantes de acesso e padronização.
+Esta versão reúne correções técnicas e atualizações de dependências, sem alterar as regras de vendas, metas ou PA.
 
-### Integração com a Calculadora de Metas
+### Segurança
 
-- os horários de manhã e noite passam a ser mantidos em configuração compartilhada no banco;
-- Líder Metas e Calculadora de Metas usam a mesma referência de horários;
-- alterações feitas pela gestão passam a valer nos dois sistemas;
-- a configuração compartilhada também serve de referência para os cálculos de dias com horário diferente na Calculadora de Metas.
+- correção preventiva no tratamento do percentual exibido no feedback dos turnos;
+- ajuste recomendado pela análise de código do GitHub;
+- verificações automatizadas concluídas com sucesso.
 
-### Acesso e experiência de uso
+### Dependências
 
-- correção do link de recuperação de senha enviado por e-mail;
-- suporte ao fluxo de recuperação recebido no próprio link e compatibilidade com links anteriores;
-- nomes das vendedoras padronizados visualmente em caixa alta, inclusive cadastros antigos;
-- a aba **Vendedoras** permanece selecionada após atualizar a página.
+- atualização do React e React DOM para 19.3.0;
+- atualização do Supabase SSR e Supabase JS;
+- atualização do ESLint e de dependências de desenvolvimento.
 
-### Manutenção técnica
+### Regras preservadas
 
-- atualização de dependências de produção e desenvolvimento;
-- atualização do `actions/checkout` usado nos workflows;
-- atualizações automáticas de dependências configuradas com Dependabot.
-
-### Documentação
-
-README e Wiki atualizados para documentar a integração dos horários, recuperação de senha, padronização dos nomes e histórico da versão.
+- cálculos de Meta, Supermeta, Megameta e PA permanecem inalterados;
+- integração de horários com a Calculadora de Metas permanece inalterada;
+- fluxos de acesso, lançamento e conferência permanecem inalterados.
