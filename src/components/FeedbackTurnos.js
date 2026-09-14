@@ -36,7 +36,7 @@ function extrairDesempenho(bloco) {
     (elemento) => elemento.querySelector("span")?.textContent?.trim() === "Desempenho"
   );
   const texto = item?.querySelector("strong")?.textContent || "";
-  const numero = Number(texto.replace("%", "").replace(/\./g, "").replace(",", "."));
+  const numero = Number(texto.replace(/%/g, "").replace(/\./g, "").replace(",", "."));
   return Number.isFinite(numero) ? numero : null;
 }
 
