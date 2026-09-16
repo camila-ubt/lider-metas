@@ -1,22 +1,15 @@
 .control {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 30;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 11px;
-  border: 1px solid #e1dbe8;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, .97);
-  box-shadow: 0 8px 24px rgba(79, 57, 104, .14);
+  margin-left: auto;
   color: #503b69;
 }
 
 .control label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .control select {
@@ -33,11 +26,16 @@
 
 @media (max-width: 760px) {
   .control {
-    right: 12px;
-    bottom: 12px;
+    gap: 5px;
   }
 
   .control label {
     display: none;
+  }
+
+  .control select {
+    max-width: 155px;
+    padding: 6px 7px;
+    font-size: 11px;
   }
 }
