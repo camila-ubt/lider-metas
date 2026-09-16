@@ -1,0 +1,43 @@
+.control {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 1px solid #e1dbe8;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 8px 24px rgba(79, 57, 104, .14);
+  color: #503b69;
+}
+
+.control label {
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.control select {
+  max-width: 190px;
+  border: 1px solid #d9cfe3;
+  border-radius: 9px;
+  padding: 7px 9px;
+  background: #fbf9fd;
+  color: #503b69;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .control {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .control label {
+    display: none;
+  }
+}
