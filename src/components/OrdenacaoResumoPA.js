@@ -25,12 +25,12 @@ function numeroDoCard(card) {
 
 export default function OrdenacaoResumoPA() {
   const [ordem, setOrdem] = useState("numero");
+  const [visivel, setVisivel] = useState(false);
 
   useEffect(() => {
-    if (!window.location.pathname.includes("pa-vendedoras") && !document.body.textContent?.includes("PA das vendedoras")) return undefined;
-
     function ordenar() {
       const lista = localizarLista();
+      setVisivel(Boolean(lista));
       if (!lista) return;
       const cards = [...lista.children].filter((item) => item.tagName === "BUTTON");
       cards.sort((a, b) => {
@@ -46,6 +46,8 @@ export default function OrdenacaoResumoPA() {
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [ordem]);
+
+  if (!visivel) return null;
 
   return (
     <div className={styles.control} aria-label="Ordenação do resumo de PA">
