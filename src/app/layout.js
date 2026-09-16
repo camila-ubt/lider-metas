@@ -1,4 +1,5 @@
 import AppEnhancements from "@/components/AppEnhancements";
+import OrdenacaoResumoPA from "@/components/OrdenacaoResumoPA";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./branding.css";
@@ -56,6 +57,7 @@ export default function RootLayout({ children }) {
       <body>
         {children}
         <AppEnhancements />
+        <OrdenacaoResumoPA />
       </body>
     </html>
   );
