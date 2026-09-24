@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { getRecoveryClient } from "@/lib/supabase/recovery-client";
 import { RECOVERY_URL, PA_URL, LIDER_URL, LINK_INVALIDO, validarRecuperacao, validarNovaSenha } from "@/lib/recuperacao.mjs";
+import {
+  formatarTempoEspera,
+  limparRateLimitAuth,
+  obterBloqueioRateLimitAuth,
+  registrarFalhaRateLimitAuth,
+} from "@/lib/authRateLimit.mjs";
 import styles from "./RecuperarSenha.module.css";
 
 export default function RecuperarSenha() {
@@ -37,8 +43,16 @@ export default function RecuperarSenha() {
   async function enviar(evento) {
     evento.preventDefault();
     if (ocupado) return;
-    setOcupado(true);
     setMensagem("");
+
+    const emailNormalizado = email.trim().toLowerCase();
+    const msBloqueio = obterBloqueioRateLimitAuth("recuperacao_email", emailNormalizado);
+    if (msBloqueio > 0) {
+      setMensagem(`Muitas tentativas de recuperação. Tente novamente em ${formatarTempoEspera(msBloqueio)}.`);
+      return;
+    }
+
+    setOcupado(true);
     try {
       const client = clientRef.current || getRecoveryClient();
       clientRef.current = client;
@@ -47,13 +61,22 @@ export default function RecuperarSenha() {
         setMensagem("Para receber o link, abra a página oficial de recuperação abaixo.");
         return;
       }
-      const { error } = await client.auth.resetPasswordForEmail(email.trim(), { redirectTo: RECOVERY_URL });
+      const { error } = await client.auth.resetPasswordForEmail(emailNormalizado, { redirectTo: RECOVERY_URL });
       if (error) {
-        setMensagem(error.status === 429 ? "Aguarde alguns minutos antes de pedir outro link." : "Não foi possível enviar o link. Tente novamente em instantes.");
+        const limite = registrarFalhaRateLimitAuth("recuperacao_email", emailNormalizado);
+        setMensagem(
+          limite.bloqueadoAte
+            ? `Muitas tentativas de recuperação. Tente novamente em ${formatarTempoEspera(limite.bloqueadoAte - Date.now())}.`
+            : error.status === 429
+              ? "Aguarde alguns minutos antes de pedir outro link."
+              : "Não foi possível enviar o link. Tente novamente em instantes."
+        );
       } else {
+        limparRateLimitAuth("recuperacao_email", emailNormalizado);
         setEtapa("enviado");
       }
     } catch {
+      registrarFalhaRateLimitAuth("recuperacao_email", emailNormalizado);
       setMensagem("Não foi possível conectar. Verifique sua conexão e tente novamente.");
     } finally { setOcupado(false); }
   }
@@ -70,11 +93,28 @@ export default function RecuperarSenha() {
       if (erroSessao || !data?.user) {
         setEtapa("solicitar"); setMensagem(LINK_INVALIDO); setSenha(""); setConfirmar(""); return;
       }
-      const { error } = await clientRef.current.auth.updateUser({ password: senha });
-      if (error) {
-        setMensagem(error.code === "same_password" ? "Escolha uma senha diferente da atual." : "Não foi possível alterar a senha. Use uma senha mais forte ou solicite um novo link.");
+
+      const idRateLimit = data.user.id;
+      const msBloqueio = obterBloqueioRateLimitAuth("troca_senha", idRateLimit);
+      if (msBloqueio > 0) {
+        setMensagem(`Muitas tentativas de troca de senha. Tente novamente em ${formatarTempoEspera(msBloqueio)}.`);
         return;
       }
+
+      const { error } = await clientRef.current.auth.updateUser({ password: senha });
+      if (error) {
+        const limite = registrarFalhaRateLimitAuth("troca_senha", idRateLimit);
+        setMensagem(
+          limite.bloqueadoAte
+            ? `Muitas tentativas de troca de senha. Tente novamente em ${formatarTempoEspera(limite.bloqueadoAte - Date.now())}.`
+            : error.code === "same_password"
+              ? "Escolha uma senha diferente da atual."
+              : "Não foi possível alterar a senha. Use uma senha mais forte ou solicite um novo link."
+        );
+        return;
+      }
+
+      limparRateLimitAuth("troca_senha", idRateLimit);
       setSenha(""); setConfirmar(""); setEtapa("concluido");
       // Invalidate refresh sessions for this shared identity after changing its password.
       const { error: erroSaida } = await clientRef.current.auth.signOut({ scope: "global" });
@@ -98,8 +138,8 @@ export default function RecuperarSenha() {
         </form>}
         {etapa === "enviado" && <div className={styles.notice} role="status">Se este e-mail estiver cadastrado, você receberá um link. Confira também o spam e abra o link neste mesmo navegador.</div>}
         {etapa === "redefinir" && <form onSubmit={salvar} className={styles.form}>
-          <label>Nova senha<input type="password" autoComplete="new-password" minLength={6} required value={senha} onChange={(e) => setSenha(e.target.value)} disabled={ocupado} /></label>
-          <label>Confirmar nova senha<input type="password" autoComplete="new-password" minLength={6} required value={confirmar} onChange={(e) => setConfirmar(e.target.value)} disabled={ocupado} /></label>
+          <label>Nova senha<input type="password" autoComplete="new-password" minLength={8} required value={senha} onChange={(e) => setSenha(e.target.value)} disabled={ocupado} /></label>
+          <label>Confirmar nova senha<input type="password" autoComplete="new-password" minLength={8} required value={confirmar} onChange={(e) => setConfirmar(e.target.value)} disabled={ocupado} /></label>
           <button className={styles.primary} disabled={ocupado} type="submit">{ocupado ? "Salvando…" : "Salvar nova senha"}</button>
         </form>}
         {etapa === "concluido" && <p className={styles.notice} role="status">Sua senha foi atualizada. Escolha o aplicativo e entre com a nova senha.</p>}
