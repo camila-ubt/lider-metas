@@ -31,6 +31,10 @@ Funções privadas verificam se o usuário está ativo ou se possui papel admini
 
 A migração de segurança mais recente retirou de visitantes e usuários comuns a execução direta de funções que poderiam contornar o fluxo normal de acesso. Somente papéis administrativos do serviço permaneceram autorizados.
 
+## Horários públicos da calculadora
+
+A Calculadora de Metas lê apenas os campos necessários de `configuracao_horarios_periodos`: identificador e horários de início e fim dos períodos. O papel `anon` não possui permissão de escrita nessa tabela e também não pode consultar os campos de auditoria `atualizado_por` e `atualizado_em`.
+
 ## Chaves
 
 - a chave **publishable** é de baixo privilégio e foi criada para uso no navegador;
