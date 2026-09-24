@@ -8,6 +8,7 @@ import {
   limparRateLimitAuth,
   obterBloqueioRateLimitAuth,
   registrarFalhaRateLimitAuth,
+  registrarTentativaRateLimitAuth,
 } from "@/lib/authRateLimit.mjs";
 import styles from "./RecuperarSenha.module.css";
 
@@ -62,8 +63,8 @@ export default function RecuperarSenha() {
         return;
       }
       const { error } = await client.auth.resetPasswordForEmail(emailNormalizado, { redirectTo: RECOVERY_URL });
+      const limite = registrarTentativaRateLimitAuth("recuperacao_email", emailNormalizado);
       if (error) {
-        const limite = registrarFalhaRateLimitAuth("recuperacao_email", emailNormalizado);
         setMensagem(
           limite.bloqueadoAte
             ? `Muitas tentativas de recuperação. Tente novamente em ${formatarTempoEspera(limite.bloqueadoAte - Date.now())}.`
@@ -72,11 +73,10 @@ export default function RecuperarSenha() {
               : "Não foi possível enviar o link. Tente novamente em instantes."
         );
       } else {
-        limparRateLimitAuth("recuperacao_email", emailNormalizado);
         setEtapa("enviado");
       }
     } catch {
-      registrarFalhaRateLimitAuth("recuperacao_email", emailNormalizado);
+      registrarTentativaRateLimitAuth("recuperacao_email", emailNormalizado);
       setMensagem("Não foi possível conectar. Verifique sua conexão e tente novamente.");
     } finally { setOcupado(false); }
   }
