@@ -1,5 +1,16 @@
 # Releases
 
+## v1.4.1 — Restrição do acesso público aos horários
+
+Publicada em **24 de setembro de 2026**.
+
+- leitura anônima da configuração de horários limitada aos campos necessários à Calculadora de Metas;
+- campos de auditoria deixam de ser expostos ao acesso público;
+- operações de escrita continuam restritas aos fluxos autenticados;
+- migration de segurança versionada no repositório.
+
+Esta versão não altera regras de vendas, metas, PA ou cálculos.
+
 ## v1.4.0 — Segurança da autenticação e recuperação
 
 Publicada em **24 de setembro de 2026**.
