@@ -5,7 +5,12 @@ export const AUTH_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 export const AUTH_RATE_LIMIT_BLOCK_MS = 15 * 60 * 1000;
 
 function storagePadrao() {
-  return typeof window !== "undefined" ? window.localStorage : null;
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
 }
 
 function chave(acao, identificador) {
@@ -24,7 +29,11 @@ function ler(storage = storagePadrao()) {
 
 function salvar(valor, storage = storagePadrao()) {
   if (!storage) return;
-  storage.setItem(STORAGE_KEY, JSON.stringify(valor));
+  try {
+    storage.setItem(STORAGE_KEY, JSON.stringify(valor));
+  } catch {
+    // O rate limit local é complementar e não deve impedir o fluxo de autenticação.
+  }
 }
 
 export function obterBloqueioRateLimitAuth(acao, identificador, storage = storagePadrao(), agora = Date.now()) {
@@ -42,7 +51,7 @@ export function obterBloqueioRateLimitAuth(acao, identificador, storage = storag
   return atual.bloqueadoAte - agora;
 }
 
-export function registrarFalhaRateLimitAuth(acao, identificador, storage = storagePadrao(), agora = Date.now()) {
+export function registrarTentativaRateLimitAuth(acao, identificador, storage = storagePadrao(), agora = Date.now()) {
   const limite = ler(storage);
   const id = chave(acao, identificador);
   const atual = limite[id];
@@ -60,6 +69,10 @@ export function registrarFalhaRateLimitAuth(acao, identificador, storage = stora
     bloqueadoAte,
     tentativasRestantes: Math.max(AUTH_RATE_LIMIT_MAX_ATTEMPTS - tentativas, 0),
   };
+}
+
+export function registrarFalhaRateLimitAuth(acao, identificador, storage = storagePadrao(), agora = Date.now()) {
+  return registrarTentativaRateLimitAuth(acao, identificador, storage, agora);
 }
 
 export function limparRateLimitAuth(acao, identificador, storage = storagePadrao()) {
