@@ -1,3 +1,5 @@
+import { validarSenhaSegura } from "./authRateLimit.mjs";
+
 export const RECOVERY_URL = "https://metas-lider.vercel.app/recuperar-senha";
 export const PA_URL = "https://calculo-pa.vercel.app/";
 export const LIDER_URL = "https://metas-lider.vercel.app/";
@@ -46,7 +48,8 @@ export async function validarRecuperacao(auth, endereco) {
 }
 
 export function validarNovaSenha(senha, confirmar) {
-  if (senha.length < 6) return "A senha precisa ter pelo menos 6 caracteres.";
+  const erroSenha = validarSenhaSegura(senha);
+  if (erroSenha) return erroSenha;
   if (senha !== confirmar) return "As senhas não conferem.";
   return "";
 }
