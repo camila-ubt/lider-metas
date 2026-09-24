@@ -13,7 +13,7 @@ Configuração aplicada no Supabase compartilhado em 06/09/2026:
 - Redirect URLs: https://metas-lider.vercel.app/recuperar-senha, https://metas-lider.vercel.app/, https://calculo-pa.vercel.app/ e https://calculo-pa.vercel.app/?recuperacao=1 (compatibilidade).
 - Templates padrão mantidos.
 
-A recuperação usa as variáveis públicas existentes do Supabase do Líder Metas, sem chave administrativa. O pedido começa no domínio compartilhado para manter o verificador PKCE no mesmo navegador. O armazenamento da sessão de recuperação é separado do login normal. Códigos inválidos não reutilizam sessões anteriores. Após atualizar a senha, o cliente solicita encerramento global das sessões.
+A recuperação usa as variáveis públicas existentes do Supabase do Líder Metas, sem chave administrativa. O pedido começa no domínio compartilhado para manter o verificador PKCE no mesmo navegador. O armazenamento da sessão de recuperação é separado do login normal. Códigos inválidos não reutilizam sessões anteriores. Como camada adicional no navegador, falhas consecutivas de recuperação e troca de senha recebem bloqueio temporário. A nova senha precisa ter pelo menos 8 caracteres, com letra maiúscula, minúscula e número. Após atualizar a senha, o cliente solicita encerramento global das sessões.
 
 ## Validação
 
