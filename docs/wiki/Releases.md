@@ -1,5 +1,17 @@
 # Releases
 
+## v1.4.0 — Segurança da autenticação e recuperação
+
+Publicada em **24 de setembro de 2026**.
+
+- limite local de tentativas em login, cadastro, recuperação e troca de senha;
+- bloqueio temporário após cinco falhas consecutivas dentro da janela configurada;
+- novas senhas exigem pelo menos 8 caracteres, com maiúscula, minúscula e número;
+- testes automatizados adicionados para as novas regras de autenticação;
+- recuperação compartilhada entre Líder Metas e Cálculo PA preservada.
+
+Esta versão não altera as regras de vendas, metas, PA ou integração de horários.
+
 ## v1.3.1 — Segurança e atualização de dependências
 
 Publicada em **14 de setembro de 2026**.
