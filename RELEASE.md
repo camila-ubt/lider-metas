@@ -1,32 +1,18 @@
-## v1.4.0 — Segurança da autenticação e recuperação
+## v1.4.1 — Restrição do acesso público aos horários
 
 Publicada em **24 de setembro de 2026**.
 
-Esta versão reforça os fluxos de acesso do Líder Metas e da recuperação compartilhada com o Cálculo PA, sem alterar as regras de vendas, metas ou PA.
+Esta versão registra o endurecimento aplicado no banco para a integração de horários com a Calculadora de Metas.
 
-### Autenticação
+### Segurança do banco
 
-- limite local de tentativas em login e cadastro;
-- bloqueio temporário após cinco falhas em uma janela de dez minutos;
-- bloqueio de quinze minutos após atingir o limite;
-- e-mails normalizados antes das operações de autenticação;
-- bloqueio adicional em falhas de recuperação e troca de senha.
-
-### Senhas
-
-- criação e redefinição passam a exigir no mínimo 8 caracteres;
-- a senha deve conter letra maiúscula, letra minúscula e número;
-- confirmação da nova senha continua obrigatória;
-- sessões continuam sendo encerradas globalmente após a redefinição.
-
-### Validação
-
-- testes automatizados adicionados para regra de senha e rate limit;
-- fluxo compartilhado de recuperação preservado;
-- controles do Supabase continuam sendo a proteção do servidor, com o rate limit local atuando como camada complementar.
+- o papel `anon` mantém leitura apenas de `id`, `manha_inicio`, `manha_fim`, `noite_inicio` e `noite_fim`;
+- os campos de auditoria `atualizado_por` e `atualizado_em` deixam de ficar disponíveis para leitura pública;
+- `INSERT`, `UPDATE`, `DELETE` e `REFERENCES` permanecem indisponíveis ao acesso anônimo;
+- a migration aplicada no Supabase está versionada no repositório.
 
 ### Regras preservadas
 
 - cálculos de Meta, Supermeta, Megameta e PA permanecem inalterados;
-- integração de horários com a Calculadora de Metas permanece inalterada;
-- regras de perfis, lançamentos e conferência permanecem inalteradas.
+- a integração de horários com a Calculadora de Metas continua funcionando normalmente;
+- nenhuma regra de vendas, perfis ou conferência foi alterada.

@@ -23,7 +23,14 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.4.0** — Segurança da autenticação e recuperação.
+**v1.4.1** — Restrição do acesso público aos horários.
+
+## Atualizações da v1.4.1
+
+- acesso público à configuração de horários reduzido somente aos campos usados pela Calculadora de Metas;
+- campos de auditoria deixam de ser expostos ao papel anônimo;
+- operações de escrita permanecem restritas aos fluxos autenticados protegidos pelo banco;
+- regras de metas, vendas, PA e cálculos permanecem inalteradas.
 
 ## Tecnologias
 
