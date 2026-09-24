@@ -42,7 +42,7 @@ Os horários de início e fim dos períodos são mantidos de forma compartilhada
 
 ## Estado do projeto
 
-- versão estável atual: **v1.3.1**;
+- versão estável atual: **v1.4.0**;
 - branch principal protegida por Pull Request;
 - aplicação integrada ao Supabase e publicada pela Vercel;
 - acesso aos dados condicionado à autenticação e às políticas do banco.
