@@ -6,6 +6,7 @@ import {
   limparRateLimitAuth,
   obterBloqueioRateLimitAuth,
   registrarFalhaRateLimitAuth,
+  registrarTentativaRateLimitAuth,
   validarSenhaSegura,
 } from "../src/lib/authRateLimit.mjs";
 import { validarNovaSenha } from "../src/lib/recuperacao.mjs";
@@ -51,4 +52,15 @@ test("sucesso limpa o contador do identificador", () => {
   registrarFalhaRateLimitAuth("cadastro", "pessoa@exemplo.com", storage, 10);
   limparRateLimitAuth("cadastro", "pessoa@exemplo.com", storage);
   assert.equal(obterBloqueioRateLimitAuth("cadastro", "pessoa@exemplo.com", storage, 20), 0);
+});
+
+test("pedidos repetidos de recuperação também entram no limite local", () => {
+  const storage = memoria();
+  const inicio = 2_000_000;
+
+  for (let tentativa = 0; tentativa < AUTH_RATE_LIMIT_MAX_ATTEMPTS; tentativa += 1) {
+    registrarTentativaRateLimitAuth("recuperacao_email", "pessoa@exemplo.com", storage, inicio + tentativa);
+  }
+
+  assert.ok(obterBloqueioRateLimitAuth("recuperacao_email", "pessoa@exemplo.com", storage, inicio + 10) > 0);
 });
