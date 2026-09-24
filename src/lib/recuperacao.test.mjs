@@ -52,8 +52,10 @@ test("ordinary visit needs a recovery-only saved session and a verified user", a
   assert.equal((await validarRecuperacao(saved, RECOVERY_URL)).etapa, "solicitar");
 });
 
-test("password validation rejects short or mismatching values", () => {
+test("password validation requires a strong matching value", () => {
   assert.ok(validarNovaSenha("abc", "abc"));
-  assert.ok(validarNovaSenha("example-one", "example-two"));
-  assert.equal(validarNovaSenha("example-one", "example-one"), "");
+  assert.ok(validarNovaSenha("abcdefgh", "abcdefgh"));
+  assert.ok(validarNovaSenha("ABCDEFG1", "ABCDEFG1"));
+  assert.ok(validarNovaSenha("Senha123", "Senha124"));
+  assert.equal(validarNovaSenha("Senha123", "Senha123"), "");
 });

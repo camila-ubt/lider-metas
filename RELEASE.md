@@ -1,23 +1,32 @@
-## v1.3.1 — Segurança e atualização de dependências
+## v1.4.0 — Segurança da autenticação e recuperação
 
-Publicada em **14 de setembro de 2026**.
+Publicada em **24 de setembro de 2026**.
 
-Esta versão reúne correções técnicas e atualizações de dependências, sem alterar as regras de vendas, metas ou PA.
+Esta versão reforça os fluxos de acesso do Líder Metas e da recuperação compartilhada com o Cálculo PA, sem alterar as regras de vendas, metas ou PA.
 
-### Segurança
+### Autenticação
 
-- correção preventiva no tratamento do percentual exibido no feedback dos turnos;
-- ajuste recomendado pela análise de código do GitHub;
-- verificações automatizadas concluídas com sucesso.
+- limite local de tentativas em login e cadastro;
+- bloqueio temporário após cinco falhas em uma janela de dez minutos;
+- bloqueio de quinze minutos após atingir o limite;
+- e-mails normalizados antes das operações de autenticação;
+- bloqueio adicional em falhas de recuperação e troca de senha.
 
-### Dependências
+### Senhas
 
-- atualização do React e React DOM para 19.3.0;
-- atualização do Supabase SSR e Supabase JS;
-- atualização do ESLint e de dependências de desenvolvimento.
+- criação e redefinição passam a exigir no mínimo 8 caracteres;
+- a senha deve conter letra maiúscula, letra minúscula e número;
+- confirmação da nova senha continua obrigatória;
+- sessões continuam sendo encerradas globalmente após a redefinição.
+
+### Validação
+
+- testes automatizados adicionados para regra de senha e rate limit;
+- fluxo compartilhado de recuperação preservado;
+- controles do Supabase continuam sendo a proteção do servidor, com o rate limit local atuando como camada complementar.
 
 ### Regras preservadas
 
 - cálculos de Meta, Supermeta, Megameta e PA permanecem inalterados;
 - integração de horários com a Calculadora de Metas permanece inalterada;
-- fluxos de acesso, lançamento e conferência permanecem inalterados.
+- regras de perfis, lançamentos e conferência permanecem inalteradas.

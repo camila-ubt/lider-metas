@@ -38,6 +38,14 @@ A migração de segurança mais recente retirou de visitantes e usuários comuns
 - a segurança dos dados depende da combinação entre autenticação, grants e RLS;
 - arquivos de ambiente não são versionados.
 
+## Proteção da autenticação
+
+Além dos limites aplicados pelo próprio serviço de autenticação, o frontend mantém uma camada local contra tentativas repetidas em login, cadastro, recuperação e troca de senha. Após cinco falhas dentro de uma janela de dez minutos, o navegador bloqueia novas tentativas por quinze minutos.
+
+Essa proteção local complementa o Supabase e não substitui os controles do servidor, pois o armazenamento do navegador pode ser limpo ou contornado em outro dispositivo.
+
+Novas senhas exigem pelo menos 8 caracteres, com letra maiúscula, minúscula e número.
+
 ## Segurança do GitHub
 
 - repositório público;

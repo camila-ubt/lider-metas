@@ -61,6 +61,8 @@ Para senha esquecida, utilize o fluxo oficial de recuperação. O link enviado p
 
 A partir da **v1.3.0**, o fluxo aceita a sessão de recuperação enviada no próprio link do e-mail e mantém compatibilidade com links anteriores baseados em código. Links expirados, já utilizados ou inválidos são recusados e exigem uma nova solicitação.
 
+A partir da **v1.4.0**, login, cadastro e recuperação contam também com bloqueio temporário após falhas consecutivas no mesmo navegador. Criação e redefinição de senha exigem pelo menos 8 caracteres, com letra maiúscula, minúscula e número.
+
 ## Responsabilidades
 
 - cada pessoa deve usar sua própria conta;

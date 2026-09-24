@@ -6,6 +6,13 @@ import ManualUsuario from "@/components/ManualUsuario";
 import PAVendedoras from "@/components/PAVendedoras";
 import { createClient } from "@/lib/supabase/client";
 import { RECOVERY_URL } from "@/lib/recuperacao.mjs";
+import {
+  formatarTempoEspera,
+  limparRateLimitAuth,
+  obterBloqueioRateLimitAuth,
+  registrarFalhaRateLimitAuth,
+  validarSenhaSegura,
+} from "@/lib/authRateLimit.mjs";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -74,6 +81,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   const [metas, setMetas] = useState([]);
   const [login, setLogin] = useState({ nome: "", email: "", senha: "" });
   const [modoCadastro, setModoCadastro] = useState(false);
+  const [processandoAuth, setProcessandoAuth] = useState(false);
   const [modalVendaAberto, setModalVendaAberto] = useState(false);
   const [modalMetaAberto, setModalMetaAberto] = useState(false);
   const [lancamento, setLancamento] = useState({
@@ -178,27 +186,68 @@ export default function LiderMetas({ telaInicial = "painel" }) {
 
   async function entrar(evento) {
     evento.preventDefault();
+    if (processandoAuth) return;
     setMensagem("");
 
-    if (modoCadastro) {
-      const { error } = await supabase.auth.signUp({
-        email: login.email,
-        password: login.senha,
-        options: { data: { nome: login.nome } },
-      });
-      setMensagem(
-        error
-          ? error.message
-          : "Cadastro criado. Confirme o e-mail e aguarde a aprovação."
-      );
+    const email = login.email.trim().toLowerCase();
+    const acao = modoCadastro ? "cadastro" : "login";
+    const msBloqueio = obterBloqueioRateLimitAuth(acao, email);
+
+    if (msBloqueio > 0) {
+      setMensagem(`Muitas tentativas. Tente novamente em ${formatarTempoEspera(msBloqueio)}.`);
       return;
     }
 
+    if (modoCadastro) {
+      const erroSenha = validarSenhaSegura(login.senha);
+      if (erroSenha) {
+        setMensagem(erroSenha);
+        return;
+      }
+
+      setProcessandoAuth(true);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password: login.senha,
+        options: { data: { nome: login.nome.trim() } },
+      });
+
+      if (error) {
+        const limite = registrarFalhaRateLimitAuth("cadastro", email);
+        setMensagem(
+          limite.bloqueadoAte
+            ? `Muitas tentativas de cadastro. Tente novamente em ${formatarTempoEspera(limite.bloqueadoAte - Date.now())}.`
+            : error.message
+        );
+        setProcessandoAuth(false);
+        return;
+      }
+
+      limparRateLimitAuth("cadastro", email);
+      setMensagem("Cadastro criado. Confirme o e-mail e aguarde a aprovação.");
+      setProcessandoAuth(false);
+      return;
+    }
+
+    setProcessandoAuth(true);
     const { error } = await supabase.auth.signInWithPassword({
-      email: login.email,
+      email,
       password: login.senha,
     });
-    if (error) setMensagem("E-mail ou senha incorretos.");
+
+    if (error) {
+      const limite = registrarFalhaRateLimitAuth("login", email);
+      setMensagem(
+        limite.bloqueadoAte
+          ? `Muitas tentativas de login. Tente novamente em ${formatarTempoEspera(limite.bloqueadoAte - Date.now())}.`
+          : "E-mail ou senha incorretos."
+      );
+      setProcessandoAuth(false);
+      return;
+    }
+
+    limparRateLimitAuth("login", email);
+    setProcessandoAuth(false);
   }
 
   async function sair() {
@@ -445,7 +494,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
               Senha
               <input
                 type="password"
-                minLength={6}
+                minLength={modoCadastro ? 8 : 6}
                 value={login.senha}
                 onChange={(evento) =>
                   setLogin({ ...login, senha: evento.target.value })
@@ -453,8 +502,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                 required
               />
             </label>
-            <button className="primary-button">
-              {modoCadastro ? "Criar acesso" : "Entrar"}
+            <button className="primary-button" disabled={processandoAuth}>
+              {processandoAuth ? "Aguarde..." : modoCadastro ? "Criar acesso" : "Entrar"}
             </button>
           </form>
 
