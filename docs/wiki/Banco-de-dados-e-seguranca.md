@@ -29,6 +29,8 @@ Funções privadas verificam se o usuário está ativo ou se possui papel admini
 
 A inclusão administrativa de lançamentos de PA também passa por uma função validada no banco. Ela confirma o papel da gestão, a existência da vendedora, a loja ativa, a situação do dia e os limites de vendas e peças antes de gravar o lançamento. Se já existir um registro para a mesma loja e data, a operação é recusada em vez de sobrescrever o histórico. A inclusão e o aviso destinado à vendedora são gravados na mesma operação, evitando que o lançamento seja salvo sem a notificação correspondente.
 
+A remoção administrativa segue o mesmo princípio. A função confere a identidade da vendedora, a data, a loja e os valores atuais antes de excluir. A remoção e o aviso também fazem parte da mesma transação. Se ainda houver outro lançamento naquele dia, apenas a loja escolhida é retirada; se não restar nenhum, o registro do dia é removido para não continuar contando como dia válido no PA.
+
 ## Funções públicas restringidas
 
 A migração de segurança mais recente retirou de visitantes e usuários comuns a execução direta de funções que poderiam contornar o fluxo normal de acesso. Somente papéis administrativos do serviço permaneceram autorizados.
