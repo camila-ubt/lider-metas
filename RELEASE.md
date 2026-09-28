@@ -13,6 +13,7 @@ Esta versão amplia a conferência do PA para que a gestão possa completar lan�
 - a tela atualiza os totais por loja e o detalhamento diário depois da inclusão;
 - se já houver lançamento para a mesma loja e data, o sistema orienta usar **Corrigir**;
 - no detalhamento diário, cada registro passa a ter também a opção **Remover**;
+- a correção deixa de exigir motivo digitado manualmente, pois o aviso já mostra os valores anteriores e os novos;
 - a remoção pede confirmação, retira o registro dos cálculos e gera um aviso para a vendedora;
 - se o lançamento removido era o único daquele dia, a data deixa de contar como dia válido no PA; se havia outra loja no mesmo dia, somente a loja escolhida é removida.
 
