@@ -32,16 +32,22 @@ Se já existir um lançamento para a mesma loja e data, o sistema não cria uma 
 
 A inclusão também gera um aviso no PA da vendedora, mostrando a data e a loja e informando que o lançamento foi adicionado pela gestão. Além disso, uma aprovação anterior daquela loja no mês é invalidada para que a conferência seja refeita com os novos totais.
 
-## Correção de lançamentos
+## Corrigir ou remover lançamentos
 
-No detalhamento diário, a gestão pode corrigir a quantidade de vendas ou peças. Ao salvar:
+No detalhamento diário, a gestão pode **Corrigir** a quantidade de vendas ou peças ou usar **Remover** quando um registro estiver duplicado ou não deveria existir.
+
+Ao remover, o sistema pede confirmação. Se aquele era o único lançamento da data, o dia deixa de contar no PA. Se a vendedora trabalhou em mais de uma loja na mesma data, somente o lançamento da loja escolhida é removido e os demais são preservados.
+
+Tanto a correção quanto a remoção geram um aviso no PA da vendedora e invalidam uma aprovação anterior da loja para que os totais sejam conferidos novamente.
+
+Ao corrigir:
 
 - o cálculo e os totais são atualizados;
 - um aviso é registrado no PA da vendedora;
 - uma aprovação anterior da loja é invalidada;
 - os dados precisam ser conferidos e aprovados novamente.
 
-Esse fluxo mantém a vendedora informada e evita que um resultado alterado permaneça marcado como conferido.
+Na remoção, o aviso registra os valores que foram retirados e identifica que a ação foi feita pela gestão. Esse fluxo mantém a vendedora informada e evita que um resultado alterado permaneça marcado como conferido.
 
 ## Relação com a premiação
 
