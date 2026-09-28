@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import CorrecaoLancamentoPA from "@/components/CorrecaoLancamentoPA";
+import AdicionarLancamentoPA from "@/components/AdicionarLancamentoPA";
 import styles from "@/app/pa-vendedoras/PAVendedoras.module.css";
 
 function inicioMes(mes) {
@@ -39,6 +40,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
   const supabase = useMemo(() => createClient(), []);
   const [resumos, setResumos] = useState([]);
   const [lojasDoMes, setLojasDoMes] = useState([]);
+  const [lojasDisponiveis, setLojasDisponiveis] = useState([]);
   const [aprovacoesDoMes, setAprovacoesDoMes] = useState([]);
   const [vendedora, setVendedora] = useState(null);
   const [lojas, setLojas] = useState([]);
@@ -76,7 +78,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
       setLojasDoMes([]);
       setAprovacoesDoMes([]);
 
-      const [resumosResp, lojasResp, aprovacoesResp] = await Promise.all([
+      const [resumosResp, lojasResp, aprovacoesResp, lojasAtivasResp] = await Promise.all([
         supabase
           .from("resumo_pa_mensal")
           .select("*")
@@ -90,6 +92,11 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
           .from("conferencias_pa")
           .select("usuario_id,mes,loja_id,aprovado_por,aprovado_em")
           .eq("mes", inicioMes(mes)),
+        supabase
+          .from("lojas")
+          .select("id,codigo,nome,ordem")
+          .eq("ativa", true)
+          .order("ordem"),
       ]);
 
       if (cancelado) return;
@@ -113,6 +120,13 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
         setAprovacoesDoMes([]);
       } else {
         setAprovacoesDoMes(aprovacoesResp.data || []);
+      }
+
+      if (lojasAtivasResp.error) {
+        setErro(lojasAtivasResp.error.message);
+        setLojasDisponiveis([]);
+      } else {
+        setLojasDisponiveis(lojasAtivasResp.data || []);
       }
 
       setCarregando(false);
@@ -370,6 +384,20 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
           {carregando && !loja && <p className={styles.muted}>Carregando lojas...</p>}
           {erroAprovacao && <p className={styles.approvalWarning}>{erroAprovacao}</p>}
           {mensagemAprovacao && <p className={styles.approvalMessage}>{mensagemAprovacao}</p>}
+
+          <AdicionarLancamentoPA
+            vendedora={vendedora}
+            mes={mes}
+            lojas={lojasDisponiveis}
+            supabase={supabase}
+            onSalvou={({ data, loja: codigoLoja }) => {
+              const dataFormatada = data.split("-").reverse().join("/");
+              setMensagemCorrecao(`Lançamento de ${dataFormatada} · ${codigoLoja} adicionado e já disponível no PA da vendedora.`);
+              setLoja(null);
+              setDetalhes([]);
+              setRevisao((valor) => valor + 1);
+            }}
+          />
 
           <div className={styles.storeGrid}>
             {lojas.map((item) => {
