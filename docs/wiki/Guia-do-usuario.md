@@ -37,9 +37,10 @@ Quando não houver funcionamento em um período, use a opção específica para 
 3. Confira os totais das lojas e abra o detalhamento diário quando precisar.
 4. Se estiver faltando um registro, use **Adicionar lançamento**, escolha a loja, a data, vendas e peças.
 5. Se houver divergência em um registro existente, abra a loja e use **Corrigir**.
-6. Confira os totais atualizados e, quando estiverem corretos, selecione **Aprovar lançamentos** na loja correspondente.
+6. Se o registro estiver duplicado ou não deveria existir, use **Remover** e confirme a exclusão.
+7. Confira os totais atualizados e, quando estiverem corretos, selecione **Aprovar lançamentos** na loja correspondente.
 
-Um lançamento adicionado pela gestão passa a aparecer no PA da vendedora e também gera um aviso com a data e a loja incluídas. Uma correção continua gerando o aviso correspondente. Tanto uma nova inclusão quanto uma alteração posterior removem a aprovação anterior da loja para que a conferência seja refeita.
+Inclusões, correções e remoções feitas pela gestão geram aviso para a vendedora. Essas alterações também removem uma aprovação anterior da loja para que a conferência seja refeita. Quando o único lançamento de uma data é removido, aquele dia deixa de contar no PA.
 
 ## Fluxo de aprovação de vendedoras
 
