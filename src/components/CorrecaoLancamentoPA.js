@@ -7,7 +7,6 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
   const [aberto, setAberto] = useState(false);
   const [vendas, setVendas] = useState(String(item.vendas));
   const [pecas, setPecas] = useState(String(item.pecas));
-  const [motivo, setMotivo] = useState("");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
   const enviando = useRef(false);
@@ -16,7 +15,6 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
   function abrir() {
     setVendas(String(item.vendas));
     setPecas(String(item.pecas));
-    setMotivo("");
     setErro("");
     setAberto(true);
   }
@@ -68,10 +66,6 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
       setErro("Informe números inteiros de 0 a 999. Peças devem ser iguais ou maiores que vendas.");
       return;
     }
-    if (motivo.trim().length < 3 || motivo.trim().length > 500) {
-      setErro("Descreva o motivo da correção (3 a 500 caracteres).");
-      return;
-    }
     if (v === Number(item.vendas) && p === Number(item.pecas)) {
       setErro("Altere vendas ou peças para salvar a correção.");
       return;
@@ -83,7 +77,7 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
       const { error } = await supabase.rpc("corrigir_lancamento_pa", {
         p_usuario_id: item.usuario_id, p_dia_id: item.dia_id, p_data: item.data,
         p_loja_id: item.loja_id, p_vendas_antes: Number(item.vendas), p_pecas_antes: Number(item.pecas),
-        p_vendas: v, p_pecas: p, p_motivo: motivo.trim(),
+        p_vendas: v, p_pecas: p, p_motivo: "Ajuste de valores pela gestão",
       });
       if (error) throw error;
       setAberto(false);
@@ -125,9 +119,7 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
             <label>Peças<input type="number" min="0" max="999" step="1" required value={pecas}
               disabled={salvando} onChange={(e) => setPecas(e.target.value)} /></label>
           </div>
-          <label>Motivo da correção<textarea required minLength={3} maxLength={500} rows={2}
-            value={motivo} disabled={salvando} onChange={(e) => setMotivo(e.target.value)} /></label>
-          <p className={styles.muted}>A vendedora receberá um aviso no PA. A loja precisará ser conferida novamente.</p>
+          <p className={styles.muted}>A vendedora receberá um aviso mostrando os valores anteriores e os novos. A loja precisará ser conferida novamente.</p>
           {erro && <p className={styles.approvalWarning} role="alert">{erro}</p>}
           <div className={styles.correctionActions}>
             <button type="button" className={styles.textButton} disabled={salvando} onClick={() => setAberto(false)}>Cancelar</button>
