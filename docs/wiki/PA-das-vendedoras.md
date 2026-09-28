@@ -22,6 +22,16 @@ Use **Ver lançamentos** para abrir o detalhamento diário ou **Aprovar lançame
 
 A aprovação é registrada por vendedora, mês e loja. Ela pode ser desfeita pela gestão quando for necessário revisar os dados.
 
+## Adicionar lançamento
+
+Durante a conferência, a gestão pode incluir um lançamento que ficou faltando. O botão **Adicionar lançamento** aparece no resumo da vendedora, antes dos cartões das lojas, para continuar disponível mesmo quando uma das lojas ainda não tem movimento.
+
+Ao abrir o formulário, escolha a loja, a data e informe vendas e peças. O registro é salvo no mesmo PA usado pela vendedora e passa a aparecer normalmente no detalhamento diário e no Cálculo PA.
+
+Se já existir um lançamento para a mesma loja e data, o sistema não cria uma duplicidade e orienta usar **Corrigir**. Datas marcadas como férias, folga, falta, atestado ou não trabalhado também não são alteradas automaticamente.
+
+A inclusão de um novo lançamento invalida uma aprovação anterior daquela loja no mês para que a conferência seja refeita com os novos totais.
+
 ## Correção de lançamentos
 
 No detalhamento diário, a gestão pode corrigir a quantidade de vendas ou peças. Ao salvar:
