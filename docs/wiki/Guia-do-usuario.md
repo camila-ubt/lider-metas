@@ -39,7 +39,7 @@ Quando não houver funcionamento em um período, use a opção específica para 
 5. Se houver divergência em um registro existente, abra a loja e use **Corrigir**.
 6. Confira os totais atualizados e, quando estiverem corretos, selecione **Aprovar lançamentos** na loja correspondente.
 
-Um lançamento adicionado pela gestão passa a aparecer no PA da vendedora. Uma correção gera um aviso para ela. Tanto uma nova inclusão quanto uma alteração posterior removem a aprovação anterior da loja para que a conferência seja refeita.
+Um lançamento adicionado pela gestão passa a aparecer no PA da vendedora e também gera um aviso com a data e a loja incluídas. Uma correção continua gerando o aviso correspondente. Tanto uma nova inclusão quanto uma alteração posterior removem a aprovação anterior da loja para que a conferência seja refeita.
 
 ## Fluxo de aprovação de vendedoras
 
