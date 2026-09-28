@@ -5,7 +5,7 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 ## Principais recursos
 
 - lançamento e conferência de vendas;
-- acompanhamento de metas por período;
+- acompanhamento de metas por período, com cálculo do que falta e distribuição do esforço por loja;
 - painéis, projeções e comparativos;
 - conferência do PA por loja e por vendedora;
 - correção de lançamentos de PA com notificação para a vendedora;
@@ -23,14 +23,14 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.4.1** — Restrição do acesso público aos horários.
+**v1.5.0** — Planejamento da meta por turno.
 
-## Atualizações da v1.4.1
+## Atualizações da v1.5.0
 
-- acesso público à configuração de horários reduzido somente aos campos usados pela Calculadora de Metas;
-- campos de auditoria deixam de ser expostos ao papel anônimo;
-- operações de escrita permanecem restritas aos fluxos autenticados protegidos pelo banco;
-- regras de metas, vendas, PA e cálculos permanecem inalteradas.
+- mostra quanto ainda falta para a Meta nos períodos da manhã e da noite;
+- calcula quantos períodos daquele turno ainda restam no mês usando os horários configurados;
+- divide o valor restante pela quantidade de períodos disponíveis;
+- apresenta também a divisão igual desse valor entre as lojas ativas.
 
 ## Tecnologias
 
