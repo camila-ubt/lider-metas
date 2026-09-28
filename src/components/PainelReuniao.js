@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
+  minutosDoHorario,
+  useHorariosPeriodos,
+} from "@/lib/horariosPeriodos";
+import {
   contextoDoMes,
   nivelDoResultado,
   percentualDoResultado,
@@ -137,6 +141,7 @@ function explicarNota(resumo) {
 
 export default function PainelReuniao() {
   const supabase = useMemo(() => createClient(), []);
+  const horarios = useHorariosPeriodos();
   const [visivel, setVisivel] = useState(false);
   const [mes, setMes] = useState("");
   const [lojas, setLojas] = useState([]);
@@ -216,6 +221,8 @@ export default function PainelReuniao() {
     if (!mes) return null;
 
     const contexto = contextoDoMes(mes);
+    const agora = new Date();
+    const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
     const vendasAteCorte = vendas.filter(
       (item) => Number(item.data.slice(8, 10)) <= contexto.diaCorte,
     );
@@ -316,11 +323,34 @@ export default function PainelReuniao() {
         .sort(
           (a, b) => (b.dados?.percentual ?? -1) - (a.dados?.percentual ?? -1),
         );
+      const fimTurno =
+        periodo === "manha"
+          ? minutosDoHorario(horarios.manhaFim)
+          : Math.max(
+              minutosDoHorario(horarios.manhaFim),
+              minutosDoHorario(horarios.noiteFim),
+            );
+      const periodosRestantes =
+        contexto.tipo === "encerrado"
+          ? 0
+          : contexto.tipo === "futuro"
+            ? contexto.ultimoDia
+            : Math.max(contexto.ultimoDia - contexto.diaCorte, 0) +
+              (minutosAgora < fimTurno ? 1 : 0);
+      const faltaMeta = Math.max(metaTurno - totalAtual, 0);
+      const necessarioPorPeriodo =
+        periodosRestantes > 0 ? faltaMeta / periodosRestantes : 0;
+      const necessarioPorLojaPeriodo =
+        lojas.length > 0 ? necessarioPorPeriodo / lojas.length : 0;
 
       return {
         periodo,
         totalAtual,
         meta: metaTurno,
+        faltaMeta,
+        periodosRestantes,
+        necessarioPorPeriodo,
+        necessarioPorLojaPeriodo,
         percentual: percentualDoResultado(totalAtual, metaTurno),
         nivel: nivelDoResultado(totalAtual, metaTurno),
         mediaAtual,
@@ -367,7 +397,7 @@ export default function PainelReuniao() {
       periodosAtingiram,
       periodosAbaixo,
     };
-  }, [mes, lojas, vendas, historico, metas]);
+  }, [mes, lojas, vendas, historico, metas, horarios]);
 
   if (!visivel || !mes || carregando || !resumo) return null;
 
@@ -530,6 +560,47 @@ export default function PainelReuniao() {
                         : `${percentual.format(turno.percentual)}% · ${turno.nivel}`}
                     </b>
                   </p>
+
+                  {!encerrado && turno.meta > 0 && (
+                    <div className={styles.turnoMetaRestante}>
+                      {turno.faltaMeta > 0 ? (
+                        <>
+                          <p>
+                            <span>Falta para a Meta</span>
+                            <b>{dinheiro.format(turno.faltaMeta)}</b>
+                          </p>
+                          {turno.periodosRestantes > 0 ? (
+                            <>
+                              <p>
+                                <span>
+                                  {turno.periodosRestantes} {turno.periodo === "manha" ? "manhã(s)" : "noite(s)"} restantes
+                                </span>
+                                <b>
+                                  {dinheiro.format(turno.necessarioPorPeriodo)} em cada {turno.periodo === "manha" ? "manhã" : "noite"}
+                                </b>
+                              </p>
+                              <p>
+                                <span>Dividindo igualmente entre {lojas.length} lojas</span>
+                                <b>
+                                  {dinheiro.format(turno.necessarioPorLojaPeriodo)} por loja/{turno.periodo === "manha" ? "manhã" : "noite"}
+                                </b>
+                              </p>
+                            </>
+                          ) : (
+                            <p>
+                              <span>Períodos restantes</span>
+                              <b>Nenhum neste mês</b>
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <p>
+                          <span>Meta do turno</span>
+                          <b>Já atingida</b>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
 
