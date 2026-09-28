@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import styles from "@/app/pa-vendedoras/PAVendedoras.module.css";
 
-export default function CorrecaoLancamentoPA({ item, supabase, onSalvou }) {
+export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemoveu }) {
   const [aberto, setAberto] = useState(false);
   const [vendas, setVendas] = useState(String(item.vendas));
   const [pecas, setPecas] = useState(String(item.pecas));
@@ -19,6 +19,43 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou }) {
     setMotivo("");
     setErro("");
     setAberto(true);
+  }
+
+  async function remover() {
+    if (enviando.current) return;
+
+    const confirmou = typeof window === "undefined"
+      ? true
+      : window.confirm(`Remover o lançamento de ${data} · ${item.loja}? Ele será retirado do PA e a vendedora receberá um aviso.`);
+
+    if (!confirmou) return;
+
+    enviando.current = true;
+    setSalvando(true);
+    setErro("");
+
+    try {
+      const { error } = await supabase.rpc("remover_lancamento_pa_gestao", {
+        p_usuario_id: item.usuario_id,
+        p_dia_id: item.dia_id,
+        p_data: item.data,
+        p_loja_id: item.loja_id,
+        p_vendas_antes: Number(item.vendas),
+        p_pecas_antes: Number(item.pecas),
+      });
+
+      if (error) throw error;
+
+      setAberto(false);
+      onRemoveu();
+    } catch (error) {
+      setErro(error.code === "PGRST202"
+        ? "A remoção de lançamentos ainda precisa ser habilitada."
+        : error.message || "Não foi possível remover. Atualize a tela e tente novamente.");
+    } finally {
+      enviando.current = false;
+      setSalvando(false);
+    }
   }
 
   async function salvar(evento) {
@@ -68,10 +105,16 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou }) {
         <span>{Number(item.vendas)}</span>
         <span>{Number(item.pecas)}</span>
         <span>{Number(item.pa || 0).toFixed(2).replace(".", ",")}</span>
-        <button type="button" className={styles.textButton} onClick={abrir}
-          disabled={salvando} aria-expanded={aberto} aria-label={`Corrigir lançamento de ${data}`}>
-          Corrigir
-        </button>
+        <div className={styles.rowActions}>
+          <button type="button" className={styles.textButton} onClick={abrir}
+            disabled={salvando} aria-expanded={aberto} aria-label={`Corrigir lançamento de ${data}`}>
+            Corrigir
+          </button>
+          <button type="button" className={styles.removeEntryButton} onClick={remover}
+            disabled={salvando} aria-label={`Remover lançamento de ${data}`}>
+            Remover
+          </button>
+        </div>
       </div>
       {aberto && (
         <form className={styles.correctionForm} onSubmit={salvar} aria-label={`Correção de ${data}`}>
