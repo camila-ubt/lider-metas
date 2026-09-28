@@ -8,7 +8,7 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 - acompanhamento de metas por período, com cálculo do que falta e distribuição do esforço por loja;
 - painéis, projeções e comparativos;
 - conferência do PA por loja e por vendedora;
-- correção de lançamentos de PA com notificação para a vendedora;
+- correção e remoção de lançamentos de PA com notificação para a vendedora;
 - inclusão administrativa de lançamentos ausentes diretamente na conferência do PA, com aviso para a vendedora;
 - aprovação e gestão de acesso das vendedoras;
 - separação entre solicitações pendentes, perfis ativos e desativados;
@@ -24,16 +24,17 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.6.0** — Inclusão de lançamentos pela gestão.
+**v1.6.0** — Gestão de lançamentos do PA.
 
 ## Atualizações da v1.6.0
 
 - novo botão **Adicionar lançamento** na conferência de cada vendedora;
 - seleção de loja, data, vendas e peças sem precisar entrar na conta da vendedora;
 - o registro é gravado no mesmo PA e passa a aparecer para a vendedora;
-- a vendedora recebe um aviso informando a data e a loja adicionadas pela gestão;
+- a vendedora recebe aviso quando um lançamento é adicionado ou removido pela gestão;
 - duplicidades são bloqueadas e direcionadas para o fluxo de correção;
-- uma aprovação anterior da loja é invalidada quando um novo lançamento é incluído.
+- remoção administrativa de um lançamento incorreto ou duplicado diretamente no detalhamento diário;
+- uma aprovação anterior da loja é invalidada quando um lançamento é incluído, corrigido ou removido.
 
 ## Tecnologias
 
