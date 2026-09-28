@@ -17,16 +17,18 @@ set search_path = ''
 as $$
 declare
   v_autor uuid := auth.uid();
+  v_nome text;
   v_dia public.dias_pa%rowtype;
   v_lancamento_id bigint;
 begin
-  if v_autor is null or not exists (
-    select 1
-    from public.perfis p
-    where p.id = v_autor
-      and p.ativo
-      and p.papel in ('admin', 'gestora')
-  ) then
+  select coalesce(nullif(btrim(p.nome), ''), 'Gestão')
+    into v_nome
+  from public.perfis p
+  where p.id = v_autor
+    and p.ativo
+    and p.papel in ('admin', 'gestora');
+
+  if v_autor is null or not found then
     raise exception 'Somente a gestão ativa pode adicionar lançamentos.' using errcode = '42501';
   end if;
 
@@ -83,6 +85,20 @@ begin
       raise exception 'Já existe lançamento para essa loja e data. Use Corrigir no detalhamento diário.'
         using errcode = '23505';
   end;
+
+  -- Registra um aviso no mesmo fluxo já usado pelas correções.
+  -- A vendedora verá a data, a loja e a indicação de que o lançamento foi incluído pela gestão.
+  insert into public.correcoes_pa (
+    usuario_id, dia_id, data, loja_id, loja,
+    vendas_antes, pecas_antes, vendas_depois, pecas_depois,
+    motivo, corrigido_por, corrigido_por_nome
+  ) values (
+    p_usuario_id, v_dia.id, p_data, p_loja_id,
+    (select coalesce(l.codigo, l.nome) from public.lojas l where l.id = p_loja_id),
+    0, 0, p_vendas, p_pecas,
+    'Lançamento adicionado pela gestão',
+    v_autor, v_nome
+  );
 
   -- O trigger de lancamentos_pa invalida automaticamente uma conferência anterior da loja/mês.
   return v_lancamento_id;
