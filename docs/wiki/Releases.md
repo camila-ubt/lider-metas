@@ -1,5 +1,17 @@
 # Releases
 
+## v1.5.0 — Planejamento da meta por turno
+
+Publicada em **28 de setembro de 2026**.
+
+- detalhamento de quanto falta para a Meta nos períodos da manhã e da noite;
+- contagem dos períodos restantes considerando o horário final de cada turno;
+- cálculo da necessidade média por período restante;
+- divisão igual dessa necessidade entre as lojas ativas;
+- indicação direta quando a Meta do turno já foi atingida.
+
+A atualização amplia a leitura gerencial do mês sem alterar metas, lançamentos ou regras de PA.
+
 ## v1.4.1 — Restrição do acesso público aos horários
 
 Publicada em **24 de setembro de 2026**.
