@@ -10,6 +10,7 @@ Publicada em **28 de setembro de 2026**.
 - aviso automático para a vendedora quando a gestão adiciona um lançamento;
 - botão **Remover** no detalhamento diário para excluir registros incorretos ou duplicados;
 - aviso automático para a vendedora também nas remoções;
+- correção sem campo de observação obrigatório, usando os valores antes e depois no próprio aviso;
 - remoção apenas da loja escolhida quando houver mais de um lançamento no mesmo dia;
 - exclusão do dia do cálculo quando o registro removido era o único daquela data;
 - bloqueio de duplicidade para a mesma loja e data, mantendo **Corrigir** como fluxo de edição;
