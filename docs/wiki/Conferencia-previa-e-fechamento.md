@@ -25,6 +25,7 @@ O recurso reúne:
 - evolução acumulada;
 - ranking por loja;
 - comparativo histórico;
+- quanto falta para a Meta de manhã e noite, com necessidade média por período restante e por loja;
 - insights de leitura gerencial.
 
 ## Verificação de pendências
@@ -40,6 +41,10 @@ Uma prévia parcial não deve ser tratada como fechamento definitivo.
 ## Resultado por loja e período
 
 O relatório consolida cada loja e também separa os períodos. Dessa forma, um resultado geral positivo pode ser analisado junto de áreas específicas que ainda precisam de atenção.
+
+Nos meses em andamento, o bloco de manhã e noite informa quanto falta para a Meta, quantos períodos daquele turno ainda existem no mês e quanto seria necessário em cada um deles. Também mostra uma referência por loja, dividindo esse valor igualmente entre as lojas ativas.
+
+A contagem acompanha o horário final configurado para cada turno: depois que a manhã termina, ela deixa de contar o dia atual; a noite continua contando enquanto ainda estiver em andamento.
 
 ## Exportação
 
