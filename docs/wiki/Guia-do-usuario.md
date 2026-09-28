@@ -36,7 +36,7 @@ Quando não houver funcionamento em um período, use a opção específica para 
 2. Escolha a vendedora para ver os totais por loja.
 3. Confira os totais das lojas e abra o detalhamento diário quando precisar.
 4. Se estiver faltando um registro, use **Adicionar lançamento**, escolha a loja, a data, vendas e peças.
-5. Se houver divergência em um registro existente, abra a loja e use **Corrigir**.
+5. Se houver divergência em um registro existente, abra a loja e use **Corrigir**. Basta ajustar vendas e peças; não é necessário escrever motivo.
 6. Se o registro estiver duplicado ou não deveria existir, use **Remover** e confirme a exclusão.
 7. Confira os totais atualizados e, quando estiverem corretos, selecione **Aprovar lançamentos** na loja correspondente.
 
