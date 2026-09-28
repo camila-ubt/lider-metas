@@ -28,5 +28,5 @@ jobs:
             exit 0
           fi
           git add .
-          git commit -m "docs: atualizar Wiki para a versão 1.2.0"
+          git commit -m "docs: sincronizar Wiki"
           git push

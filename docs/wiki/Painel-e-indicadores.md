@@ -12,6 +12,8 @@ Apresenta o total vendido e a situação dos três níveis:
 
 Em mês em andamento, os cards mostram o que falta no total e a necessidade média nas oportunidades restantes. Em mês encerrado, mostram a diferença final e uma média diária equivalente.
 
+A partir da **v1.5.0**, o detalhamento de manhã e noite também mostra quanto falta para a Meta do turno, quantos períodos ainda restam e a média necessária por período. O painel apresenta ainda a divisão igual dessa necessidade entre as lojas ativas, como referência de planejamento.
+
 ## Ranking
 
 As lojas são ordenadas pelo percentual da Meta atingido. Ao abrir uma loja, o aplicativo detalha:

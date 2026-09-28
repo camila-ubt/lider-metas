@@ -1,18 +1,25 @@
-## v1.4.1 — Restrição do acesso público aos horários
+## v1.5.0 — Planejamento da meta por turno
 
-Publicada em **24 de setembro de 2026**.
+Publicada em **28 de setembro de 2026**.
 
-Esta versão registra o endurecimento aplicado no banco para a integração de horários com a Calculadora de Metas.
+Esta versão amplia a leitura dos períodos da manhã e da noite no painel de reunião, deixando mais claro o esforço necessário para atingir a Meta até o fim do mês.
 
-### Segurança do banco
+### Planejamento por turno
 
-- o papel `anon` mantém leitura apenas de `id`, `manha_inicio`, `manha_fim`, `noite_inicio` e `noite_fim`;
-- os campos de auditoria `atualizado_por` e `atualizado_em` deixam de ficar disponíveis para leitura pública;
-- `INSERT`, `UPDATE`, `DELETE` e `REFERENCES` permanecem indisponíveis ao acesso anônimo;
-- a migration aplicada no Supabase está versionada no repositório.
+- mostra quanto ainda falta para a Meta de cada período;
+- informa quantas manhãs ou noites ainda restam no mês;
+- calcula quanto precisa ser vendido, em média, em cada período restante;
+- divide esse valor igualmente entre as lojas ativas para mostrar uma referência por loja e por período;
+- quando a Meta do turno já foi atingida, o painel informa essa situação diretamente.
+
+### Regra de tempo
+
+- o dia atual deixa de contar para a manhã depois do horário final configurado para esse período;
+- a noite do dia atual continua sendo considerada enquanto o horário final da noite ainda não tiver passado;
+- meses encerrados não possuem períodos restantes.
 
 ### Regras preservadas
 
-- cálculos de Meta, Supermeta, Megameta e PA permanecem inalterados;
-- a integração de horários com a Calculadora de Metas continua funcionando normalmente;
-- nenhuma regra de vendas, perfis ou conferência foi alterada.
+- as metas cadastradas e os lançamentos de vendas não são alterados por esse cálculo;
+- Meta, Supermeta, Megameta, PA e demais indicadores continuam com as regras existentes;
+- a mudança é apenas de leitura e planejamento no painel gerencial.
