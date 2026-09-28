@@ -9,6 +9,7 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 - painéis, projeções e comparativos;
 - conferência do PA por loja e por vendedora;
 - correção de lançamentos de PA com notificação para a vendedora;
+- inclusão administrativa de lançamentos ausentes diretamente na conferência do PA;
 - aprovação e gestão de acesso das vendedoras;
 - separação entre solicitações pendentes, perfis ativos e desativados;
 - horários de manhã e noite compartilhados com a Calculadora de Metas;
@@ -23,14 +24,15 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.5.0** — Planejamento da meta por turno.
+**v1.6.0** — Inclusão de lançamentos pela gestão.
 
-## Atualizações da v1.5.0
+## Atualizações da v1.6.0
 
-- mostra quanto ainda falta para a Meta nos períodos da manhã e da noite;
-- calcula quantos períodos daquele turno ainda restam no mês usando os horários configurados;
-- divide o valor restante pela quantidade de períodos disponíveis;
-- apresenta também a divisão igual desse valor entre as lojas ativas.
+- novo botão **Adicionar lançamento** na conferência de cada vendedora;
+- seleção de loja, data, vendas e peças sem precisar entrar na conta da vendedora;
+- o registro é gravado no mesmo PA e passa a aparecer para a vendedora;
+- duplicidades são bloqueadas e direcionadas para o fluxo de correção;
+- uma aprovação anterior da loja é invalidada quando um novo lançamento é incluído.
 
 ## Tecnologias
 
