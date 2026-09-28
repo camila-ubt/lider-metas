@@ -1,25 +1,26 @@
-## v1.5.0 — Planejamento da meta por turno
+## v1.6.0 — Inclusão de lançamentos pela gestão
 
 Publicada em **28 de setembro de 2026**.
 
-Esta versão amplia a leitura dos períodos da manhã e da noite no painel de reunião, deixando mais claro o esforço necessário para atingir a Meta até o fim do mês.
+Esta versão permite completar lançamentos ausentes durante a conferência do PA, sem precisar acessar a conta da vendedora.
 
-### Planejamento por turno
+### Novo fluxo na conferência
 
-- mostra quanto ainda falta para a Meta de cada período;
-- informa quantas manhãs ou noites ainda restam no mês;
-- calcula quanto precisa ser vendido, em média, em cada período restante;
-- divide esse valor igualmente entre as lojas ativas para mostrar uma referência por loja e por período;
-- quando a Meta do turno já foi atingida, o painel informa essa situação diretamente.
+- o botão **Adicionar lançamento** fica no resumo da vendedora, acima dos cartões das lojas;
+- a gestão escolhe a loja, a data, a quantidade de vendas e a quantidade de peças;
+- o lançamento é gravado no mesmo banco usado pelo Cálculo PA e passa a aparecer para a vendedora;
+- a tela atualiza os totais por loja e o detalhamento diário depois da inclusão;
+- se já houver lançamento para a mesma loja e data, o sistema orienta usar **Corrigir**.
 
-### Regra de tempo
+### Validações e segurança
 
-- o dia atual deixa de contar para a manhã depois do horário final configurado para esse período;
-- a noite do dia atual continua sendo considerada enquanto o horário final da noite ainda não tiver passado;
-- meses encerrados não possuem períodos restantes.
+- somente perfis ativos de administração ou gestão podem usar a nova operação;
+- vendas e peças aceitam apenas números inteiros de 0 a 999;
+- a quantidade de peças não pode ser menor que a de vendas;
+- datas já marcadas como férias, folga, falta, atestado ou não trabalhado não são alteradas automaticamente;
+- somente lojas ativas podem receber novos lançamentos;
+- um novo lançamento invalida uma aprovação anterior daquela loja no mês, exigindo nova conferência.
 
-### Regras preservadas
+### Documentação
 
-- as metas cadastradas e os lançamentos de vendas não são alterados por esse cálculo;
-- Meta, Supermeta, Megameta, PA e demais indicadores continuam com as regras existentes;
-- a mudança é apenas de leitura e planejamento no painel gerencial.
+A Wiki, o README e o rodapé do aplicativo foram atualizados para a v1.6.0.
