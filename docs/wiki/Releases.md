@@ -1,5 +1,19 @@
 # Releases
 
+## v1.6.0 — Inclusão de lançamentos pela gestão
+
+Publicada em **28 de setembro de 2026**.
+
+- novo botão **Adicionar lançamento** no resumo da vendedora;
+- escolha de loja, data, vendas e peças diretamente pela gestão;
+- lançamento gravado no mesmo PA e refletido para a vendedora;
+- bloqueio de duplicidade para a mesma loja e data, mantendo **Corrigir** como fluxo de edição;
+- validação de loja ativa, quantidades e situação do dia;
+- aprovação anterior da loja invalidada automaticamente após a inclusão;
+- testes automatizados para autorização, duplicidade, validações e invalidação da conferência.
+
+A mudança foi criada para completar lançamentos ausentes durante a conferência sem exigir acesso à conta da vendedora.
+
 ## v1.5.0 — Planejamento da meta por turno
 
 Publicada em **28 de setembro de 2026**.
