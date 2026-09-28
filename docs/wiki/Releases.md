@@ -7,6 +7,7 @@ Publicada em **28 de setembro de 2026**.
 - novo botão **Adicionar lançamento** no resumo da vendedora;
 - escolha de loja, data, vendas e peças diretamente pela gestão;
 - lançamento gravado no mesmo PA e refletido para a vendedora;
+- aviso automático para a vendedora com a data e a loja adicionadas pela gestão;
 - bloqueio de duplicidade para a mesma loja e data, mantendo **Corrigir** como fluxo de edição;
 - validação de loja ativa, quantidades e situação do dia;
 - aprovação anterior da loja invalidada automaticamente após a inclusão;
