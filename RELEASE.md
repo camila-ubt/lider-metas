@@ -9,6 +9,7 @@ Esta versão permite completar lançamentos ausentes durante a conferência do P
 - o botão **Adicionar lançamento** fica no resumo da vendedora, acima dos cartões das lojas;
 - a gestão escolhe a loja, a data, a quantidade de vendas e a quantidade de peças;
 - o lançamento é gravado no mesmo banco usado pelo Cálculo PA e passa a aparecer para a vendedora;
+- um aviso é registrado para ela com a data, a loja e a informação de que o lançamento foi adicionado pela gestão;
 - a tela atualiza os totais por loja e o detalhamento diário depois da inclusão;
 - se já houver lançamento para a mesma loja e data, o sistema orienta usar **Corrigir**.
 
