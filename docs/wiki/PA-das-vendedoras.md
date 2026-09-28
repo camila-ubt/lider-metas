@@ -30,7 +30,7 @@ Ao abrir o formulário, escolha a loja, a data e informe vendas e peças. O regi
 
 Se já existir um lançamento para a mesma loja e data, o sistema não cria uma duplicidade e orienta usar **Corrigir**. Datas marcadas como férias, folga, falta, atestado ou não trabalhado também não são alteradas automaticamente.
 
-A inclusão de um novo lançamento invalida uma aprovação anterior daquela loja no mês para que a conferência seja refeita com os novos totais.
+A inclusão também gera um aviso no PA da vendedora, mostrando a data e a loja e informando que o lançamento foi adicionado pela gestão. Além disso, uma aprovação anterior daquela loja no mês é invalidada para que a conferência seja refeita com os novos totais.
 
 ## Correção de lançamentos
 
