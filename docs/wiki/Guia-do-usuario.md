@@ -34,11 +34,12 @@ Quando não houver funcionamento em um período, use a opção específica para 
 
 1. Abra **PA das vendedoras** e confirme o mês selecionado.
 2. Escolha a vendedora para ver os totais por loja.
-3. Abra a loja e confira vendas, peças e PA dia a dia.
-4. Se houver divergência, corrija o lançamento e confira os totais atualizados.
-5. Quando os dados estiverem corretos, selecione **Aprovar lançamentos** na loja correspondente.
+3. Confira os totais das lojas e abra o detalhamento diário quando precisar.
+4. Se estiver faltando um registro, use **Adicionar lançamento**, escolha a loja, a data, vendas e peças.
+5. Se houver divergência em um registro existente, abra a loja e use **Corrigir**.
+6. Confira os totais atualizados e, quando estiverem corretos, selecione **Aprovar lançamentos** na loja correspondente.
 
-Uma correção gera um aviso no PA da vendedora. Se um lançamento já aprovado for alterado depois, a aprovação da loja é removida automaticamente e a conferência deve ser refeita.
+Um lançamento adicionado pela gestão passa a aparecer no PA da vendedora. Uma correção gera um aviso para ela. Tanto uma nova inclusão quanto uma alteração posterior removem a aprovação anterior da loja para que a conferência seja refeita.
 
 ## Fluxo de aprovação de vendedoras
 
