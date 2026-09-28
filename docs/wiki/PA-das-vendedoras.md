@@ -40,7 +40,9 @@ Ao remover, o sistema pede confirmação. Se aquele era o único lançamento da 
 
 Tanto a correção quanto a remoção geram um aviso no PA da vendedora e invalidam uma aprovação anterior da loja para que os totais sejam conferidos novamente.
 
-Ao corrigir:
+Ao corrigir, não é necessário escrever uma observação: o próprio aviso mostra os valores anteriores e os novos.
+
+Ao salvar a correção:
 
 - o cálculo e os totais são atualizados;
 - um aviso é registrado no PA da vendedora;
