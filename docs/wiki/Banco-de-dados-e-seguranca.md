@@ -27,7 +27,7 @@ Em resumo:
 
 Funções privadas verificam se o usuário está ativo ou se possui papel administrativo. Elas usam o identificador da sessão, não informações informadas pela interface.
 
-A inclusão administrativa de lançamentos de PA também passa por uma função validada no banco. Ela confirma o papel da gestão, a existência da vendedora, a loja ativa, a situação do dia e os limites de vendas e peças antes de gravar o lançamento. Se já existir um registro para a mesma loja e data, a operação é recusada em vez de sobrescrever o histórico.
+A inclusão administrativa de lançamentos de PA também passa por uma função validada no banco. Ela confirma o papel da gestão, a existência da vendedora, a loja ativa, a situação do dia e os limites de vendas e peças antes de gravar o lançamento. Se já existir um registro para a mesma loja e data, a operação é recusada em vez de sobrescrever o histórico. A inclusão e o aviso destinado à vendedora são gravados na mesma operação, evitando que o lançamento seja salvo sem a notificação correspondente.
 
 ## Funções públicas restringidas
 
