@@ -68,6 +68,7 @@ test("inclusão administrativa de lançamento de PA", async (t) => {
 
   for (const name of [
     "20260903222000_criar_conferencias_pa.sql",
+    "20260904014006_correcoes_pa_com_notificacao.sql",
     "20260928225500_adicionar_lancamento_pa_gestao.sql",
   ]) {
     await db.exec(await readFile(new URL(`../supabase/migrations/${name}`, import.meta.url), "utf8"));
@@ -112,6 +113,20 @@ test("inclusão administrativa de lançamento de PA", async (t) => {
     )).rows[0];
     assert.equal(lancamento.vendas, 4);
     assert.equal(lancamento.pecas, 9);
+
+    const aviso = (await db.query(
+      "select * from public.correcoes_pa where usuario_id=$1 and dia_id=$2",
+      [vendedora, dia.id],
+    )).rows[0];
+    assert.equal(aviso.loja, "CB");
+    assert.equal(aviso.vendas_antes, 0);
+    assert.equal(aviso.pecas_antes, 0);
+    assert.equal(aviso.vendas_depois, 4);
+    assert.equal(aviso.pecas_depois, 9);
+    assert.equal(aviso.motivo, "Lançamento adicionado pela gestão");
+    assert.equal(aviso.corrigido_por, gestora);
+    assert.equal(aviso.corrigido_por_nome, "Gestora");
+    assert.equal(aviso.lida_em, null);
   });
 
   await t.test("novo lançamento invalida a aprovação da loja no mês", async () => {
