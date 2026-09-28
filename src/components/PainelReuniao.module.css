@@ -6,3 +6,5 @@
 .acoes{margin-top:14px;background:#f7f2fa;border-radius:18px;padding:16px}.acoes label{display:flex;align-items:flex-start;gap:9px;padding:9px 0;font-size:14px;line-height:1.45}.acoes input{margin-top:3px}.acoes span{display:block}.acoes p{margin:7px 0;font-size:14px;line-height:1.45}
 @media(max-width:760px){.wrap{margin:18px 12px;padding:16px;border-radius:20px}.header{align-items:flex-start}.header h2{font-size:20px}.score{min-width:96px;padding:10px 12px}.score strong{font-size:24px}.grid,.turnosGrid{grid-template-columns:1fr}.turnoLojas{grid-template-columns:1fr 1fr}}
 @media(max-width:430px){.turnoLojas{grid-template-columns:1fr}.header{gap:10px}.score{min-width:86px}.score span{font-size:10px}}
+
+.turnoMetaRestante{display:grid;gap:8px;margin-top:12px;padding:11px 12px;border-radius:12px;background:#fbf7fd;border:1px solid #eee4f3}.turnoMetaRestante p{display:grid;gap:2px;margin:0!important;font-size:12px!important;line-height:1.4}.turnoMetaRestante span{color:#746a79}.turnoMetaRestante b{color:#4a3657;font-size:13px}
