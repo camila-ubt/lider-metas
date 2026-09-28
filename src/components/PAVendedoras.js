@@ -457,6 +457,12 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
                 onSalvou={() => {
                   setMensagemCorrecao("Correção salva e aviso registrado no PA da vendedora. Confira os totais atualizados antes de aprovar novamente.");
                   setRevisao((valor) => valor + 1);
+                }}
+                onRemoveu={() => {
+                  setMensagemCorrecao("Lançamento removido e aviso registrado no PA da vendedora. Confira os totais atualizados antes de aprovar novamente.");
+                  setLoja(null);
+                  setDetalhes([]);
+                  setRevisao((valor) => valor + 1);
                 }} />
             ))}
           </div>
