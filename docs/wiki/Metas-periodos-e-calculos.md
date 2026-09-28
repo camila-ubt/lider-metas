@@ -28,6 +28,27 @@ Quando há oportunidades restantes:
 
 Cada loja e período possui seus próprios valores. Por isso, um período pode atingir um nível diferente do total combinado.
 
+## Planejamento por turno
+
+A partir da **v1.5.0**, o painel de reunião detalha também o esforço restante para a Meta de cada turno.
+
+Para manhã e noite, o sistema apresenta:
+
+- quanto ainda falta para a Meta daquele período;
+- quantos períodos daquele turno ainda restam no mês;
+- quanto precisa ser vendido, em média, em cada período restante;
+- quanto desse valor corresponderia a cada loja ativa se a necessidade fosse dividida igualmente.
+
+As referências são calculadas assim:
+
+`necessário por período = falta para a Meta ÷ períodos restantes`
+
+`necessário por loja/período = necessário por período ÷ lojas ativas`
+
+A contagem respeita os horários configurados. Depois do encerramento da manhã, o dia atual não entra mais como manhã disponível. Enquanto a noite ainda não terminou, a noite do próprio dia continua entrando na conta.
+
+Esses valores servem como referência de planejamento. Eles não alteram metas nem lançamentos já registrados.
+
 ## Contexto do mês
 
 ### Mês futuro
