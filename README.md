@@ -8,7 +8,7 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 - acompanhamento de metas por período, com cálculo do que falta e distribuição do esforço por loja;
 - painéis, projeções e comparativos;
 - conferência do PA por loja e por vendedora;
-- correção e remoção de lançamentos de PA com notificação para a vendedora;
+- correção e remoção de lançamentos de PA com notificação para a vendedora, sem exigir observação manual na correção;
 - inclusão administrativa de lançamentos ausentes diretamente na conferência do PA, com aviso para a vendedora;
 - aprovação e gestão de acesso das vendedoras;
 - separação entre solicitações pendentes, perfis ativos e desativados;
