@@ -507,21 +507,19 @@
 }
 
 
-/* Ações administrativas no detalhamento diário do PA. */
-.rowActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  white-space: nowrap;
-}
-
+/* Ações administrativas dentro da edição do lançamento. */
 .removeEntryButton {
-  border: 0;
-  background: transparent;
-  color: #a13d55;
+  border: 1px solid #d9a8b5;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #fff4f6;
+  color: #96384f;
   font-weight: 700;
   cursor: pointer;
+}
+
+.removeEntryButton:hover:not(:disabled) {
+  background: #fde9ee;
 }
 
 .removeEntryButton:disabled {
@@ -529,10 +527,6 @@
   cursor: wait;
 }
 
-@media (max-width: 760px) {
-  .rowActions {
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-  }
+.correctionActionSpacer {
+  flex: 1 1 auto;
 }
