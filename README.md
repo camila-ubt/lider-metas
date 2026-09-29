@@ -33,7 +33,7 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 - o registro é gravado no mesmo PA e passa a aparecer para a vendedora;
 - a vendedora recebe aviso quando um lançamento é adicionado ou removido pela gestão;
 - duplicidades são bloqueadas e direcionadas para o fluxo de correção;
-- remoção administrativa de um lançamento incorreto ou duplicado diretamente no detalhamento diário;
+- remoção administrativa de um lançamento incorreto ou duplicado disponível somente após abrir **Editar**, reduzindo o risco de exclusão acidental;
 - uma aprovação anterior da loja é invalidada quando um lançamento é incluído, corrigido ou removido.
 
 ## Tecnologias
