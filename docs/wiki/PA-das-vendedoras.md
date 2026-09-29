@@ -34,9 +34,9 @@ A inclusão também gera um aviso no PA da vendedora, mostrando a data e a loja 
 
 ## Corrigir ou remover lançamentos
 
-No detalhamento diário, a gestão pode **Corrigir** a quantidade de vendas ou peças ou usar **Remover** quando um registro estiver duplicado ou não deveria existir.
+No detalhamento diário, a gestão abre **Editar** para alterar vendas e peças. A opção **Remover lançamento** fica dentro dessa edição, evitando dois botões pequenos lado a lado e reduzindo o risco de excluir por engano.
 
-Ao remover, o sistema pede confirmação. Se aquele era o único lançamento da data, o dia deixa de contar no PA. Se a vendedora trabalhou em mais de uma loja na mesma data, somente o lançamento da loja escolhida é removido e os demais são preservados.
+Ao remover, o sistema ainda pede confirmação. Se aquele era o único lançamento da data, o dia deixa de contar no PA. Se a vendedora trabalhou em mais de uma loja na mesma data, somente o lançamento da loja escolhida é removido e os demais são preservados.
 
 Tanto a correção quanto a remoção geram um aviso no PA da vendedora e invalidam uma aprovação anterior da loja para que os totais sejam conferidos novamente.
 
