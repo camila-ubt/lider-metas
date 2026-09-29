@@ -99,20 +99,14 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
         <span>{Number(item.vendas)}</span>
         <span>{Number(item.pecas)}</span>
         <span>{Number(item.pa || 0).toFixed(2).replace(".", ",")}</span>
-        <div className={styles.rowActions}>
-          <button type="button" className={styles.textButton} onClick={abrir}
-            disabled={salvando} aria-expanded={aberto} aria-label={`Corrigir lançamento de ${data}`}>
-            Corrigir
-          </button>
-          <button type="button" className={styles.removeEntryButton} onClick={remover}
-            disabled={salvando} aria-label={`Remover lançamento de ${data}`}>
-            Remover
-          </button>
-        </div>
+        <button type="button" className={styles.textButton} onClick={abrir}
+          disabled={salvando} aria-expanded={aberto} aria-label={`Editar lançamento de ${data}`}>
+          Editar
+        </button>
       </div>
       {aberto && (
         <form className={styles.correctionForm} onSubmit={salvar} aria-label={`Correção de ${data}`}>
-          <p><strong>Corrigir {data} · {item.loja}</strong></p>
+          <p><strong>Editar {data} · {item.loja}</strong></p>
           <div className={styles.correctionFields}>
             <label>Vendas<input type="number" min="0" max="999" step="1" required value={vendas}
               disabled={salvando} onChange={(e) => setVendas(e.target.value)} /></label>
@@ -122,6 +116,10 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
           <p className={styles.muted}>A vendedora receberá um aviso mostrando os valores anteriores e os novos. A loja precisará ser conferida novamente.</p>
           {erro && <p className={styles.approvalWarning} role="alert">{erro}</p>}
           <div className={styles.correctionActions}>
+            <button type="button" className={styles.removeEntryButton} disabled={salvando} onClick={remover}>
+              Remover lançamento
+            </button>
+            <span className={styles.correctionActionSpacer} aria-hidden="true" />
             <button type="button" className={styles.textButton} disabled={salvando} onClick={() => setAberto(false)}>Cancelar</button>
             <button type="submit" className={styles.saveCorrection} disabled={salvando}>{salvando ? "Salvando..." : "Salvar correção"}</button>
           </div>
