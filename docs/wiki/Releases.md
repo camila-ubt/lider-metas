@@ -8,7 +8,7 @@ Publicada em **28 de setembro de 2026**.
 - escolha de loja, data, vendas e peças diretamente pela gestão;
 - lançamento gravado no mesmo PA e refletido para a vendedora;
 - aviso automático para a vendedora quando a gestão adiciona um lançamento;
-- botão **Remover** no detalhamento diário para excluir registros incorretos ou duplicados;
+- o detalhamento diário mantém apenas o botão **Editar**; **Remover lançamento** fica dentro da edição para evitar exclusão acidental;
 - aviso automático para a vendedora também nas remoções;
 - correção sem campo de observação obrigatório, usando os valores antes e depois no próprio aviso;
 - remoção apenas da loja escolhida quando houver mais de um lançamento no mesmo dia;
