@@ -22,16 +22,34 @@ Use **Ver lançamentos** para abrir o detalhamento diário ou **Aprovar lançame
 
 A aprovação é registrada por vendedora, mês e loja. Ela pode ser desfeita pela gestão quando for necessário revisar os dados.
 
-## Correção de lançamentos
+## Adicionar lançamento
 
-No detalhamento diário, a gestão pode corrigir a quantidade de vendas ou peças. Ao salvar:
+Durante a conferência, a gestão pode incluir um lançamento que ficou faltando. O botão **Adicionar lançamento** aparece no resumo da vendedora, antes dos cartões das lojas, para continuar disponível mesmo quando uma das lojas ainda não tem movimento.
+
+Ao abrir o formulário, escolha a loja, a data e informe vendas e peças. O registro é salvo no mesmo PA usado pela vendedora e passa a aparecer normalmente no detalhamento diário e no Cálculo PA.
+
+Se já existir um lançamento para a mesma loja e data, o sistema não cria uma duplicidade e orienta usar **Corrigir**. Datas marcadas como férias, folga, falta, atestado ou não trabalhado também não são alteradas automaticamente.
+
+A inclusão também gera um aviso no PA da vendedora, mostrando a data e a loja e informando que o lançamento foi adicionado pela gestão. Além disso, uma aprovação anterior daquela loja no mês é invalidada para que a conferência seja refeita com os novos totais.
+
+## Corrigir ou remover lançamentos
+
+No detalhamento diário, a gestão abre **Editar** para alterar vendas e peças. A opção **Remover lançamento** fica dentro dessa edição, evitando dois botões pequenos lado a lado e reduzindo o risco de excluir por engano.
+
+Ao remover, o sistema ainda pede confirmação. Se aquele era o único lançamento da data, o dia deixa de contar no PA. Se a vendedora trabalhou em mais de uma loja na mesma data, somente o lançamento da loja escolhida é removido e os demais são preservados.
+
+Tanto a correção quanto a remoção geram um aviso no PA da vendedora e invalidam uma aprovação anterior da loja para que os totais sejam conferidos novamente.
+
+Ao corrigir, não é necessário escrever uma observação: o próprio aviso mostra os valores anteriores e os novos.
+
+Ao salvar a correção:
 
 - o cálculo e os totais são atualizados;
 - um aviso é registrado no PA da vendedora;
 - uma aprovação anterior da loja é invalidada;
 - os dados precisam ser conferidos e aprovados novamente.
 
-Esse fluxo mantém a vendedora informada e evita que um resultado alterado permaneça marcado como conferido.
+Na remoção, o aviso registra os valores que foram retirados e identifica que a ação foi feita pela gestão. Esse fluxo mantém a vendedora informada e evita que um resultado alterado permaneça marcado como conferido.
 
 ## Relação com a premiação
 

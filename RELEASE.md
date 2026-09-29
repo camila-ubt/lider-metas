@@ -1,25 +1,32 @@
-## v1.5.0 — Planejamento da meta por turno
+## v1.6.0 — Gestão de lançamentos do PA
 
 Publicada em **28 de setembro de 2026**.
 
-Esta versão amplia a leitura dos períodos da manhã e da noite no painel de reunião, deixando mais claro o esforço necessário para atingir a Meta até o fim do mês.
+Esta versão amplia a conferência do PA para que a gestão possa completar lançamentos ausentes e remover registros incorretos ou duplicados sem acessar a conta da vendedora.
 
-### Planejamento por turno
+### Novo fluxo na conferência
 
-- mostra quanto ainda falta para a Meta de cada período;
-- informa quantas manhãs ou noites ainda restam no mês;
-- calcula quanto precisa ser vendido, em média, em cada período restante;
-- divide esse valor igualmente entre as lojas ativas para mostrar uma referência por loja e por período;
-- quando a Meta do turno já foi atingida, o painel informa essa situação diretamente.
+- o botão **Adicionar lançamento** fica no resumo da vendedora, acima dos cartões das lojas;
+- a gestão escolhe a loja, a data, a quantidade de vendas e a quantidade de peças;
+- o lançamento é gravado no mesmo banco usado pelo Cálculo PA e passa a aparecer para a vendedora;
+- um aviso é registrado para ela com a data, a loja e a informação de que o lançamento foi adicionado pela gestão;
+- a tela atualiza os totais por loja e o detalhamento diário depois da inclusão;
+- se já houver lançamento para a mesma loja e data, o sistema orienta usar **Corrigir**;
+- no detalhamento diário, cada registro mostra apenas **Editar**; a opção **Remover lançamento** fica dentro da edição para reduzir o risco de toque acidental;
+- a correção deixa de exigir motivo digitado manualmente, pois o aviso já mostra os valores anteriores e os novos;
+- a remoção pede confirmação, retira o registro dos cálculos e gera um aviso para a vendedora;
+- se o lançamento removido era o único daquele dia, a data deixa de contar como dia válido no PA; se havia outra loja no mesmo dia, somente a loja escolhida é removida.
 
-### Regra de tempo
+### Validações e segurança
 
-- o dia atual deixa de contar para a manhã depois do horário final configurado para esse período;
-- a noite do dia atual continua sendo considerada enquanto o horário final da noite ainda não tiver passado;
-- meses encerrados não possuem períodos restantes.
+- somente perfis ativos de administração ou gestão podem usar a nova operação;
+- vendas e peças aceitam apenas números inteiros de 0 a 999;
+- a quantidade de peças não pode ser menor que a de vendas;
+- datas já marcadas como férias, folga, falta, atestado ou não trabalhado não são alteradas automaticamente;
+- somente lojas ativas podem receber novos lançamentos;
+- inclusão, correção ou remoção invalidam uma aprovação anterior da loja no mês, exigindo nova conferência;
+- a remoção valida os valores atuais antes de excluir, evitando apagar um registro que mudou desde a abertura da tela.
 
-### Regras preservadas
+### Documentação
 
-- as metas cadastradas e os lançamentos de vendas não são alterados por esse cálculo;
-- Meta, Supermeta, Megameta, PA e demais indicadores continuam com as regras existentes;
-- a mudança é apenas de leitura e planejamento no painel gerencial.
+A Wiki, o README e o rodapé do aplicativo foram atualizados para a v1.6.0.

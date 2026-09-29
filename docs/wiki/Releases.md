@@ -1,5 +1,25 @@
 # Releases
 
+## v1.6.0 — Gestão de lançamentos do PA
+
+Publicada em **28 de setembro de 2026**.
+
+- novo botão **Adicionar lançamento** no resumo da vendedora;
+- escolha de loja, data, vendas e peças diretamente pela gestão;
+- lançamento gravado no mesmo PA e refletido para a vendedora;
+- aviso automático para a vendedora quando a gestão adiciona um lançamento;
+- o detalhamento diário mantém apenas o botão **Editar**; **Remover lançamento** fica dentro da edição para evitar exclusão acidental;
+- aviso automático para a vendedora também nas remoções;
+- correção sem campo de observação obrigatório, usando os valores antes e depois no próprio aviso;
+- remoção apenas da loja escolhida quando houver mais de um lançamento no mesmo dia;
+- exclusão do dia do cálculo quando o registro removido era o único daquela data;
+- bloqueio de duplicidade para a mesma loja e data, mantendo **Corrigir** como fluxo de edição;
+- validação de loja ativa, quantidades e situação do dia;
+- aprovação anterior da loja invalidada automaticamente após inclusão, correção ou remoção;
+- testes automatizados para autorização, duplicidade, validações, remoção seletiva, aviso e invalidação da conferência.
+
+A mudança concentra na conferência administrativa as ações necessárias para completar, corrigir ou remover lançamentos sem exigir acesso à conta da vendedora.
+
 ## v1.5.0 — Planejamento da meta por turno
 
 Publicada em **28 de setembro de 2026**.

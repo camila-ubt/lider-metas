@@ -3,11 +3,10 @@
 import { useRef, useState } from "react";
 import styles from "@/app/pa-vendedoras/PAVendedoras.module.css";
 
-export default function CorrecaoLancamentoPA({ item, supabase, onSalvou }) {
+export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemoveu }) {
   const [aberto, setAberto] = useState(false);
   const [vendas, setVendas] = useState(String(item.vendas));
   const [pecas, setPecas] = useState(String(item.pecas));
-  const [motivo, setMotivo] = useState("");
   const [erro, setErro] = useState("");
   const [salvando, setSalvando] = useState(false);
   const enviando = useRef(false);
@@ -16,9 +15,45 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou }) {
   function abrir() {
     setVendas(String(item.vendas));
     setPecas(String(item.pecas));
-    setMotivo("");
     setErro("");
     setAberto(true);
+  }
+
+  async function remover() {
+    if (enviando.current) return;
+
+    const confirmou = typeof window === "undefined"
+      ? true
+      : window.confirm(`Remover o lançamento de ${data} · ${item.loja}? Ele será retirado do PA e a vendedora receberá um aviso.`);
+
+    if (!confirmou) return;
+
+    enviando.current = true;
+    setSalvando(true);
+    setErro("");
+
+    try {
+      const { error } = await supabase.rpc("remover_lancamento_pa_gestao", {
+        p_usuario_id: item.usuario_id,
+        p_dia_id: item.dia_id,
+        p_data: item.data,
+        p_loja_id: item.loja_id,
+        p_vendas_antes: Number(item.vendas),
+        p_pecas_antes: Number(item.pecas),
+      });
+
+      if (error) throw error;
+
+      setAberto(false);
+      onRemoveu();
+    } catch (error) {
+      setErro(error.code === "PGRST202"
+        ? "A remoção de lançamentos ainda precisa ser habilitada."
+        : error.message || "Não foi possível remover. Atualize a tela e tente novamente.");
+    } finally {
+      enviando.current = false;
+      setSalvando(false);
+    }
   }
 
   async function salvar(evento) {
@@ -29,10 +64,6 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou }) {
     if (!vendas.trim() || !pecas.trim() || !Number.isInteger(v) || !Number.isInteger(p)
       || v < 0 || p < v || p > 999 || v > 999) {
       setErro("Informe números inteiros de 0 a 999. Peças devem ser iguais ou maiores que vendas.");
-      return;
-    }
-    if (motivo.trim().length < 3 || motivo.trim().length > 500) {
-      setErro("Descreva o motivo da correção (3 a 500 caracteres).");
       return;
     }
     if (v === Number(item.vendas) && p === Number(item.pecas)) {
@@ -46,7 +77,7 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou }) {
       const { error } = await supabase.rpc("corrigir_lancamento_pa", {
         p_usuario_id: item.usuario_id, p_dia_id: item.dia_id, p_data: item.data,
         p_loja_id: item.loja_id, p_vendas_antes: Number(item.vendas), p_pecas_antes: Number(item.pecas),
-        p_vendas: v, p_pecas: p, p_motivo: motivo.trim(),
+        p_vendas: v, p_pecas: p, p_motivo: "Ajuste de valores pela gestão",
       });
       if (error) throw error;
       setAberto(false);
@@ -69,24 +100,26 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou }) {
         <span>{Number(item.pecas)}</span>
         <span>{Number(item.pa || 0).toFixed(2).replace(".", ",")}</span>
         <button type="button" className={styles.textButton} onClick={abrir}
-          disabled={salvando} aria-expanded={aberto} aria-label={`Corrigir lançamento de ${data}`}>
-          Corrigir
+          disabled={salvando} aria-expanded={aberto} aria-label={`Editar lançamento de ${data}`}>
+          Editar
         </button>
       </div>
       {aberto && (
         <form className={styles.correctionForm} onSubmit={salvar} aria-label={`Correção de ${data}`}>
-          <p><strong>Corrigir {data} · {item.loja}</strong></p>
+          <p><strong>Editar {data} · {item.loja}</strong></p>
           <div className={styles.correctionFields}>
             <label>Vendas<input type="number" min="0" max="999" step="1" required value={vendas}
               disabled={salvando} onChange={(e) => setVendas(e.target.value)} /></label>
             <label>Peças<input type="number" min="0" max="999" step="1" required value={pecas}
               disabled={salvando} onChange={(e) => setPecas(e.target.value)} /></label>
           </div>
-          <label>Motivo da correção<textarea required minLength={3} maxLength={500} rows={2}
-            value={motivo} disabled={salvando} onChange={(e) => setMotivo(e.target.value)} /></label>
-          <p className={styles.muted}>A vendedora receberá um aviso no PA. A loja precisará ser conferida novamente.</p>
+          <p className={styles.muted}>A vendedora receberá um aviso mostrando os valores anteriores e os novos. A loja precisará ser conferida novamente.</p>
           {erro && <p className={styles.approvalWarning} role="alert">{erro}</p>}
           <div className={styles.correctionActions}>
+            <button type="button" className={styles.removeEntryButton} disabled={salvando} onClick={remover}>
+              Remover lançamento
+            </button>
+            <span className={styles.correctionActionSpacer} aria-hidden="true" />
             <button type="button" className={styles.textButton} disabled={salvando} onClick={() => setAberto(false)}>Cancelar</button>
             <button type="submit" className={styles.saveCorrection} disabled={salvando}>{salvando ? "Salvando..." : "Salvar correção"}</button>
           </div>

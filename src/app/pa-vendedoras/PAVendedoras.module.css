@@ -439,3 +439,94 @@
   background: #f1f8f3;
   color: #38664a;
 }
+
+
+/* Inclusão administrativa de lançamentos ausentes. */
+.addEntry {
+  margin: 0 0 14px;
+  border: 1px solid #e3ddea;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fbf9fd;
+}
+
+.addEntryButton {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  background: #f2edf7;
+  color: #654786;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.addEntryButton:hover:not(:disabled) {
+  background: #e9e0f1;
+}
+
+.addEntryButton:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+.addEntry .correctionForm {
+  border-top: 1px solid #e3ddea;
+}
+
+.addEntryFields {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr .8fr .8fr;
+  gap: 12px;
+}
+
+.addEntryFields label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.addEntryFields input,
+.addEntryFields select {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccc0dd;
+  border-radius: 8px;
+  padding: 9px;
+  font: inherit;
+  background: white;
+  color: #503b69;
+}
+
+@media (max-width: 760px) {
+  .addEntryFields {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+/* Ações administrativas dentro da edição do lançamento. */
+.removeEntryButton {
+  border: 1px solid #d9a8b5;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #fff4f6;
+  color: #96384f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.removeEntryButton:hover:not(:disabled) {
+  background: #fde9ee;
+}
+
+.removeEntryButton:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.correctionActionSpacer {
+  flex: 1 1 auto;
+}
