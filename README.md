@@ -10,6 +10,7 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 - conferência do PA por loja e por vendedora;
 - correção e remoção de lançamentos de PA com notificação para a vendedora, sem exigir observação manual na correção;
 - inclusão administrativa de lançamentos ausentes diretamente na conferência do PA, com aviso para a vendedora;
+- registro administrativo de períodos de férias, com atualização automática dos dias do PA;
 - aprovação e gestão de acesso das vendedoras;
 - separação entre solicitações pendentes, perfis ativos e desativados;
 - horários de manhã e noite compartilhados com a Calculadora de Metas;
@@ -24,17 +25,16 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.6.0** — Gestão de lançamentos do PA.
+**v1.7.0** — Férias na gestão do PA.
 
-## Atualizações da v1.6.0
+## Atualizações da v1.7.0
 
-- novo botão **Adicionar lançamento** na conferência de cada vendedora;
-- seleção de loja, data, vendas e peças sem precisar entrar na conta da vendedora;
-- o registro é gravado no mesmo PA e passa a aparecer para a vendedora;
-- a vendedora recebe aviso quando um lançamento é adicionado ou removido pela gestão;
-- duplicidades são bloqueadas e direcionadas para o fluxo de correção;
-- remoção administrativa de um lançamento incorreto ou duplicado disponível somente após abrir **Editar**, reduzindo o risco de exclusão acidental;
-- uma aprovação anterior da loja é invalidada quando um lançamento é incluído, corrigido ou removido.
+- vendedoras desativadas deixam de aparecer no resumo mensal do PA, mantendo o histórico preservado no banco;
+- novo botão **Registrar férias** no resumo da vendedora;
+- escolha de data inicial e final, inclusive para períodos futuros;
+- todos os dias do intervalo passam a ser marcados como férias e deixam de contar como dias trabalhados;
+- se houver lançamentos de vendas no intervalo, o sistema avisa antes e os remove somente após confirmação;
+- aprovações afetadas por lançamentos removidos são invalidadas automaticamente para nova conferência.
 
 ## Tecnologias
 
