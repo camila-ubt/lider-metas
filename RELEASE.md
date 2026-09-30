@@ -1,32 +1,33 @@
-## v1.6.0 — Gestão de lançamentos do PA
+## v1.7.0 — Férias na gestão do PA
 
-Publicada em **28 de setembro de 2026**.
+Publicada em **30 de setembro de 2026**.
 
-Esta versão amplia a conferência do PA para que a gestão possa completar lançamentos ausentes e remover registros incorretos ou duplicados sem acessar a conta da vendedora.
+Esta versão melhora a administração do PA em dois pontos: perfis desativados deixam de aparecer no resumo mensal e a gestão passa a registrar períodos de férias sem precisar acessar a conta da vendedora.
 
-### Novo fluxo na conferência
+### Resumo do mês
 
-- o botão **Adicionar lançamento** fica no resumo da vendedora, acima dos cartões das lojas;
-- a gestão escolhe a loja, a data, a quantidade de vendas e a quantidade de peças;
-- o lançamento é gravado no mesmo banco usado pelo Cálculo PA e passa a aparecer para a vendedora;
-- um aviso é registrado para ela com a data, a loja e a informação de que o lançamento foi adicionado pela gestão;
-- a tela atualiza os totais por loja e o detalhamento diário depois da inclusão;
-- se já houver lançamento para a mesma loja e data, o sistema orienta usar **Corrigir**;
-- no detalhamento diário, cada registro mostra apenas **Editar**; a opção **Remover lançamento** fica dentro da edição para reduzir o risco de toque acidental;
-- a correção deixa de exigir motivo digitado manualmente, pois o aviso já mostra os valores anteriores e os novos;
-- a remoção pede confirmação, retira o registro dos cálculos e gera um aviso para a vendedora;
-- se o lançamento removido era o único daquele dia, a data deixa de contar como dia válido no PA; se havia outra loja no mesmo dia, somente a loja escolhida é removida.
+- o resumo mensal passa a considerar somente vendedoras ativas;
+- desativar um perfil não apaga o histórico existente no banco;
+- ao reativar a vendedora, os dados históricos continuam disponíveis normalmente.
 
-### Validações e segurança
+### Registro de férias
 
-- somente perfis ativos de administração ou gestão podem usar a nova operação;
-- vendas e peças aceitam apenas números inteiros de 0 a 999;
-- a quantidade de peças não pode ser menor que a de vendas;
-- datas já marcadas como férias, folga, falta, atestado ou não trabalhado não são alteradas automaticamente;
-- somente lojas ativas podem receber novos lançamentos;
-- inclusão, correção ou remoção invalidam uma aprovação anterior da loja no mês, exigindo nova conferência;
-- a remoção valida os valores atuais antes de excluir, evitando apagar um registro que mudou desde a abertura da tela.
+- novo botão **Registrar férias** no resumo da vendedora;
+- a gestão informa a data de início e a data de fim;
+- o período pode incluir datas futuras e atravessar meses;
+- cada dia do intervalo é marcado como `ferias` no mesmo banco usado pelo Cálculo PA;
+- dias de férias não contam como dias trabalhados nem entram no cálculo do PA;
+- antes de salvar, o sistema confirma a operação e avisa que lançamentos existentes no intervalo serão removidos;
+- quando existem lançamentos no período, eles são removidos e as aprovações correspondentes são invalidadas automaticamente;
+- a operação aceita no máximo 62 dias por vez para reduzir o risco de seleção acidental de um intervalo muito grande.
+
+### Segurança
+
+- somente perfis ativos de administração ou gestão podem registrar férias;
+- o período só pode ser aplicado a uma vendedora ativa;
+- a gravação é feita por função protegida no banco;
+- validações de intervalo e permissões também são executadas no servidor.
 
 ### Documentação
 
-A Wiki, o README e o rodapé do aplicativo foram atualizados para a v1.6.0.
+A Wiki, o README, a release e os rodapés do aplicativo e da Wiki foram atualizados para a v1.7.0.

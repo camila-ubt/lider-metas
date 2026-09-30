@@ -4,7 +4,9 @@ A aba **PA das vendedoras** concentra a conferência dos dados enviados pelo Cá
 
 ## Resumo do mês
 
-A tela respeita o mês selecionado no topo do Líder Metas e apresenta, para cada vendedora:
+A tela respeita o mês selecionado no topo do Líder Metas e apresenta somente as vendedoras ativas que possuem dados no mês. Desativar uma vendedora remove o nome desse resumo, mas não apaga o histórico salvo no banco.
+
+Para cada vendedora, são apresentados:
 
 - quantidade de dias válidos;
 - total de vendas;
@@ -31,6 +33,16 @@ Ao abrir o formulário, escolha a loja, a data e informe vendas e peças. O regi
 Se já existir um lançamento para a mesma loja e data, o sistema não cria uma duplicidade e orienta usar **Corrigir**. Datas marcadas como férias, folga, falta, atestado ou não trabalhado também não são alteradas automaticamente.
 
 A inclusão também gera um aviso no PA da vendedora, mostrando a data e a loja e informando que o lançamento foi adicionado pela gestão. Além disso, uma aprovação anterior daquela loja no mês é invalidada para que a conferência seja refeita com os novos totais.
+
+## Registrar férias
+
+Ao selecionar uma vendedora, a gestão também pode usar **Registrar férias**. Informe a data de início e a data de fim; o período pode incluir datas futuras e atravessar mais de um mês.
+
+Todos os dias do intervalo são gravados como férias no mesmo PA usado pela vendedora. Esses dias não contam como trabalhados e, por isso, não entram na quantidade mínima de dias nem no cálculo do PA.
+
+Antes de concluir, o sistema mostra uma confirmação. Se já houver vendas ou peças lançadas em alguma data do período, esses lançamentos serão removidos somente depois da confirmação. A remoção também invalida aprovações anteriores das lojas afetadas, para evitar que um resultado alterado permaneça marcado como conferido.
+
+Por segurança, o registro é permitido apenas para vendedoras ativas e aceita no máximo 62 dias por operação.
 
 ## Corrigir ou remover lançamentos
 

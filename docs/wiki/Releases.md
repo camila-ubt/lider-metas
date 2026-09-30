@@ -1,5 +1,17 @@
 # Releases
 
+## v1.7.0 — Férias na gestão do PA
+
+Publicada em **30 de setembro de 2026**.
+
+- vendedoras desativadas deixam de aparecer no resumo mensal, sem apagar o histórico;
+- novo botão **Registrar férias** na conferência da vendedora;
+- seleção de início e fim do período, inclusive em datas futuras e atravessando meses;
+- os dias do intervalo passam a ser marcados como férias e deixam de contar no PA;
+- lançamentos existentes no período só são removidos após confirmação da gestão;
+- aprovações relacionadas aos lançamentos removidos são invalidadas automaticamente;
+- operação protegida no banco e restrita à gestão ativa.
+
 ## v1.6.0 — Gestão de lançamentos do PA
 
 Publicada em **28 de setembro de 2026**.
