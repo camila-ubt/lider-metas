@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import DashboardEstavel from "@/components/DashboardEstavel";
 import ManualUsuario from "@/components/ManualUsuario";
 import PAVendedoras from "@/components/PAVendedoras";
@@ -69,6 +69,7 @@ function interpretarValor(valor) {
 
 export default function LiderMetas({ telaInicial = "painel" }) {
   const supabase = useMemo(() => createClient(), []);
+  const carregamentoId = useRef(0);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [sessao, setSessao] = useState(null);
@@ -153,18 +154,28 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   }
 
   async function carregarDados() {
+    const idRequisicao = ++carregamentoId.current;
+    const mesCarregado = mes;
+
     setCarregando(true);
+    setVendas([]);
+    setMetas([]);
 
     const [lojasResp, vendasResp, metasResp] = await Promise.all([
       supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
       supabase
         .from("vendas_diarias")
         .select("*")
-        .gte("data", inicioMes(mes))
-        .lte("data", fimMes(mes))
+        .gte("data", inicioMes(mesCarregado))
+        .lte("data", fimMes(mesCarregado))
         .order("data", { ascending: true }),
-      supabase.from("metas_mensais").select("*").eq("mes", inicioMes(mes)),
+      supabase
+        .from("metas_mensais")
+        .select("*")
+        .eq("mes", inicioMes(mesCarregado)),
     ]);
+
+    if (idRequisicao !== carregamentoId.current) return;
 
     const erro = lojasResp.error || vendasResp.error || metasResp.error;
     if (erro) setMensagem(erro.message);

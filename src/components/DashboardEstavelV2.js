@@ -143,19 +143,23 @@ function GraficoAcumulado({ dados, maximo }) {
   );
 }
 
-function textoNivel(nivel, vendido, encerrado, diasRestantes, quantidadeLojas = 0) {
+function textoNivel(nivel, vendido, encerrado, diasRestantes) {
   const falta = Math.max(nivel.valor - vendido, 0);
   if (!(nivel.valor > 0)) return "Sem meta";
   if (vendido >= nivel.valor) return encerrado ? "Conquistada" : "Batida";
   if (encerrado) return `Faltaram ${dinheiro.format(falta)}`;
   if (diasRestantes > 0) {
-    const porDia = falta / diasRestantes;
-    if (quantidadeLojas > 0) {
-      return `${dinheiro.format(porDia)}/dia · ${dinheiro.format(porDia / quantidadeLojas)}/loja/dia`;
-    }
-    return `${dinheiro.format(porDia)}/dia`;
+    return `${dinheiro.format(falta / diasRestantes)}/dia`;
   }
   return `Faltam ${dinheiro.format(falta)}`;
+}
+
+function textoPorLojaDia(nivel, vendido, encerrado, diasRestantes, quantidadeLojas) {
+  if (encerrado || !(nivel.valor > 0) || vendido >= nivel.valor) return null;
+  if (!(diasRestantes > 0) || !(quantidadeLojas > 0)) return null;
+
+  const falta = Math.max(nivel.valor - vendido, 0);
+  return `${dinheiro.format(falta / diasRestantes / quantidadeLojas)}/loja/dia`;
 }
 
 function Niveis({ vendido, jornada, encerrado = false, diasRestantes = 0, quantidadeLojas = 0, compacto: compactoVisual = false }) {
@@ -168,7 +172,12 @@ function Niveis({ vendido, jornada, encerrado = false, diasRestantes = 0, quanti
           <div className={`${styles.level} ${batida ? styles.levelDone : ""} ${atual ? styles.levelCurrent : ""}`} key={nivel.nome}>
             <span>{nivel.simbolo}</span>
             <div><strong>{nivel.nome}</strong><small>{dinheiro.format(nivel.valor)}</small></div>
-            <em>{textoNivel(nivel, vendido, encerrado, diasRestantes, quantidadeLojas)}</em>
+            <em>{textoNivel(nivel, vendido, encerrado, diasRestantes)}</em>
+            {textoPorLojaDia(nivel, vendido, encerrado, diasRestantes, quantidadeLojas) && (
+              <small className={styles.perStoreDay}>
+                {textoPorLojaDia(nivel, vendido, encerrado, diasRestantes, quantidadeLojas)}
+              </small>
+            )}
           </div>
         );
       })}
