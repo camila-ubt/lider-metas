@@ -23,7 +23,7 @@ export default function AdicionarLancamentoPA({ vendedora, mes, lojas, supabase,
   const enviando = useRef(false);
 
   function abrir() {
-    setLojaId(lojas[0]?.id ? String(lojas[0].id) : "");
+    setLojaId("");
     setData("");
     setVendas("");
     setPecas("");
@@ -40,7 +40,7 @@ export default function AdicionarLancamentoPA({ vendedora, mes, lojas, supabase,
     const p = Number(pecas);
 
     if (!idLoja || !lojas.some((item) => Number(item.id) === idLoja)) {
-      setErro("Escolha uma loja.");
+      setErro("Selecione uma loja.");
       return;
     }
 
@@ -103,7 +103,7 @@ export default function AdicionarLancamentoPA({ vendedora, mes, lojas, supabase,
             <label>
               Loja
               <select required value={lojaId} disabled={salvando} onChange={(e) => setLojaId(e.target.value)}>
-                <option value="">Selecione</option>
+                <option value="">Selecione a loja</option>
                 {lojas.map((item) => (
                   <option key={item.id} value={item.id}>
                     {item.codigo} — {item.nome}
