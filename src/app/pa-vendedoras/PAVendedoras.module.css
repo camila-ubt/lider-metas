@@ -530,3 +530,36 @@
 .correctionActionSpacer {
   flex: 1 1 auto;
 }
+
+
+/* Registro administrativo de férias. */
+.vacationFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.vacationFields label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.vacationFields input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccc0dd;
+  border-radius: 8px;
+  padding: 9px;
+  font: inherit;
+  background: white;
+  color: #503b69;
+}
+
+@media (max-width: 520px) {
+  .vacationFields {
+    grid-template-columns: 1fr;
+  }
+}
