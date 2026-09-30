@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import CorrecaoLancamentoPA from "@/components/CorrecaoLancamentoPA";
 import AdicionarLancamentoPA from "@/components/AdicionarLancamentoPA";
+import RegistrarFeriasPA from "@/components/RegistrarFeriasPA";
 import styles from "@/app/pa-vendedoras/PAVendedoras.module.css";
 
 function inicioMes(mes) {
@@ -393,6 +394,24 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
             onSalvou={({ data, loja: codigoLoja }) => {
               const dataFormatada = data.split("-").reverse().join("/");
               setMensagemCorrecao(`Lançamento de ${dataFormatada} · ${codigoLoja} adicionado e já disponível no PA da vendedora.`);
+              setLoja(null);
+              setDetalhes([]);
+              setRevisao((valor) => valor + 1);
+            }}
+          />
+
+          <RegistrarFeriasPA
+            vendedora={vendedora}
+            supabase={supabase}
+            onSalvou={({ inicio, fim, dias, lancamentosRemovidos }) => {
+              const inicioFormatado = inicio.split("-").reverse().join("/");
+              const fimFormatado = fim.split("-").reverse().join("/");
+              const removidos = lancamentosRemovidos > 0
+                ? ` ${lancamentosRemovidos} lançamento${lancamentosRemovidos === 1 ? "" : "s"} do período ${lancamentosRemovidos === 1 ? "foi removido" : "foram removidos"}.`
+                : "";
+              setMensagemCorrecao(
+                `Férias registradas de ${inicioFormatado} a ${fimFormatado} (${dias} dia${dias === 1 ? "" : "s"}).${removidos}`,
+              );
               setLoja(null);
               setDetalhes([]);
               setRevisao((valor) => valor + 1);
