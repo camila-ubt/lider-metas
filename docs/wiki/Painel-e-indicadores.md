@@ -14,6 +14,21 @@ Em mês em andamento, os cards mostram o que falta no total e a necessidade méd
 
 A partir da **v1.5.0**, o detalhamento de manhã e noite também mostra quanto falta para a Meta do turno, quantos períodos ainda restam e a média necessária por período. O painel apresenta ainda a divisão igual dessa necessidade entre as lojas ativas, como referência de planejamento.
 
+## Resumo de PA
+
+O painel também possui um card de **Resumo de PA**, fechado por padrão para não ocupar espaço quando a análise de PA não for necessária. No estado recolhido, ele mostra a vendedora destaque do mês. Se ninguém ainda atingiu 15 dias válidos, a maior PA disponível aparece identificada como prévia.
+
+Ao abrir **Ver resumo do PA**, são exibidos:
+
+- PA médio geral das vendedoras com dados no mês;
+- PA consolidado por loja e loja destaque;
+- vendedora destaque e Top 3 considerando o mínimo de 15 dias válidos;
+- quantidade de vendedoras abaixo de 2,20, entre 2,20 e 2,59 e com 2,60 ou mais;
+- comparação do PA geral com o mês anterior;
+- leituras automáticas sobre loja destaque, faixa de PA e evolução mensal.
+
+Os valores são calculados a partir das mesmas visões usadas na conferência do PA, evitando um cálculo paralelo no painel.
+
 ## Ranking
 
 As lojas são ordenadas pelo percentual da Meta atingido. Ao abrir uma loja, o aplicativo detalha:

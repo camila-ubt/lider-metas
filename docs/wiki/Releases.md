@@ -1,5 +1,20 @@
 # Releases
 
+## v1.8.0 — Resumo gerencial de PA no painel
+
+Publicada em **1º de outubro de 2026**.
+
+- novo card **Resumo de PA** no Painel, recolhido por padrão;
+- destaque da vendedora visível mesmo com o card fechado;
+- prévia identificada quando ainda não há vendedora com 15 dias válidos;
+- PA médio geral e PA por loja;
+- loja destaque e Top 3 de vendedoras elegíveis;
+- faixas de PA: abaixo de 2,20, de 2,20 a 2,59 e 2,60 ou mais;
+- comparação com o mês anterior;
+- insights automáticos de leitura rápida;
+- nomes das vendedoras em caixa alta no novo resumo;
+- reutilização das visões de PA existentes, sem nova migration e sem alteração das regras de cálculo.
+
 ## v1.7.0 — Férias na gestão do PA
 
 Publicada em **30 de setembro de 2026**.
