@@ -6,6 +6,7 @@ import {
   minutosDoHorario,
   useHorariosPeriodos,
 } from "@/lib/horariosPeriodos";
+import ResumoPADashboard from "./ResumoPADashboard";
 import styles from "./DashboardEstavelV2.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -415,6 +416,8 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas }) {
         <article className={styles.kpi}><span>{dados.mesPassado ? "Fechamento" : dados.jornada.completa ? "Megameta conquistada" : `Necessário para ${dados.jornada.alvo.nome}`}</span><strong>{dados.mesPassado ? dados.nivelFechado : dinheiro.format(dados.necessarioDia)}</strong><small>{dados.mesPassado ? "Mês encerrado" : dados.diasRestantes > 1 ? `${dados.diasRestantes} dias restantes` : "Valor necessário no dia"}</small></article>
         <article className={styles.kpi}><span>Média diária</span><strong>{dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
+
+      <ResumoPADashboard mes={mes} />
 
       <article className={styles.card}>
         <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>Evolução acumulada</p><h2>Realizado, projeção e rotas de meta</h2></div></div>
