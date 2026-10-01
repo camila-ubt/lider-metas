@@ -31,8 +31,9 @@ function calcularPa(itens) {
 }
 
 function nomeVendedora(item) {
-  if (!item) return "Sem destaque";
-  return item.numero_athos ? `${item.numero_athos} — ${item.nome}` : item.nome;
+  if (!item) return "SEM DESTAQUE";
+  const nome = String(item.nome || "VENDEDORA").toUpperCase();
+  return item.numero_athos ? `${item.numero_athos} — ${nome}` : nome;
 }
 
 export default function ResumoPADashboard({ mes }) {
