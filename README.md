@@ -25,16 +25,18 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.7.0** — Férias na gestão do PA.
+**v1.8.0** — Resumo gerencial de PA no painel.
 
-## Atualizações da v1.7.0
+## Atualizações da v1.8.0
 
-- vendedoras desativadas deixam de aparecer no resumo mensal do PA, mantendo o histórico preservado no banco;
-- novo botão **Registrar férias** no resumo da vendedora;
-- escolha de data inicial e final, inclusive para períodos futuros;
-- todos os dias do intervalo passam a ser marcados como férias e deixam de contar como dias trabalhados;
-- se houver lançamentos de vendas no intervalo, o sistema avisa antes e os remove somente após confirmação;
-- aprovações afetadas por lançamentos removidos são invalidadas automaticamente para nova conferência.
+- novo card de **Resumo de PA** no Painel, recolhido por padrão;
+- no estado fechado, exibe a vendedora destaque ou uma prévia quando ainda não há 15 dias válidos;
+- ao expandir, mostra PA médio geral, PA por loja, loja destaque e Top 3 de vendedoras elegíveis;
+- separa as vendedoras nas faixas abaixo de 2,20, entre 2,20 e 2,59 e com 2,60 ou mais;
+- compara o PA geral do mês com o mês anterior;
+- gera leituras rápidas sobre loja destaque, evolução e pontos de atenção;
+- nomes das vendedoras padronizados em caixa alta também no novo resumo;
+- cálculo reutiliza as mesmas visões de PA já usadas na conferência, sem criar regra paralela.
 
 ## Tecnologias
 
