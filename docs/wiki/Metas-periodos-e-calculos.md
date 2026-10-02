@@ -51,7 +51,7 @@ Esses valores servem como referência de planejamento. Eles não alteram metas n
 
 ## Impressão das metas diárias
 
-A partir da **v1.9.0**, a gestão pode usar o botão **Imprimir metas** para gerar o quadro diário das lojas no mesmo formato do controle físico.
+A partir da **v1.9.0**, a gestão pode usar o botão **Imprimir metas**, disponível dentro da aba **Metas**, para gerar o quadro diário das lojas no mesmo formato do controle físico.
 
 O sistema usa o mês selecionado e calcula, para cada loja:
 
