@@ -4,7 +4,7 @@
 
 Publicada em **2 de outubro de 2026**.
 
-- novo botão **Imprimir metas** ao lado do mês selecionado;
+- novo botão **Imprimir metas** dentro da aba **Metas**;
 - um quadro para cada loja ativa;
 - linhas de manhã, noite e total;
 - Meta, Supermeta e Megameta diárias calculadas automaticamente;
