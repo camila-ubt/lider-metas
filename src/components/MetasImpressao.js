@@ -121,6 +121,8 @@ export default function MetasImpressao({ mes, metas, lojas }) {
             padding: 1mm 0.35mm !important;
             text-align: center !important;
             white-space: nowrap !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
             color: #000 !important;
             background: #fff !important;
           }
@@ -129,6 +131,15 @@ export default function MetasImpressao({ mes, metas, lojas }) {
           body.metas-print-active .meta-ticket td:first-child {
             width: 7mm !important;
             font-weight: 700 !important;
+          }
+
+          body.metas-print-active .meta-ticket th:nth-child(2),
+          body.metas-print-active .meta-ticket td:nth-child(2),
+          body.metas-print-active .meta-ticket th:nth-child(3),
+          body.metas-print-active .meta-ticket td:nth-child(3),
+          body.metas-print-active .meta-ticket th:nth-child(4),
+          body.metas-print-active .meta-ticket td:nth-child(4) {
+            width: 23mm !important;
           }
 
           body.metas-print-active .meta-ticket thead th {
