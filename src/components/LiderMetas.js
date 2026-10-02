@@ -720,8 +720,6 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                 : `${metasPreenchidas} de ${slotsMetas.length} preenchidas · ${slotsMetas.length - metasPreenchidas} pendentes`}
             </div>
 
-            <MetasImpressao mes={mes} metas={metas} lojas={lojas} />
-
             <div className="history-list meta-status-grid">
               {slotsMetas.map((item) => {
                 const configurada = Boolean(item.registro);
@@ -742,6 +740,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                 );
               })}
             </div>
+
+            <MetasImpressao mes={mes} metas={metas} lojas={lojas} />
           </div>
         </section>
       )}
