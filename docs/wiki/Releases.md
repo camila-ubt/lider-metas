@@ -1,5 +1,15 @@
 # Releases
 
+## v1.9.2 — Correção da pré-visualização da impressão
+
+Publicada em **2 de outubro de 2026**.
+
+- corrige a pré-visualização em branco na impressão das metas;
+- evita conflito com o CSS global de impressão do fechamento mensal;
+- mantém CB, AA e AB empilhadas em uma única folha;
+- mantém Meta Dia, Super Dia e Mega Dia dentro dos 80 mm;
+- sem alteração no banco ou nas fórmulas das metas.
+
 ## v1.9.1 — Ajuste da impressão térmica das metas
 
 Publicada em **2 de outubro de 2026**.
