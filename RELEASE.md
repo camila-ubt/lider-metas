@@ -1,37 +1,24 @@
-## v1.9.0 — Impressão das metas diárias
+## v1.9.1 — Ajuste da impressão térmica das metas
 
 Publicada em **2 de outubro de 2026**.
 
-Esta versão adiciona ao Líder Metas a impressão do quadro diário de metas usado nas lojas, aproveitando os valores mensais que já estão cadastrados no sistema.
+Esta versão corrige o formato de impressão das metas diárias na bobina de 80 mm.
 
-### Impressão em 80 mm
+### Correções
 
-- novo botão **Imprimir metas** dentro da aba **Metas**;
-- geração de um quadro para cada loja ativa;
-- layout preparado para bobina de **80 mm**, compatível com a configuração de papel 80 × 297 mm;
-- pré-visualização antes de enviar para a impressora;
-- as três lojas são impressas em sequência para facilitar o corte e a distribuição.
+- mantém os quadros de **CB, AA e AB empilhados**, um abaixo do outro;
+- imprime as três lojas em uma única folha de 80 × 297 mm;
+- ajusta a largura da tabela para que apareçam as quatro colunas: loja, **Meta Dia**, **Super Dia** e **Mega Dia**;
+- reduz margens e espaçamentos apenas na impressão, sem alterar a pré-visualização do aplicativo;
+- cria uma folha de impressão isolada da interface para evitar página adicional em branco;
+- mantém o botão **Imprimir metas** abaixo dos cards das metas cadastradas.
 
-### Valores impressos
-
-Cada quadro mostra:
-
-- **M**: meta diária da manhã;
-- **N**: meta diária da noite;
-- **T**: meta diária total da loja;
-- **Meta Dia**: 100% da meta;
-- **Super Dia**: 110% da meta;
-- **Mega Dia**: 120% da meta.
-
-Os valores são calculados automaticamente a partir das metas mensais da loja e do número de dias do mês. O resultado diário é apresentado em reais inteiros, mantendo o padrão do controle físico já utilizado.
-
-### Segurança e dados
+### Dados e regras
 
 - nenhuma migration nova;
-- nenhuma alteração nas metas cadastradas;
-- a impressão fica disponível para perfis de gestão;
-- os cálculos possuem teste automatizado com o formato esperado do quadro.
+- nenhuma mudança nos valores ou fórmulas de Meta, Supermeta e Megameta;
+- nenhuma alteração nos lançamentos ou metas já cadastrados.
 
 ### Documentação
 
-README, Wiki, release, versão do pacote e rodapés foram atualizados para a v1.9.0.
+README, Wiki, release, versão do pacote e rodapés foram atualizados para a v1.9.1.
