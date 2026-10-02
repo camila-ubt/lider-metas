@@ -1,24 +1,23 @@
-## v1.9.1 — Ajuste da impressão térmica das metas
+## v1.9.2 — Correção da pré-visualização da impressão
 
 Publicada em **2 de outubro de 2026**.
 
-Esta versão corrige o formato de impressão das metas diárias na bobina de 80 mm.
+Esta versão corrige a tela de impressão das metas que podia aparecer completamente em branco após a v1.9.1.
 
-### Correções
+### Correção
 
-- mantém os quadros de **CB, AA e AB empilhados**, um abaixo do outro;
-- imprime as três lojas em uma única folha de 80 × 297 mm;
-- ajusta a largura da tabela para que apareçam as quatro colunas: loja, **Meta Dia**, **Super Dia** e **Mega Dia**;
-- reduz margens e espaçamentos apenas na impressão, sem alterar a pré-visualização do aplicativo;
-- cria uma folha de impressão isolada da interface para evitar página adicional em branco;
-- mantém o botão **Imprimir metas** abaixo dos cards das metas cadastradas.
+- o conteúdo da folha de metas passa a ser explicitamente visível durante o modo de impressão;
+- a correção evita conflito com as regras globais de impressão usadas no fechamento mensal;
+- CB, AA e AB continuam empilhadas na mesma folha;
+- Meta Dia, Super Dia e Mega Dia continuam dentro da largura de 80 mm;
+- a folha isolada de impressão continua evitando páginas extras.
 
 ### Dados e regras
 
 - nenhuma migration nova;
-- nenhuma mudança nos valores ou fórmulas de Meta, Supermeta e Megameta;
-- nenhuma alteração nos lançamentos ou metas já cadastrados.
+- nenhuma alteração nos valores ou fórmulas das metas;
+- nenhuma alteração nos lançamentos existentes.
 
 ### Documentação
 
-README, Wiki, release, versão do pacote e rodapés foram atualizados para a v1.9.1.
+README, Wiki, release, versão do pacote e rodapés foram atualizados para a v1.9.2.

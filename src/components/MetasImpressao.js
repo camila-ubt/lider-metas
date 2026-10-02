@@ -86,6 +86,11 @@ export default function MetasImpressao({ mes, metas, lojas }) {
             display: none !important;
           }
 
+          body.metas-print-active #metas-print-sheet,
+          body.metas-print-active #metas-print-sheet * {
+            visibility: visible !important;
+          }
+
           body.metas-print-active #metas-print-sheet {
             display: block !important;
             position: absolute !important;
@@ -102,6 +107,10 @@ export default function MetasImpressao({ mes, metas, lojas }) {
           body.metas-print-active #metas-print-sheet .meta-ticket {
             width: 76mm !important;
             margin: 0 0 5mm !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-sizing: border-box !important;
             break-inside: avoid !important;
             page-break-inside: avoid !important;
             color: #000 !important;
