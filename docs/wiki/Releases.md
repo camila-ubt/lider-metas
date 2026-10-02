@@ -1,5 +1,16 @@
 # Releases
 
+## v1.9.1 — Ajuste da impressão térmica das metas
+
+Publicada em **2 de outubro de 2026**.
+
+- CB, AA e AB permanecem empilhadas na mesma impressão;
+- as três lojas cabem em uma única folha de 80 × 297 mm;
+- Meta Dia, Super Dia e Mega Dia passam a caber integralmente na largura de 80 mm;
+- remoção da segunda folha gerada pelo restante da interface;
+- botão de impressão mantido abaixo dos cards de metas;
+- sem alteração no banco ou nas fórmulas das metas.
+
 ## v1.9.0 — Impressão das metas diárias
 
 Publicada em **2 de outubro de 2026**.
