@@ -64,7 +64,7 @@ O sistema usa o mês selecionado e calcula, para cada loja:
 
 A referência diária é obtida dividindo a meta mensal correspondente pela quantidade de dias do mês. Supermeta e Megameta seguem a regra oficial de 110% e 120%. Para manter o formato usado na impressão física, os valores são exibidos em reais inteiros.
 
-A impressão é preparada para bobina de **80 mm** e gera um quadro para cada loja ativa, em sequência. Essa função apenas apresenta os valores para impressão e não altera as metas cadastradas.
+A impressão é preparada para bobina de **80 mm** e gera um quadro para cada loja ativa, em sequência. Na **v1.9.1**, o layout foi ajustado para manter CB, AA e AB empilhadas em uma única folha de 80 × 297 mm, com Meta Dia, Super Dia e Mega Dia visíveis integralmente. Essa função apenas apresenta os valores para impressão e não altera as metas cadastradas.
 
 ## Contexto do mês
 
