@@ -29,7 +29,7 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Atualizações da v1.9.0
 
-- novo botão **Imprimir metas** junto ao mês selecionado;
+- novo botão **Imprimir metas** dentro da aba **Metas**;
 - prévia de um quadro para cada loja ativa;
 - linhas separadas para manhã, noite e total;
 - colunas de Meta, Supermeta e Megameta diárias;
