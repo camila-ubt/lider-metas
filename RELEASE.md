@@ -6,7 +6,7 @@ Esta versão adiciona ao Líder Metas a impressão do quadro diário de metas us
 
 ### Impressão em 80 mm
 
-- novo botão **Imprimir metas** ao lado do seletor de mês;
+- novo botão **Imprimir metas** dentro da aba **Metas**;
 - geração de um quadro para cada loja ativa;
 - layout preparado para bobina de **80 mm**, compatível com a configuração de papel 80 × 297 mm;
 - pré-visualização antes de enviar para a impressora;
