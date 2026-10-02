@@ -5,7 +5,8 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 ## Principais recursos
 
 - lançamento e conferência de vendas;
-- acompanhamento de metas por período, com cálculo do que falta e distribuição do esforço por loja;\n- impressão das metas diárias de Meta, Supermeta e Megameta por loja em bobina de 80 mm;
+- acompanhamento de metas por período, com cálculo do que falta e distribuição do esforço por loja;
+- impressão das metas diárias de Meta, Supermeta e Megameta por loja em bobina de 80 mm;
 - painéis, projeções e comparativos;
 - conferência do PA por loja e por vendedora;
 - correção e remoção de lançamentos de PA com notificação para a vendedora, sem exigir observação manual na correção;
@@ -25,17 +26,15 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.9.0** — Impressão das metas diárias em bobina de 80 mm.
+**v1.9.1** — Ajuste da impressão térmica das metas.
 
-## Atualizações da v1.9.0
+## Atualizações da v1.9.1
 
-- novo botão **Imprimir metas** dentro da aba **Metas**;
-- prévia de um quadro para cada loja ativa;
-- linhas separadas para manhã, noite e total;
-- colunas de Meta, Supermeta e Megameta diárias;
-- cálculo automático a partir das metas mensais já cadastradas;
-- impressão preparada para papel de 80 mm, seguindo o formato usado no controle físico das lojas;
-- sem alteração no banco de dados ou nas regras de metas existentes.
+- mantém CB, AA e AB empilhadas em uma única impressão;
+- ajusta a largura da tabela para exibir **Meta Dia, Super Dia e Mega Dia** dentro dos 80 mm;
+- evita a geração de uma segunda folha causada pelo restante da interface durante a impressão;
+- mantém o botão **Imprimir metas** abaixo dos cards de metas;
+- sem alteração no banco de dados ou nos cálculos das metas.
 
 ## Tecnologias
 
