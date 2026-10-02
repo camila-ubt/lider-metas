@@ -5,7 +5,7 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 ## Principais recursos
 
 - lançamento e conferência de vendas;
-- acompanhamento de metas por período, com cálculo do que falta e distribuição do esforço por loja;
+- acompanhamento de metas por período, com cálculo do que falta e distribuição do esforço por loja;\n- impressão das metas diárias de Meta, Supermeta e Megameta por loja em bobina de 80 mm;
 - painéis, projeções e comparativos;
 - conferência do PA por loja e por vendedora;
 - correção e remoção de lançamentos de PA com notificação para a vendedora, sem exigir observação manual na correção;
@@ -25,18 +25,17 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.8.0** — Resumo gerencial de PA no painel.
+**v1.9.0** — Impressão das metas diárias em bobina de 80 mm.
 
-## Atualizações da v1.8.0
+## Atualizações da v1.9.0
 
-- novo card de **Resumo de PA** no Painel, recolhido por padrão;
-- no estado fechado, exibe a vendedora destaque ou uma prévia quando ainda não há 15 dias válidos;
-- ao expandir, mostra PA médio geral, PA por loja, loja destaque e Top 3 de vendedoras elegíveis;
-- separa as vendedoras nas faixas abaixo de 2,20, entre 2,20 e 2,59 e com 2,60 ou mais;
-- compara o PA geral do mês com o mês anterior;
-- gera leituras rápidas sobre loja destaque, evolução e pontos de atenção;
-- nomes das vendedoras padronizados em caixa alta também no novo resumo;
-- cálculo reutiliza as mesmas visões de PA já usadas na conferência, sem criar regra paralela.
+- novo botão **Imprimir metas** junto ao mês selecionado;
+- prévia de um quadro para cada loja ativa;
+- linhas separadas para manhã, noite e total;
+- colunas de Meta, Supermeta e Megameta diárias;
+- cálculo automático a partir das metas mensais já cadastradas;
+- impressão preparada para papel de 80 mm, seguindo o formato usado no controle físico das lojas;
+- sem alteração no banco de dados ou nas regras de metas existentes.
 
 ## Tecnologias
 
