@@ -1,0 +1,136 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(15 23 42 / 64%);
+}
+
+.modal {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 22px;
+  border-radius: 20px;
+  background: var(--surface, #fff);
+  box-shadow: 0 24px 70px rgb(15 23 42 / 24%);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header p {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h2 {
+  margin: 0;
+}
+
+.close {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #eef2f7;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hint {
+  margin: 10px 0 18px;
+  color: var(--muted, #667085);
+}
+
+.printArea {
+  display: grid;
+  gap: 18px;
+}
+
+.ticket {
+  width: min(100%, 520px);
+  margin: 0 auto;
+  padding: 12px;
+  border: 1px solid #cfd5df;
+  border-radius: 12px;
+  background: #fff;
+  color: #111;
+}
+
+.ticketTitle {
+  margin-bottom: 8px;
+  text-align: center;
+  font-weight: 800;
+  text-transform: lowercase;
+}
+
+.ticket table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.ticket th,
+.ticket td {
+  border: 1px solid #222;
+  padding: 8px 6px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ticket th:first-child,
+.ticket td:first-child {
+  width: 44px;
+}
+
+.separator {
+  display: none;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+@media (max-width: 620px) {
+  .backdrop {
+    padding: 10px;
+  }
+
+  .modal {
+    padding: 16px 12px;
+    border-radius: 16px;
+  }
+
+  .ticket {
+    padding: 8px;
+    overflow-x: auto;
+  }
+
+  .ticket table {
+    min-width: 430px;
+    font-size: 12px;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

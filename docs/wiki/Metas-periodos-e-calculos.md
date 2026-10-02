@@ -49,6 +49,23 @@ A contagem respeita os horários configurados. Depois do encerramento da manhã,
 
 Esses valores servem como referência de planejamento. Eles não alteram metas nem lançamentos já registrados.
 
+## Impressão das metas diárias
+
+A partir da **v1.9.0**, a gestão pode usar o botão **Imprimir metas**, disponível dentro da aba **Metas**, para gerar o quadro diário das lojas no mesmo formato do controle físico.
+
+O sistema usa o mês selecionado e calcula, para cada loja:
+
+- **M**: manhã;
+- **N**: noite;
+- **T**: total da loja;
+- **Meta Dia**: 100%;
+- **Super Dia**: 110%;
+- **Mega Dia**: 120%.
+
+A referência diária é obtida dividindo a meta mensal correspondente pela quantidade de dias do mês. Supermeta e Megameta seguem a regra oficial de 110% e 120%. Para manter o formato usado na impressão física, os valores são exibidos em reais inteiros.
+
+A impressão é preparada para bobina de **80 mm** e gera um quadro para cada loja ativa, em sequência. Essa função apenas apresenta os valores para impressão e não altera as metas cadastradas.
+
 ## Contexto do mês
 
 ### Mês futuro

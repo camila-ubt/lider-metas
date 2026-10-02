@@ -1,5 +1,19 @@
 # Releases
 
+## v1.9.0 — Impressão das metas diárias
+
+Publicada em **2 de outubro de 2026**.
+
+- novo botão **Imprimir metas** dentro da aba **Metas**;
+- um quadro para cada loja ativa;
+- linhas de manhã, noite e total;
+- Meta, Supermeta e Megameta diárias calculadas automaticamente;
+- prévia antes da impressão;
+- layout preparado para bobina de 80 mm e papel 80 × 297 mm;
+- impressão das lojas em sequência;
+- sem migration e sem alteração das metas cadastradas;
+- teste automatizado para os cálculos do quadro.
+
 ## v1.8.0 — Resumo gerencial de PA no painel
 
 Publicada em **1º de outubro de 2026**.

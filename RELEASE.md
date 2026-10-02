@@ -1,35 +1,37 @@
-## v1.8.0 — Resumo gerencial de PA no painel
+## v1.9.0 — Impressão das metas diárias
 
-Publicada em **1º de outubro de 2026**.
+Publicada em **2 de outubro de 2026**.
 
-Esta versão leva os principais indicadores de PA para o Painel do Líder Metas sem deixar a tela carregada. O novo card fica recolhido por padrão e pode ser aberto quando a gestão quiser aprofundar a leitura do mês.
+Esta versão adiciona ao Líder Metas a impressão do quadro diário de metas usado nas lojas, aproveitando os valores mensais que já estão cadastrados no sistema.
 
-### Resumo recolhível
+### Impressão em 80 mm
 
-- novo card **Resumo de PA** no Painel;
-- o card inicia fechado por padrão;
-- no estado recolhido, mostra a vendedora destaque do mês;
-- quando nenhuma vendedora atingiu 15 dias válidos, a maior PA disponível aparece identificada como prévia;
-- nomes das vendedoras aparecem padronizados em caixa alta.
+- novo botão **Imprimir metas** dentro da aba **Metas**;
+- geração de um quadro para cada loja ativa;
+- layout preparado para bobina de **80 mm**, compatível com a configuração de papel 80 × 297 mm;
+- pré-visualização antes de enviar para a impressora;
+- as três lojas são impressas em sequência para facilitar o corte e a distribuição.
 
-### Indicadores ao expandir
+### Valores impressos
 
-- PA médio geral do mês;
-- PA consolidado por loja;
-- loja com maior PA;
-- vendedora destaque considerando o mínimo de 15 dias válidos;
-- Top 3 de vendedoras elegíveis;
-- quantidade de vendedoras abaixo de 2,20, entre 2,20 e 2,59 e com 2,60 ou mais;
-- comparação do PA geral com o mês anterior;
-- insights rápidos sobre destaque, faixa de PA e evolução mensal.
+Cada quadro mostra:
 
-### Dados e regras
+- **M**: meta diária da manhã;
+- **N**: meta diária da noite;
+- **T**: meta diária total da loja;
+- **Meta Dia**: 100% da meta;
+- **Super Dia**: 110% da meta;
+- **Mega Dia**: 120% da meta.
 
-- o painel reutiliza as visões `resumo_pa_mensal` e `resumo_pa_mensal_loja`;
-- não há nova migration;
-- nenhuma regra existente de cálculo, premiação ou conferência do PA foi alterada;
-- o destaque oficial continua respeitando o mínimo de 15 dias válidos.
+Os valores são calculados automaticamente a partir das metas mensais da loja e do número de dias do mês. O resultado diário é apresentado em reais inteiros, mantendo o padrão do controle físico já utilizado.
+
+### Segurança e dados
+
+- nenhuma migration nova;
+- nenhuma alteração nas metas cadastradas;
+- a impressão fica disponível para perfis de gestão;
+- os cálculos possuem teste automatizado com o formato esperado do quadro.
 
 ### Documentação
 
-A Wiki, o README, a release, a versão do pacote e os rodapés do aplicativo e da Wiki foram atualizados para a v1.8.0.
+README, Wiki, release, versão do pacote e rodapés foram atualizados para a v1.9.0.

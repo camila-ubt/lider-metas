@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import DashboardEstavel from "@/components/DashboardEstavel";
 import ManualUsuario from "@/components/ManualUsuario";
 import PAVendedoras from "@/components/PAVendedoras";
+import MetasImpressao from "@/components/MetasImpressao";
 import { createClient } from "@/lib/supabase/client";
 import { RECOVERY_URL } from "@/lib/recuperacao.mjs";
 import {
@@ -739,6 +740,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                 );
               })}
             </div>
+
+            <MetasImpressao mes={mes} metas={metas} lojas={lojas} />
           </div>
         </section>
       )}
