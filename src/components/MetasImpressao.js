@@ -38,6 +38,7 @@ export default function MetasImpressao({ mes, metas, lojas }) {
   useEffect(() => {
     function limparModoImpressao() {
       document.body.classList.remove("metas-print-active");
+      document.getElementById("metas-print-sheet")?.remove();
     }
 
     window.addEventListener("afterprint", limparModoImpressao);
@@ -48,7 +49,16 @@ export default function MetasImpressao({ mes, metas, lojas }) {
   }, []);
 
   function imprimir() {
+    document.getElementById("metas-print-sheet")?.remove();
+
+    const origem = document.getElementById("metas-print-root");
+    if (!origem) return;
+
+    const folha = origem.cloneNode(true);
+    folha.id = "metas-print-sheet";
+    document.body.appendChild(folha);
     document.body.classList.add("metas-print-active");
+
     window.requestAnimationFrame(() => window.print());
   }
 
@@ -64,41 +74,40 @@ export default function MetasImpressao({ mes, metas, lojas }) {
           }
 
           body.metas-print-active {
+            width: 80mm !important;
+            min-height: 0 !important;
             margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
             background: #fff !important;
           }
 
-          body.metas-print-active * {
-            visibility: hidden !important;
+          body.metas-print-active > *:not(#metas-print-sheet) {
+            display: none !important;
           }
 
-          body.metas-print-active #metas-print-root,
-          body.metas-print-active #metas-print-root * {
-            visibility: visible !important;
-          }
-
-          body.metas-print-active #metas-print-root {
+          body.metas-print-active #metas-print-sheet {
             display: block !important;
             position: absolute !important;
             inset: 0 auto auto 0 !important;
             width: 80mm !important;
             margin: 0 !important;
-            padding: 3mm 4mm 0 !important;
+            padding: 3mm 2mm 0 !important;
             box-sizing: border-box !important;
             background: #fff !important;
             color: #000 !important;
             font-family: Arial, Helvetica, sans-serif !important;
           }
 
-          body.metas-print-active .meta-ticket {
-            width: 72mm !important;
+          body.metas-print-active #metas-print-sheet .meta-ticket {
+            width: 76mm !important;
             margin: 0 0 5mm !important;
             break-inside: avoid !important;
             page-break-inside: avoid !important;
             color: #000 !important;
           }
 
-          body.metas-print-active .meta-ticket-title {
+          body.metas-print-active #metas-print-sheet .meta-ticket-title {
             margin: 0 0 1.5mm !important;
             text-align: center !important;
             font-size: 12pt !important;
@@ -106,34 +115,38 @@ export default function MetasImpressao({ mes, metas, lojas }) {
             line-height: 1.1 !important;
           }
 
-          body.metas-print-active .meta-ticket table {
+          body.metas-print-active #metas-print-sheet .meta-ticket table {
             width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
             border-collapse: collapse !important;
             table-layout: fixed !important;
-            font-size: 9.5pt !important;
+            font-size: 8.5pt !important;
           }
 
-          body.metas-print-active .meta-ticket th,
-          body.metas-print-active .meta-ticket td {
+          body.metas-print-active #metas-print-sheet .meta-ticket th,
+          body.metas-print-active #metas-print-sheet .meta-ticket td {
             border: 0.35mm solid #000 !important;
-            padding: 1.1mm 0.8mm !important;
+            padding: 1mm 0.35mm !important;
             text-align: center !important;
             white-space: nowrap !important;
+            overflow: hidden !important;
+            box-sizing: border-box !important;
             color: #000 !important;
             background: #fff !important;
           }
 
-          body.metas-print-active .meta-ticket th:first-child,
-          body.metas-print-active .meta-ticket td:first-child {
-            width: 8mm !important;
+          body.metas-print-active #metas-print-sheet .meta-ticket th:first-child,
+          body.metas-print-active #metas-print-sheet .meta-ticket td:first-child {
+            width: 7mm !important;
             font-weight: 700 !important;
           }
 
-          body.metas-print-active .meta-ticket thead th {
+          body.metas-print-active #metas-print-sheet .meta-ticket thead th {
             font-weight: 700 !important;
           }
 
-          body.metas-print-active .meta-ticket-separator {
+          body.metas-print-active #metas-print-sheet .meta-ticket-separator {
             margin-top: 2mm !important;
             border-bottom: 0.3mm dashed #000 !important;
           }
