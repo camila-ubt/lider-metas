@@ -83,7 +83,7 @@ export default function MetasImpressao({ mes, metas, lojas }) {
             inset: 0 auto auto 0 !important;
             width: 80mm !important;
             margin: 0 !important;
-            padding: 3mm 4mm 0 !important;
+            padding: 3mm 2mm 0 !important;
             box-sizing: border-box !important;
             background: #fff !important;
             color: #000 !important;
@@ -91,7 +91,7 @@ export default function MetasImpressao({ mes, metas, lojas }) {
           }
 
           body.metas-print-active .meta-ticket {
-            width: 72mm !important;
+            width: 76mm !important;
             margin: 0 0 5mm !important;
             break-inside: avoid !important;
             page-break-inside: avoid !important;
@@ -108,15 +108,17 @@ export default function MetasImpressao({ mes, metas, lojas }) {
 
           body.metas-print-active .meta-ticket table {
             width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
             border-collapse: collapse !important;
             table-layout: fixed !important;
-            font-size: 9.5pt !important;
+            font-size: 8.5pt !important;
           }
 
           body.metas-print-active .meta-ticket th,
           body.metas-print-active .meta-ticket td {
             border: 0.35mm solid #000 !important;
-            padding: 1.1mm 0.8mm !important;
+            padding: 1mm 0.35mm !important;
             text-align: center !important;
             white-space: nowrap !important;
             color: #000 !important;
@@ -125,7 +127,7 @@ export default function MetasImpressao({ mes, metas, lojas }) {
 
           body.metas-print-active .meta-ticket th:first-child,
           body.metas-print-active .meta-ticket td:first-child {
-            width: 8mm !important;
+            width: 7mm !important;
             font-weight: 700 !important;
           }
 
