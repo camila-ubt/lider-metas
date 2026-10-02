@@ -26,14 +26,14 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.9.1** — Ajuste da impressão térmica das metas.
+**v1.9.2** — Correção da pré-visualização da impressão das metas.
 
-## Atualizações da v1.9.1
+## Atualizações da v1.9.2
 
-- mantém CB, AA e AB empilhadas em uma única impressão;
-- ajusta a largura da tabela para exibir **Meta Dia, Super Dia e Mega Dia** dentro dos 80 mm;
-- evita a geração de uma segunda folha causada pelo restante da interface durante a impressão;
-- mantém o botão **Imprimir metas** abaixo dos cards de metas;
+- corrige a pré-visualização que podia aparecer em branco no navegador;
+- garante que o conteúdo das três lojas permaneça visível mesmo com as regras globais de impressão do fechamento mensal;
+- mantém CB, AA e AB empilhadas em uma única folha de 80 mm;
+- mantém Meta Dia, Super Dia e Mega Dia na mesma tabela;
 - sem alteração no banco de dados ou nos cálculos das metas.
 
 ## Tecnologias
