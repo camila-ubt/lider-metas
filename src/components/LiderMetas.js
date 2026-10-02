@@ -582,9 +582,6 @@ export default function LiderMetas({ telaInicial = "painel" }) {
             value={mes}
             onChange={(evento) => setMes(evento.target.value)}
           />
-          {podeVerPA && (
-            <MetasImpressao mes={mes} metas={metas} lojas={lojas} />
-          )}
           <button className="secondary-button" onClick={sair}>Sair</button>
         </div>
       </header>
@@ -722,6 +719,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                 ? `Todas as ${slotsMetas.length} metas estão preenchidas`
                 : `${metasPreenchidas} de ${slotsMetas.length} preenchidas · ${slotsMetas.length - metasPreenchidas} pendentes`}
             </div>
+
+            <MetasImpressao mes={mes} metas={metas} lojas={lojas} />
 
             <div className="history-list meta-status-grid">
               {slotsMetas.map((item) => {
