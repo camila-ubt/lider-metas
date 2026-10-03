@@ -10,6 +10,7 @@ export default function RodapeAutoria() {
       rodape = document.createElement("footer");
       rodape.className = "rodape-autoria";
       rodape.innerHTML = `
+        <div data-app-help-target></div>
         <span>© 2026 Líder Metas</span>
         <span aria-hidden="true"> • </span>
         <a href="https://github.com/camila-ubt/lider-metas/releases" target="_blank" rel="noopener noreferrer" aria-label="Ver releases do Líder Metas">

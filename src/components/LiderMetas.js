@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import DashboardEstavel from "@/components/DashboardEstavel";
 import ManualUsuario from "@/components/ManualUsuario";
 import PAVendedoras from "@/components/PAVendedoras";
@@ -76,6 +77,17 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   const [sessao, setSessao] = useState(null);
   const [perfil, setPerfil] = useState(null);
   const [tela, setTela] = useState(telaInicial);
+  const [alvoAjuda, setAlvoAjuda] = useState(null);
+
+  useEffect(() => {
+    function localizarRodape() {
+      setAlvoAjuda(document.querySelector("[data-app-help-target]"));
+    }
+    localizarRodape();
+    const observador = new MutationObserver(localizarRodape);
+    observador.observe(document.body, { childList: true });
+    return () => observador.disconnect();
+  }, []);
   const [mensagem, setMensagem] = useState("");
   const [mes, setMes] = useState(hojeLocal().slice(0, 7));
   const [lojas, setLojas] = useState([]);
@@ -952,13 +964,13 @@ export default function LiderMetas({ telaInicial = "painel" }) {
           </section>
         </div>
       )}
-      <footer className="app-help">
+      {alvoAjuda && createPortal(<div className="app-help">
         <button type="button" data-manual-botao aria-pressed={tela === "manual"}
           className={tela === "manual" ? "active" : ""}
           onClick={() => setTela("manual")}>
           Manual do usuário
         </button>
-      </footer>
+      </div>, alvoAjuda)}
     </main>
   );
 }

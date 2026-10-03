@@ -39,7 +39,7 @@
   background: var(--surface, white);
   box-shadow: 0 8px 24px #24133320;
 }
-.app-help { margin-top: 24px; text-align: center; }
+.app-help { margin: 16px 0 8px; text-align: center; }
 .app-help button {
   background: transparent;
   border: 0;

@@ -81,7 +81,7 @@ export default function PersistenciaNavegacao() {
 
         // Vendedoras é inserida depois que o perfil admin é confirmado.
         // Aguarda o botão existir antes de concluir a restauração.
-        if (!botao && telaSalva === "vendedoras") return;
+        if (!botao && ["vendedoras", "manual"].includes(telaSalva)) return;
 
         // Abas restritas podem não existir para o perfil atual.
         if (botao && !botao.classList.contains("active")) botao.click();
