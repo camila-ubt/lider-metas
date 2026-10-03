@@ -1,5 +1,12 @@
 # Releases
 
+## v1.10.0 — Navegação simplificada
+
+- Painel e Lançar vendas na primeira linha; PA das vendedoras e Configurações na segunda;
+- Metas e Vendedoras reunidas no menu Configurações para administradoras;
+- Manual do usuário no rodapé;
+- mantém a restauração da tela e os controles de acesso existentes.
+
 ## v1.9.2 — Correção da pré-visualização da impressão
 
 Publicada em **2 de outubro de 2026**.

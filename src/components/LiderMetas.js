@@ -586,7 +586,27 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         </div>
       </header>
 
-      <nav className="tabs" aria-label="Áreas do Líder Metas" data-tela-inicial={telaInicial}>
+      <nav className="tabs" aria-label="Áreas do Líder Metas" data-tela-inicial={telaInicial}
+        onClick={(evento) => {
+          const opcao = evento.target.closest(".config-navigation-options button");
+          const menu = evento.currentTarget.querySelector("details");
+          if (opcao && menu) {
+            menu.open = false;
+            menu.querySelector("summary")?.focus();
+          } else if (evento.target.closest("button") && menu) {
+            menu.open = false;
+          }
+        }}
+        onKeyDown={(evento) => {
+          if (evento.key === "Escape") {
+            const menu = evento.currentTarget.querySelector("details");
+            if (menu?.open) {
+              menu.open = false;
+              menu.querySelector("summary")?.focus();
+            }
+          }
+        }}
+      >
         <button
           type="button"
           className={tela === "painel" ? "active" : ""}
@@ -603,25 +623,6 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         >
           Lançar vendas
         </button>
-        {perfil.papel === "admin" && (
-          <button
-            type="button"
-            className={tela === "metas" ? "active" : ""}
-            aria-pressed={tela === "metas"}
-            onClick={() => setTela("metas")}
-          >
-            Metas
-          </button>
-        )}
-        <button
-          type="button"
-          data-manual-botao
-          className={tela === "manual" ? "active" : ""}
-          aria-pressed={tela === "manual"}
-          onClick={() => setTela("manual")}
-        >
-          Manual do usuário
-        </button>
         {podeVerPA && (
           <button
             type="button"
@@ -632,6 +633,21 @@ export default function LiderMetas({ telaInicial = "painel" }) {
           >
             PA das vendedoras
           </button>
+        )}
+        {perfil.papel === "admin" && (
+          <details className="config-navigation">
+            <summary>Configurações</summary>
+            <div className="config-navigation-options" data-config-navigation-options>
+              <button
+                type="button"
+                className={tela === "metas" ? "active" : ""}
+                aria-pressed={tela === "metas"}
+                onClick={() => setTela("metas")}
+              >
+                Metas
+              </button>
+            </div>
+          </details>
         )}
       </nav>
 
@@ -936,6 +952,13 @@ export default function LiderMetas({ telaInicial = "painel" }) {
           </section>
         </div>
       )}
+      <footer className="app-help">
+        <button type="button" data-manual-botao aria-pressed={tela === "manual"}
+          className={tela === "manual" ? "active" : ""}
+          onClick={() => setTela("manual")}>
+          Manual do usuário
+        </button>
+      </footer>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-.app-shell.config-vendedoras-aberta > :not(.topbar):not(.tabs):not(.config-vendedoras-portal) {
+.app-shell.config-vendedoras-aberta > :not(.topbar):not(.tabs):not(.config-vendedoras-portal):not(.app-help) {
   display: none !important;
 }
 
