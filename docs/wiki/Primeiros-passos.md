@@ -22,8 +22,9 @@ O seletor no topo define o mês usado em todas as áreas. Antes de consultar ou 
 
 - **Painel:** resultado geral, lojas, períodos, ranking, evolução e projeções.
 - **Lançar vendas:** calendário, lançamentos, correções e pendências.
-- **Metas:** cadastro mensal e configuração dos períodos; visível apenas para administradoras.
-- **Manual do usuário:** ajuda incorporada ao aplicativo.
+- **PA das vendedoras:** conferência de vendas, peças e PA para a gestão.
+- **Configurações:** menu com **Metas** e **Vendedoras**, disponível para administradoras.
+- **Manual do usuário:** ajuda disponível no rodapé da página.
 - **Prévia / fechamento:** conferência final e resumo para reunião.
 
 ## 5. Ordem recomendada

@@ -26,15 +26,14 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.9.2** — Correção da pré-visualização da impressão das metas.
+**v1.10.0** — Navegação simplificada.
 
-## Atualizações da v1.9.2
+## Atualizações da v1.10.0
 
-- corrige a pré-visualização que podia aparecer em branco no navegador;
-- garante que o conteúdo das três lojas permaneça visível mesmo com as regras globais de impressão do fechamento mensal;
-- mantém CB, AA e AB empilhadas em uma única folha de 80 mm;
-- mantém Meta Dia, Super Dia e Mega Dia na mesma tabela;
-- sem alteração no banco de dados ou nos cálculos das metas.
+- Painel e Lançar vendas na primeira linha; PA das vendedoras e Configurações na segunda;
+- menu Configurações com Metas e Vendedoras para administradoras;
+- Manual do usuário no rodapé;
+- mantém o mês e a tela selecionados ao atualizar.
 
 ## Tecnologias
 

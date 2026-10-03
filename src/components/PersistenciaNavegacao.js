@@ -59,7 +59,7 @@ export default function PersistenciaNavegacao() {
 
     function restaurar() {
       const campo = campoMes();
-      const botoes = Array.from(document.querySelectorAll("nav.tabs button"));
+      const botoes = Array.from(document.querySelectorAll("nav.tabs button, [data-manual-botao]"));
       setVisivel(Boolean(campo));
 
       if (!campo || !botoes.length) return;
@@ -81,7 +81,7 @@ export default function PersistenciaNavegacao() {
 
         // Vendedoras é inserida depois que o perfil admin é confirmado.
         // Aguarda o botão existir antes de concluir a restauração.
-        if (!botao && telaSalva === "vendedoras") return;
+        if (!botao && ["vendedoras", "manual"].includes(telaSalva)) return;
 
         // Abas restritas podem não existir para o perfil atual.
         if (botao && !botao.classList.contains("active")) botao.click();
@@ -105,7 +105,7 @@ export default function PersistenciaNavegacao() {
     }
 
     function aoClicar(evento) {
-      const botao = evento.target?.closest?.("nav.tabs button");
+      const botao = evento.target?.closest?.("nav.tabs button, [data-manual-botao]");
       if (botao) salvarTela(botao);
     }
 
@@ -121,7 +121,7 @@ export default function PersistenciaNavegacao() {
       const campo = campoMes();
       if (campo?.value) localStorage.setItem(CHAVE_MES, campo.value);
 
-      const ativo = document.querySelector("nav.tabs button.active");
+      const ativo = document.querySelector("nav.tabs button.active, [data-manual-botao].active");
       if (ativo) salvarTela(ativo);
 
       localStorage.setItem(CHAVE_SCROLL, String(window.scrollY));

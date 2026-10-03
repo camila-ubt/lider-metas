@@ -95,14 +95,14 @@ export default function ConfiguracaoVendedoras() {
     if (!alvos.tabs) return undefined;
 
     function aoClicarNasAbas(evento) {
-      const botao = evento.target.closest("button");
-      if (!botao || !alvos.tabs.contains(botao)) return;
+      const botao = evento.target.closest("nav.tabs button, [data-manual-botao]");
+      if (!botao) return;
       if (botao.hasAttribute("data-config-vendedoras-botao")) return;
       setAberta(false);
     }
 
-    alvos.tabs.addEventListener("click", aoClicarNasAbas);
-    return () => alvos.tabs?.removeEventListener("click", aoClicarNasAbas);
+    document.addEventListener("click", aoClicarNasAbas);
+    return () => document.removeEventListener("click", aoClicarNasAbas);
   }, [alvos.tabs]);
 
   useEffect(() => {
@@ -213,11 +213,18 @@ export default function ConfiguracaoVendedoras() {
           data-config-vendedoras-botao
           className={aberta ? "active" : ""}
           aria-pressed={aberta}
-          onClick={() => setAberta(true)}
+          onClick={() => {
+            setAberta(true);
+            const menu = alvos.tabs.querySelector("details");
+            if (menu) {
+              menu.open = false;
+              menu.querySelector("summary")?.focus();
+            }
+          }}
         >
           Vendedoras{pendentes.length > 0 ? ` (${pendentes.length})` : ""}
         </button>,
-        alvos.tabs
+        alvos.tabs.querySelector("[data-config-navigation-options]") || alvos.tabs
       )}
 
       {aberta && createPortal(

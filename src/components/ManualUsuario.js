@@ -9,8 +9,8 @@ const secoes = [
       ["Para que serve cada aba?", [
         "Painel: acompanha o resultado geral, das lojas e dos períodos.",
         "Lançar vendas: registra, consulta e corrige os valores diários.",
-        "Metas: área administrativa para cadastrar metas e configurar horários.",
-        "Manual do usuário: reúne as regras e respostas para as principais dúvidas do aplicativo.",
+        "Configurações → Metas: área administrativa para cadastrar metas e configurar horários.",
+        "Manual do usuário: fica no rodapé e reúne as regras e respostas para as principais dúvidas do aplicativo.",
       ]],
       ["Como escolher outro mês?", [
         "Use o seletor de mês no topo da tela. Todo o aplicativo passa a considerar o mês escolhido.",
@@ -105,7 +105,7 @@ const secoes = [
     titulo: "Aba Metas — administradoras",
     itens: [
       ["Como cadastrar ou editar uma meta?", [
-        "Escolha o mês no topo, abra a aba Metas e toque no card da loja e do período desejados.",
+        "Escolha o mês no topo, abra Configurações → Metas e toque no card da loja e do período desejados.",
         "Informe a Meta de 100%. Supermeta e Megameta são calculadas automaticamente em 120% e 130%.",
       ]],
       ["As metas são separadas por loja e período?", [

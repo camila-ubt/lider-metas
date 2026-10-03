@@ -1,14 +1,58 @@
-@media (max-width: 560px) {
-  .tabs {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-    overflow: visible;
-  }
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: visible;
+}
 
-  .tabs button {
-    width: 100%;
-    min-width: 0;
+.config-navigation { position: relative; min-width: 0; }
+.config-navigation summary {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 17px;
+  background: white;
+  color: var(--muted);
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  list-style: none;
+}
+.config-navigation summary::-webkit-details-marker { display: none; }
+.config-navigation summary::after { content: " ▾"; }
+.config-navigation[open] summary::after { content: " ▴"; }
+.config-navigation:has(button.active) summary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+.config-navigation-options {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 100%;
+  min-width: 160px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface, white);
+  box-shadow: 0 8px 24px #24133320;
+}
+.app-help { margin: 16px 0 8px; text-align: center; }
+.app-help button {
+  background: transparent;
+  border: 0;
+  color: var(--primary);
+  padding: 12px;
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+}
+.tabs button, .config-navigation summary { width: 100%; min-width: 0; }
+@media (max-width: 560px) {
+  .tabs { gap: 8px; }
+  .tabs button, .config-navigation summary {
     padding: 10px 12px;
     font-size: 14px;
     line-height: 1.15;
