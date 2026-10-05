@@ -20,6 +20,14 @@ function formatarPa(valor) {
   return Number(valor || 0).toFixed(2).replace(".", ",");
 }
 
+function formatarDataHora(valor) {
+  if (!valor) return "";
+  return new Date(valor).toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
 function nomeExibicao(item) {
   const nome = item?.nome || "Vendedora";
   return item?.numero_athos ? `${item.numero_athos} — ${nome}` : nome;
@@ -55,6 +63,10 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
   const [erro, setErro] = useState("");
   const [revisao, setRevisao] = useState(0);
   const [mensagemCorrecao, setMensagemCorrecao] = useState("");
+  const [fechamento, setFechamento] = useState(null);
+  const [salvandoFechamento, setSalvandoFechamento] = useState(false);
+  const [erroFechamento, setErroFechamento] = useState("");
+  const [mensagemFechamento, setMensagemFechamento] = useState("");
 
   const permitido = Boolean(perfil?.ativo) && ["admin", "gestora"].includes(perfil?.papel);
 
@@ -65,6 +77,9 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
     setDetalhes([]);
     setAprovacoes([]);
     setMensagemCorrecao("");
+    setFechamento(null);
+    setErroFechamento("");
+    setMensagemFechamento("");
   }, [mes, sessao]);
 
   useEffect(() => {
@@ -79,7 +94,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
       setLojasDoMes([]);
       setAprovacoesDoMes([]);
 
-      const [resumosResp, lojasResp, aprovacoesResp, lojasAtivasResp] = await Promise.all([
+      const [resumosResp, lojasResp, aprovacoesResp, lojasAtivasResp, fechamentoResp] = await Promise.all([
         supabase
           .from("resumo_pa_mensal")
           .select("*")
@@ -98,6 +113,11 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
           .select("id,codigo,nome,ordem")
           .eq("ativa", true)
           .order("ordem"),
+        supabase
+          .from("fechamentos_pa")
+          .select("mes,fechado_por,fechado_em")
+          .eq("mes", inicioMes(mes))
+          .maybeSingle(),
       ]);
 
       if (cancelado) return;
@@ -128,6 +148,13 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
         setLojasDisponiveis([]);
       } else {
         setLojasDisponiveis(lojasAtivasResp.data || []);
+      }
+
+      if (fechamentoResp.error) {
+        setFechamento(null);
+        setErroFechamento("O fechamento mensal ainda precisa ser configurado no banco.");
+      } else {
+        setFechamento(fechamentoResp.data || null);
       }
 
       setCarregando(false);
@@ -238,8 +265,88 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
     );
   }
 
+  const agora = new Date();
+  const mesAtual = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}`;
+  const mesPodeSerFechado = mes < mesAtual;
+  const mesFechado = Boolean(fechamento);
+  const todasAprovadas = lojasDoMes.length > 0
+    && lojasDoMes.every((lojaResumo) =>
+      aprovacoesDoMes.some(
+        (aprovacao) =>
+          aprovacao.usuario_id === lojaResumo.usuario_id
+          && Number(aprovacao.loja_id) === Number(lojaResumo.loja_id),
+      ),
+    );
+  const podeReabrir = perfil?.papel === "admin";
+
+  async function alternarFechamento() {
+    if (!sessao || salvandoFechamento) return;
+
+    setErroFechamento("");
+    setMensagemFechamento("");
+
+    if (mesFechado) {
+      if (!podeReabrir) {
+        setErroFechamento("Somente uma administradora pode reabrir um mês fechado.");
+        return;
+      }
+
+      const confirmou = window.confirm(
+        `Reabrir ${mes.split("-").reverse().join("/")}? Os lançamentos desse mês voltarão a permitir alterações.`,
+      );
+      if (!confirmou) return;
+
+      setSalvandoFechamento(true);
+      const { error } = await supabase.rpc("reabrir_mes_pa", {
+        p_mes: inicioMes(mes),
+      });
+      setSalvandoFechamento(false);
+
+      if (error) {
+        setErroFechamento(error.message || "Não foi possível reabrir o mês.");
+        return;
+      }
+
+      setMensagemFechamento("Mês reaberto. Os lançamentos podem ser alterados novamente.");
+      setRevisao((valor) => valor + 1);
+      return;
+    }
+
+    if (!mesPodeSerFechado) {
+      setErroFechamento("O mês só pode ser fechado depois que terminar.");
+      return;
+    }
+
+    if (!todasAprovadas) {
+      setErroFechamento("Aprove todos os lançamentos por loja antes de fechar o mês.");
+      return;
+    }
+
+    const confirmou = window.confirm(
+      `Fechar ${mes.split("-").reverse().join("/")}? Depois disso, lançamentos, correções, remoções, férias e aprovações desse mês ficarão bloqueados.`,
+    );
+    if (!confirmou) return;
+
+    setSalvandoFechamento(true);
+    const { error } = await supabase.rpc("fechar_mes_pa", {
+      p_mes: inicioMes(mes),
+    });
+    setSalvandoFechamento(false);
+
+    if (error) {
+      setErroFechamento(error.message || "Não foi possível fechar o mês.");
+      return;
+    }
+
+    setMensagemFechamento("Mês fechado com sucesso.");
+    setVendedora(null);
+    setLoja(null);
+    setDetalhes([]);
+    setRevisao((valor) => valor + 1);
+  }
+
   async function alternarAprovacao(item) {
-    if (!sessao || !vendedora || erroAprovacao) return;
+    if (!sessao || !vendedora || erroAprovacao || mesFechado) return;
 
     const aprovada = estaAprovada(item.loja_id);
     setSalvandoAprovacao(item.loja_id);
@@ -328,9 +435,48 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
           <h2>PA das vendedoras</h2>
           <p className={styles.muted}>Resumo geral, totais por loja e lançamentos diários.</p>
         </div>
+
+        {(mesFechado || mesPodeSerFechado) && (
+          <div className={styles.monthClosing}>
+            {mesFechado && <span className={styles.closedBadge}>✓ Mês fechado</span>}
+
+            {!mesFechado && mesPodeSerFechado && (
+              <button
+                type="button"
+                className={styles.closeMonthButton}
+                onClick={alternarFechamento}
+                disabled={salvandoFechamento || carregando || !todasAprovadas || Boolean(erroFechamento)}
+                title={!todasAprovadas ? "Aprove todas as lojas antes de fechar o mês." : undefined}
+              >
+                {salvandoFechamento ? "Fechando..." : "Fechar mês"}
+              </button>
+            )}
+
+            {mesFechado && podeReabrir && (
+              <button
+                type="button"
+                className={styles.reopenMonthButton}
+                onClick={alternarFechamento}
+                disabled={salvandoFechamento}
+              >
+                {salvandoFechamento ? "Reabrindo..." : "Reabrir mês"}
+              </button>
+            )}
+          </div>
+        )}
       </header>
 
       {erro && <p className={styles.error}>{erro}</p>}
+      {erroFechamento && <p className={styles.approvalWarning} role="alert">{erroFechamento}</p>}
+      {mensagemFechamento && <p className={styles.approvalMessage} role="status">{mensagemFechamento}</p>}
+      {mesFechado && (
+        <p className={styles.lockNotice}>
+          Fechado em {formatarDataHora(fechamento.fechado_em)}. Este mês está somente para consulta; alterações de PA ficam bloqueadas.
+        </p>
+      )}
+      {!mesFechado && mesPodeSerFechado && resumos.length > 0 && !todasAprovadas && !carregando && (
+        <p className={styles.monthHint}>Aprove todas as lojas das vendedoras para liberar o fechamento do mês.</p>
+      )}
       {mensagemCorrecao && <p className={styles.approvalMessage} role="status">{mensagemCorrecao}</p>}
 
       <section className={styles.panel}>
@@ -386,37 +532,41 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
           {erroAprovacao && <p className={styles.approvalWarning}>{erroAprovacao}</p>}
           {mensagemAprovacao && <p className={styles.approvalMessage}>{mensagemAprovacao}</p>}
 
-          <AdicionarLancamentoPA
-            vendedora={vendedora}
-            mes={mes}
-            lojas={lojasDisponiveis}
-            supabase={supabase}
-            onSalvou={({ data, loja: codigoLoja }) => {
-              const dataFormatada = data.split("-").reverse().join("/");
-              setMensagemCorrecao(`Lançamento de ${dataFormatada} · ${codigoLoja} adicionado e já disponível no PA da vendedora.`);
-              setLoja(null);
-              setDetalhes([]);
-              setRevisao((valor) => valor + 1);
-            }}
-          />
+          {!mesFechado && (
+            <>
+              <AdicionarLancamentoPA
+                vendedora={vendedora}
+                mes={mes}
+                lojas={lojasDisponiveis}
+                supabase={supabase}
+                onSalvou={({ data, loja: codigoLoja }) => {
+                  const dataFormatada = data.split("-").reverse().join("/");
+                  setMensagemCorrecao(`Lançamento de ${dataFormatada} · ${codigoLoja} adicionado e já disponível no PA da vendedora.`);
+                  setLoja(null);
+                  setDetalhes([]);
+                  setRevisao((valor) => valor + 1);
+                }}
+              />
 
-          <RegistrarFeriasPA
-            vendedora={vendedora}
-            supabase={supabase}
-            onSalvou={({ inicio, fim, dias, lancamentosRemovidos }) => {
-              const inicioFormatado = inicio.split("-").reverse().join("/");
-              const fimFormatado = fim.split("-").reverse().join("/");
-              const removidos = lancamentosRemovidos > 0
-                ? ` ${lancamentosRemovidos} lançamento${lancamentosRemovidos === 1 ? "" : "s"} do período ${lancamentosRemovidos === 1 ? "foi removido" : "foram removidos"}.`
-                : "";
-              setMensagemCorrecao(
-                `Férias registradas de ${inicioFormatado} a ${fimFormatado} (${dias} dia${dias === 1 ? "" : "s"}).${removidos}`,
-              );
-              setLoja(null);
-              setDetalhes([]);
-              setRevisao((valor) => valor + 1);
-            }}
-          />
+              <RegistrarFeriasPA
+                vendedora={vendedora}
+                supabase={supabase}
+                onSalvou={({ inicio, fim, dias, lancamentosRemovidos }) => {
+                  const inicioFormatado = inicio.split("-").reverse().join("/");
+                  const fimFormatado = fim.split("-").reverse().join("/");
+                  const removidos = lancamentosRemovidos > 0
+                    ? ` ${lancamentosRemovidos} lançamento${lancamentosRemovidos === 1 ? "" : "s"} do período ${lancamentosRemovidos === 1 ? "foi removido" : "foram removidos"}.`
+                    : "";
+                  setMensagemCorrecao(
+                    `Férias registradas de ${inicioFormatado} a ${fimFormatado} (${dias} dia${dias === 1 ? "" : "s"}).${removidos}`,
+                  );
+                  setLoja(null);
+                  setDetalhes([]);
+                  setRevisao((valor) => valor + 1);
+                }}
+              />
+            </>
+          )}
 
           <div className={styles.storeGrid}>
             {lojas.map((item) => {
@@ -443,9 +593,9 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
                     type="button"
                     className={`${styles.approveButton} ${aprovada ? styles.approvedButton : ""}`}
                     onClick={() => alternarAprovacao(item)}
-                    disabled={salvando || carregando || Boolean(erroAprovacao)}
+                    disabled={mesFechado || salvando || carregando || Boolean(erroAprovacao)}
                   >
-                    {salvando ? "Salvando..." : aprovada ? "✓ Aprovado" : "Aprovar lançamentos"}
+                    {mesFechado ? "Mês fechado" : salvando ? "Salvando..." : aprovada ? "✓ Aprovado" : "Aprovar lançamentos"}
                   </button>
                 </article>
               );
@@ -472,7 +622,7 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
               <span>Data</span><span>Vendas</span><span>Peças</span><span>PA</span><span>Ação</span>
             </div>
             {detalhes.map((item) => (
-              <CorrecaoLancamentoPA key={`${item.dia_id}-${item.loja_id}`} item={item} supabase={supabase}
+              <CorrecaoLancamentoPA key={`${item.dia_id}-${item.loja_id}`} item={item} supabase={supabase} bloqueado={mesFechado}
                 onSalvou={() => {
                   setMensagemCorrecao("Correção salva e aviso registrado no PA da vendedora. Confira os totais atualizados antes de aprovar novamente.");
                   setRevisao((valor) => valor + 1);

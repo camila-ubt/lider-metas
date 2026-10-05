@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import styles from "@/app/pa-vendedoras/PAVendedoras.module.css";
 
-export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemoveu }) {
+export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemoveu, bloqueado = false }) {
   const [aberto, setAberto] = useState(false);
   const [vendas, setVendas] = useState(String(item.vendas));
   const [pecas, setPecas] = useState(String(item.pecas));
@@ -13,6 +13,7 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
   const data = item.data.split("-").reverse().join("/");
 
   function abrir() {
+    if (bloqueado) return;
     setVendas(String(item.vendas));
     setPecas(String(item.pecas));
     setErro("");
@@ -100,8 +101,9 @@ export default function CorrecaoLancamentoPA({ item, supabase, onSalvou, onRemov
         <span>{Number(item.pecas)}</span>
         <span>{Number(item.pa || 0).toFixed(2).replace(".", ",")}</span>
         <button type="button" className={styles.textButton} onClick={abrir}
-          disabled={salvando} aria-expanded={aberto} aria-label={`Editar lançamento de ${data}`}>
-          Editar
+          disabled={salvando || bloqueado} aria-expanded={aberto}
+          aria-label={bloqueado ? `Lançamento de ${data} bloqueado pelo fechamento do mês` : `Editar lançamento de ${data}`}>
+          {bloqueado ? "Fechado" : "Editar"}
         </button>
       </div>
       {aberto && (
