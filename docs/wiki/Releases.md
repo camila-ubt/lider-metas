@@ -1,5 +1,18 @@
 # Releases
 
+## v1.11.0 — Fechamento mensal do PA
+
+Publicada em **5 de outubro de 2026**.
+
+- novo botão **Fechar mês** na área de PA das vendedoras para meses já encerrados;
+- fechamento liberado somente quando todas as lojas com lançamentos das vendedoras ativas estão aprovadas;
+- lançamentos, correções, remoções, férias e aprovações ficam bloqueados após o fechamento;
+- mês fechado permanece disponível em modo de consulta;
+- **Reabrir mês** disponível somente para administradoras ativas;
+- proteção aplicada no banco, além do bloqueio visual;
+- migration e teste automatizado incluídos.
+
+
 ## v1.10.0 — Navegação simplificada
 
 - Painel e Lançar vendas na primeira linha; PA das vendedoras e Configurações na segunda;
