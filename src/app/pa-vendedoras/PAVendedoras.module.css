@@ -440,6 +440,83 @@
   color: #38664a;
 }
 
+.monthClosing {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.closedBadge {
+  padding: 8px 11px;
+  border: 1px solid #cfe0d5;
+  border-radius: 999px;
+  background: #edf6f0;
+  color: #38664a;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.closeMonthButton,
+.reopenMonthButton {
+  min-height: 38px;
+  border-radius: 10px;
+  padding: 8px 13px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.closeMonthButton {
+  border: 1px solid #7650a7;
+  background: #7650a7;
+  color: white;
+}
+
+.reopenMonthButton {
+  border: 1px solid #c9bdd7;
+  background: white;
+  color: #654786;
+}
+
+.closeMonthButton:disabled,
+.reopenMonthButton:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+.lockNotice,
+.monthHint {
+  max-width: 1180px;
+  margin: 0 auto 16px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.lockNotice {
+  border: 1px solid #cfe0d5;
+  background: #f1f8f3;
+  color: #38664a;
+}
+
+.monthHint {
+  border: 1px solid #e3ddea;
+  background: #f7f3fb;
+  color: #654786;
+}
+
+@media (max-width: 760px) {
+  .monthClosing {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
 
 /* Inclusão administrativa de lançamentos ausentes. */
 .addEntry {
