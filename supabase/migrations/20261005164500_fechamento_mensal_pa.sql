@@ -55,7 +55,7 @@ begin
     raise exception 'Informe o primeiro dia do mês que será fechado.' using errcode = '22023';
   end if;
 
-  if p_mes >= date_trunc('month', current_date)::date then
+  if p_mes >= date_trunc('month', timezone('America/Sao_Paulo', now()))::date then
     raise exception 'O mês só pode ser fechado depois que terminar.' using errcode = '22023';
   end if;
 
