@@ -24,6 +24,16 @@ Use **Ver lançamentos** para abrir o detalhamento diário ou **Aprovar lançame
 
 A aprovação é registrada por vendedora, mês e loja. Ela pode ser desfeita pela gestão quando for necessário revisar os dados.
 
+## Fechar mês
+
+Depois que o mês termina e todas as lojas com lançamentos das vendedoras ativas estão aprovadas, a gestão pode usar **Fechar mês** no topo da página.
+
+O fechamento transforma aquele mês em consulta: não é mais possível adicionar, corrigir ou remover lançamentos, registrar férias que alterem o período nem mudar as aprovações. O bloqueio também existe no banco de dados, portanto não depende apenas dos botões da interface.
+
+O mês continua disponível no seletor para consultar PA, totais por loja e detalhamento diário. Um aviso **Mês fechado** identifica o período protegido.
+
+Se for descoberto algum erro posteriormente, somente uma administradora ativa pode usar **Reabrir mês**. Depois da reabertura, as alterações voltam a ser permitidas e o mês pode ser conferido e fechado novamente.
+
 ## Adicionar lançamento
 
 Durante a conferência, a gestão pode incluir um lançamento que ficou faltando. O botão **Adicionar lançamento** aparece no resumo da vendedora, antes dos cartões das lojas, para continuar disponível mesmo quando uma das lojas ainda não tem movimento.
