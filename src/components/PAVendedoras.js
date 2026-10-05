@@ -269,8 +269,14 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
   const mesAtual = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}`;
   const mesPodeSerFechado = mes < mesAtual;
   const mesFechado = Boolean(fechamento);
-  const todasAprovadas = resumos.length > 0
-    && resumos.every((item) => vendedoraTodaAprovada(item.usuario_id));
+  const todasAprovadas = lojasDoMes.length > 0
+    && lojasDoMes.every((lojaResumo) =>
+      aprovacoesDoMes.some(
+        (aprovacao) =>
+          aprovacao.usuario_id === lojaResumo.usuario_id
+          && Number(aprovacao.loja_id) === Number(lojaResumo.loja_id),
+      ),
+    );
   const podeReabrir = perfil?.papel === "admin";
 
   async function alternarFechamento() {
