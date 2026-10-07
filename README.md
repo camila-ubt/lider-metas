@@ -13,6 +13,7 @@ Aplicação web de uso interno para acompanhamento de vendas, metas, PA das vend
 - inclusão administrativa de lançamentos ausentes diretamente na conferência do PA, com aviso para a vendedora;
 - registro administrativo de períodos de férias, com atualização automática dos dias do PA;
 - fechamento mensal do PA após a conferência, com bloqueio de alterações e reabertura restrita a administradoras;
+- fechamento manual de cada mês de vendas após o último dia estar completo, mantendo o mês fechado somente para consulta;
 - aprovação e gestão de acesso das vendedoras;
 - separação entre solicitações pendentes, perfis ativos e desativados;
 - horários de manhã e noite compartilhados com a Calculadora de Metas;
@@ -27,11 +28,11 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.12.0** — Manual do usuário por tarefa, com foco no celular.
+**v1.13.0** — Fechamento mensal das vendas.
 
-## Atualizações da v1.12.0
+## Atualizações da v1.13.0
 
-Manual com grupos recolhíveis, busca integrada, atalhos amplos e retorno às tarefas. Inclui as funções recentes do PA, férias, impressão de metas, navegação por Configurações, fechamento mensal e regras de bloqueio, além de erros comuns e FAQ. A Wiki e o rodapé acompanham a versão.
+Novo botão **Fechar mês** em **Lançar vendas**. Ele é liberado quando o mês chegou ao último dia e os lançamentos de manhã e noite de todas as lojas estão preenchidos nesse dia. O fechamento é manual, afeta somente o mês selecionado e mantém os dados disponíveis para consulta, sem permitir novas alterações.
 
 ## Tecnologias
 

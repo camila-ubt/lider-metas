@@ -100,6 +100,11 @@ const secoes = [
       ["Como remover um lançamento incorreto?", [
         "Abra o lançamento já salvo e use a opção de remoção disponível no modal. Depois, confira se o dia voltou a aparecer como pendente.",
       ]],
+      ["Quando aparece o botão Fechar mês?", [
+        "O botão aparece em “Lançar vendas” quando o mês chega ao último dia e manhã e noite de todas as lojas estão preenchidas nesse último dia.",
+        "Confira os valores com o demonstrativo antes de confirmar. O fechamento é manual e fecha somente o mês selecionado.",
+        "Depois de fechado, o mês continua disponível para consulta, mas os lançamentos e as metas ficam sem edição.",
+      ]],
     ],
   },
   {
@@ -260,7 +265,7 @@ secoes.splice(3, 0, ...[
         "O que fica bloqueado após o fechamento?",
         [
           "O PA do mês continua disponível para consulta. Novos lançamentos, correções, remoções, férias e alterações de aprovação desse mês ficam bloqueados.",
-          "Essa regra pertence ao fechamento do PA. Não confunda com o relatório de fechamento das vendas e metas do painel."
+          "O fechamento do PA é separado do fechamento das vendas. Em “Lançar vendas”, o botão “Fechar mês” encerra somente o mês de vendas selecionado."
         ]
       ],
       [
@@ -328,7 +333,7 @@ export default function ManualUsuario() {
         <p className={styles.eyebrow}>Ajuda por tarefa</p>
         <h2>Manual do usuário</h2>
         <p className={styles.intro}>Escolha o que precisa fazer. Abra só a instrução que quiser consultar.</p>
-        <p className={styles.version}>Líder Metas / Meta Traders · v1.12.0 · Atualizado em 07/10/2026</p>
+        <p className={styles.version}>Líder Metas / Meta Traders · v1.13.0 · Atualizado em 07/10/2026</p>
         <details className={styles.start}>
           <summary>Comece por aqui</summary>
           <div className={styles.answer}>
