@@ -1,6 +1,6 @@
 # Guia do usuário
 
-Líder Metas / Meta Traders · v1.12.0 · Atualizado em 07/10/2026.
+Líder Metas / Meta Traders · v1.13.0 · Atualizado em 07/10/2026.
 
 No celular, abra o Manual do usuário pelo rodapé. Use a busca por palavra, com ou sem acento, ou toque em uma tarefa. Os grupos começam recolhidos e as áreas de toque têm pelo menos 48 px. No computador, os atalhos se organizam em colunas.
 
@@ -30,6 +30,8 @@ Use o botão “Mês atual” para retornar rapidamente ao mês corrente.
 ### Os meses anteriores ficam salvos?
 
 Sim. Vendas e metas são armazenadas por mês e podem ser consultadas novamente pelo seletor de mês.
+
+Depois do fechamento do histórico, os meses encerrados continuam visíveis, mas ficam somente para consulta.
 
 ### O que fazer quando uma informação parece desatualizada?
 
@@ -145,6 +147,14 @@ Sim, mas use zero somente quando realmente não houve venda ou o caixa não abri
 
 Abra o lançamento já salvo e use a opção de remoção disponível no modal. Depois, confira se o dia voltou a aparecer como pendente.
 
+### Como fechar os meses anteriores?
+
+Depois de conferir os CSVs e o demonstrativo das lojas, abra “Lançar vendas” e use “Fechar meses anteriores”.
+
+A ação fecha de uma vez todos os meses até o fim do mês passado. Vendas e metas desses meses ficam somente para consulta, enquanto o mês atual continua liberado.
+
+O fechamento é cumulativo: no início de um novo mês, use o botão novamente para incluir o mês que acabou.
+
 </details>
 
 <details>
@@ -216,7 +226,7 @@ O fim do mês no calendário não fecha automaticamente o PA. O fechamento depen
 
 O PA do mês continua disponível para consulta. Novos lançamentos, correções, remoções, férias e alterações de aprovação desse mês ficam bloqueados.
 
-Essa regra pertence ao fechamento do PA. Não confunda com o relatório de fechamento das vendas e metas do painel.
+O fechamento do PA é separado do fechamento do histórico de vendas. O botão em “Lançar vendas” protege vendas e metas dos meses anteriores; este fechamento protege os registros do PA.
 
 ### Como corrigir um mês fechado?
 
