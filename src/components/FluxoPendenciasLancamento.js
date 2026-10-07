@@ -130,49 +130,6 @@ export default function FluxoPendenciasLancamento() {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
 
-  useEffect(() => {
-    function capturar(evento) {
-      const botao = evento.target.closest(
-        "button.calendar-day:not(.calendar-day-empty)",
-      );
-      if (!botao) return;
-
-      const numero = botao.querySelector(".calendar-number")?.textContent?.trim();
-      const mes = document.querySelector('input[type="month"]')?.value;
-      if (!numero || !mes) return;
-
-      evento.preventDefault();
-      evento.stopPropagation();
-      evento.stopImmediatePropagation();
-
-      void abrir(`${mes}-${String(numero).padStart(2, "0")}`);
-    }
-
-    function abrirPeloRelatorio(evento) {
-      const data = evento.detail?.data;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data || ""))) return;
-
-      void abrir(data, {
-        lojaId: evento.detail?.lojaId,
-        aba: evento.detail?.aba || "lancados",
-      });
-    }
-
-    document.addEventListener("click", capturar, true);
-    window.addEventListener(
-      "lider-metas:abrir-lancamentos-dia",
-      abrirPeloRelatorio,
-    );
-
-    return () => {
-      document.removeEventListener("click", capturar, true);
-      window.removeEventListener(
-        "lider-metas:abrir-lancamentos-dia",
-        abrirPeloRelatorio,
-      );
-    };
-  }, []);
-
   async function abrir(data, opcoes = {}) {
     setAberto(true);
     setCarregando(true);
@@ -233,6 +190,50 @@ export default function FluxoPendenciasLancamento() {
     );
     setCarregando(false);
   }
+
+  useEffect(() => {
+    function capturar(evento) {
+      const botao = evento.target.closest(
+        "button.calendar-day:not(.calendar-day-empty)",
+      );
+      if (!botao) return;
+
+      const numero = botao.querySelector(".calendar-number")?.textContent?.trim();
+      const mes = document.querySelector('input[type="month"]')?.value;
+      if (!numero || !mes) return;
+
+      evento.preventDefault();
+      evento.stopPropagation();
+      evento.stopImmediatePropagation();
+
+      void abrir(`${mes}-${String(numero).padStart(2, "0")}`);
+    }
+
+    function abrirPeloRelatorio(evento) {
+      const data = evento.detail?.data;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(data || ""))) return;
+
+      void abrir(data, {
+        lojaId: evento.detail?.lojaId,
+        aba: evento.detail?.aba || "lancados",
+      });
+    }
+
+    document.addEventListener("click", capturar, true);
+    window.addEventListener(
+      "lider-metas:abrir-lancamentos-dia",
+      abrirPeloRelatorio,
+    );
+
+    return () => {
+      document.removeEventListener("click", capturar, true);
+      window.removeEventListener(
+        "lider-metas:abrir-lancamentos-dia",
+        abrirPeloRelatorio,
+      );
+    };
+  }, []);
+
 
   const pendencias = useMemo(
     () => pendenciasDaLoja(vendas, dataSelecionada, lojaId, horarios),
