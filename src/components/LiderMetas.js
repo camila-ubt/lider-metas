@@ -93,6 +93,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   const [lojas, setLojas] = useState([]);
   const [vendas, setVendas] = useState([]);
   const [metas, setMetas] = useState([]);
+  const [fechadoAte, setFechadoAte] = useState(null);
+  const [fechandoHistorico, setFechandoHistorico] = useState(false);
   const [login, setLogin] = useState({ nome: "", email: "", senha: "" });
   const [modoCadastro, setModoCadastro] = useState(false);
   const [processandoAuth, setProcessandoAuth] = useState(false);
@@ -174,7 +176,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
     setVendas([]);
     setMetas([]);
 
-    const [lojasResp, vendasResp, metasResp] = await Promise.all([
+    const [lojasResp, vendasResp, metasResp, fechamentoResp] = await Promise.all([
       supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
       supabase
         .from("vendas_diarias")
@@ -186,17 +188,23 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         .from("metas_mensais")
         .select("*")
         .eq("mes", inicioMes(mesCarregado)),
+      supabase
+        .from("fechamento_vendas")
+        .select("fechado_ate")
+        .eq("id", 1)
+        .maybeSingle(),
     ]);
 
     if (idRequisicao !== carregamentoId.current) return;
 
-    const erro = lojasResp.error || vendasResp.error || metasResp.error;
+    const erro = lojasResp.error || vendasResp.error || metasResp.error || fechamentoResp.error;
     if (erro) setMensagem(erro.message);
 
     const lojasCarregadas = lojasResp.data || [];
     setLojas(lojasCarregadas);
     setVendas(vendasResp.data || []);
     setMetas(metasResp.data || []);
+    setFechadoAte(fechamentoResp.data?.fechado_ate || null);
     setLancamento((atual) => ({
       ...atual,
       loja_id: atual.loja_id || lojasCarregadas[0]?.id || "",
@@ -305,6 +313,11 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   }
 
   function abrirDia(data) {
+    if (fechadoAte && data <= fechadoAte) {
+      setMensagem("Este mês está fechado e disponível somente para consulta.");
+      return;
+    }
+
     if (!lojas.length) {
       setMensagem("Nenhuma loja ativa foi encontrada.");
       return;
@@ -330,6 +343,11 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   async function salvarVenda(evento, acao = "continuar") {
     evento.preventDefault();
     setMensagem("");
+
+    if (fechadoAte && lancamento.data <= fechadoAte) {
+      setMensagem("Este mês está fechado e disponível somente para consulta.");
+      return;
+    }
 
     const valor = interpretarValor(lancamento.valor);
     if (!Number.isFinite(valor) || valor < 0) {
@@ -402,6 +420,11 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   }
 
   function abrirMeta(lojaId, periodo) {
+    if (fechadoAte && inicioMes(mes) <= fechadoAte) {
+      setMensagem("Este mês está fechado e as metas ficam somente para consulta.");
+      return;
+    }
+
     const existente = metaDoSlot(lojaId, periodo);
     setMetaForm({
       loja_id: String(lojaId),
@@ -414,6 +437,12 @@ export default function LiderMetas({ telaInicial = "painel" }) {
 
   async function salvarMeta(evento) {
     evento.preventDefault();
+
+    if (fechadoAte && inicioMes(mes) <= fechadoAte) {
+      setMensagem("Este mês está fechado e as metas ficam somente para consulta.");
+      return;
+    }
+
     const valor = interpretarValor(metaForm.valor);
 
     if (!Number.isFinite(valor) || valor < 0) {
@@ -441,6 +470,40 @@ export default function LiderMetas({ telaInicial = "painel" }) {
       await carregarDados();
     }
     setSalvando(false);
+  }
+
+  async function fecharHistoricoVendas() {
+    const agora = new Date();
+    const ultimoDiaAnterior = new Date(agora.getFullYear(), agora.getMonth(), 0);
+    const limite = `${ultimoDiaAnterior.getFullYear()}-${String(ultimoDiaAnterior.getMonth() + 1).padStart(2, "0")}-${String(ultimoDiaAnterior.getDate()).padStart(2, "0")}`;
+    const limiteFormatado = ultimoDiaAnterior.toLocaleDateString("pt-BR");
+
+    if (fechadoAte && fechadoAte >= limite) {
+      setMensagem(`Os meses anteriores já estão fechados até ${limiteFormatado}.`);
+      return;
+    }
+
+    const confirmou = window.confirm(
+      `Fechar todos os meses anteriores até ${limiteFormatado}? Depois disso, vendas e metas desses meses ficarão somente para consulta.`
+    );
+    if (!confirmou) return;
+
+    setFechandoHistorico(true);
+    setMensagem("");
+    const { data, error } = await supabase.rpc("fechar_historico_vendas");
+    setFechandoHistorico(false);
+
+    if (error) {
+      setMensagem(error.message);
+      return;
+    }
+
+    const novoLimite = data?.fechado_ate || limite;
+    setFechadoAte(novoLimite);
+    setMensagem(
+      `Meses anteriores fechados até ${new Date(`${novoLimite}T12:00:00`).toLocaleDateString("pt-BR")}. O mês atual continua liberado.`
+    );
+    setModalVendaAberto(false);
   }
 
   const diasCalendario = useMemo(() => {
@@ -580,6 +643,20 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   );
   const metasPreenchidas = slotsMetas.filter((item) => item.registro).length;
   const podeVerPA = ["admin", "gestora"].includes(perfil.papel);
+  const podeFecharHistorico = ["admin", "gestora"].includes(perfil.papel);
+  const mesFechadoVendas = Boolean(fechadoAte && inicioMes(mes) <= fechadoAte);
+  const agoraFechamento = new Date();
+  const fimMesAnterior = new Date(
+    agoraFechamento.getFullYear(),
+    agoraFechamento.getMonth(),
+    0
+  );
+  const limiteFechamentoAtual = `${fimMesAnterior.getFullYear()}-${String(
+    fimMesAnterior.getMonth() + 1
+  ).padStart(2, "0")}-${String(fimMesAnterior.getDate()).padStart(2, "0")}`;
+  const historicoJaFechado = Boolean(
+    fechadoAte && fechadoAte >= limiteFechamentoAtual
+  );
 
   return (
     <main className="app-shell">
@@ -681,10 +758,26 @@ export default function LiderMetas({ telaInicial = "painel" }) {
             <div className="calendar-heading">
               <div>
                 <p className="eyebrow">Lançamentos do mês</p>
-                <h2>Selecione um dia</h2>
+                <h2>{mesFechadoVendas ? "Mês fechado · somente consulta" : "Selecione um dia"}</h2>
                 <p className="muted">
-                  Toque no dia para preencher ou editar os caixas das lojas.
+                  {mesFechadoVendas
+                    ? "Os valores deste mês estão protegidos e não podem mais ser alterados."
+                    : "Toque no dia para preencher ou editar os caixas das lojas."}
                 </p>
+                {podeFecharHistorico && (
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={fecharHistoricoVendas}
+                    disabled={fechandoHistorico || historicoJaFechado}
+                  >
+                    {fechandoHistorico
+                      ? "Fechando..."
+                      : historicoJaFechado
+                        ? "Meses anteriores fechados"
+                        : "Fechar meses anteriores"}
+                  </button>
+                )}
               </div>
               <div className="calendar-legend">
                 <span><i className="legend-dot complete" /> Completo</span>
@@ -717,6 +810,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                     className={`calendar-day ${classeStatus} ${hoje ? "today" : ""}`}
                     key={dia.data}
                     onClick={() => abrirDia(dia.data)}
+                    disabled={mesFechadoVendas}
                     aria-label={`Dia ${dia.numero}: ${status.preenchidos} de ${status.totalEsperado} lançamentos preenchidos`}
                   >
                     <span className="calendar-number">{dia.numero}</span>
@@ -756,6 +850,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                     type="button"
                     className={`history-item meta-status-card ${configurada ? "is-filled" : "is-pending"}`}
                     onClick={() => abrirMeta(item.loja.id, item.periodo)}
+                    disabled={mesFechadoVendas}
                     key={`${item.loja.id}-${item.periodo}`}
                   >
                     <div>
