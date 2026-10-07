@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./ManualUsuario.module.css";
+import packageJson from "../../package.json";
 
 const secoes = [
   {
@@ -333,7 +334,7 @@ export default function ManualUsuario() {
         <p className={styles.eyebrow}>Ajuda por tarefa</p>
         <h2>Manual do usuário</h2>
         <p className={styles.intro}>Escolha o que precisa fazer. Abra só a instrução que quiser consultar.</p>
-        <p className={styles.version}>Líder Metas / Meta Traders · v1.13.0 · Atualizado em 07/10/2026</p>
+        <p className={styles.version}>Líder Metas / Meta Traders · v{packageJson.version} · Atualizado em 07/10/2026</p>
         <details className={styles.start}>
           <summary>Comece por aqui</summary>
           <div className={styles.answer}>
