@@ -93,6 +93,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   const [lojas, setLojas] = useState([]);
   const [vendas, setVendas] = useState([]);
   const [metas, setMetas] = useState([]);
+  const [mesFechadoVendas, setMesFechadoVendas] = useState(false);
+  const [salvandoFechamento, setSalvandoFechamento] = useState(false);
   const [login, setLogin] = useState({ nome: "", email: "", senha: "" });
   const [modoCadastro, setModoCadastro] = useState(false);
   const [processandoAuth, setProcessandoAuth] = useState(false);
@@ -173,6 +175,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
     setCarregando(true);
     setVendas([]);
     setMetas([]);
+    setMesFechadoVendas(false);
 
     const [lojasResp, vendasResp, metasResp] = await Promise.all([
       supabase.from("lojas").select("*").eq("ativa", true).order("ordem"),
@@ -197,6 +200,18 @@ export default function LiderMetas({ telaInicial = "painel" }) {
     setLojas(lojasCarregadas);
     setVendas(vendasResp.data || []);
     setMetas(metasResp.data || []);
+
+    const fechamentoResp = await supabase
+      .from("fechamentos_vendas")
+      .select("mes")
+      .eq("mes", inicioMes(mesCarregado))
+      .maybeSingle();
+
+    if (idRequisicao !== carregamentoId.current) return;
+    if (!fechamentoResp.error) {
+      setMesFechadoVendas(Boolean(fechamentoResp.data));
+    }
+
     setLancamento((atual) => ({
       ...atual,
       loja_id: atual.loja_id || lojasCarregadas[0]?.id || "",
@@ -331,6 +346,11 @@ export default function LiderMetas({ telaInicial = "painel" }) {
     evento.preventDefault();
     setMensagem("");
 
+    if (mesFechadoVendas) {
+      setMensagem("Este mês está fechado e disponível somente para consulta.");
+      return;
+    }
+
     const valor = interpretarValor(lancamento.valor);
     if (!Number.isFinite(valor) || valor < 0) {
       setMensagem("Informe um valor de venda válido.");
@@ -414,6 +434,12 @@ export default function LiderMetas({ telaInicial = "painel" }) {
 
   async function salvarMeta(evento) {
     evento.preventDefault();
+
+    if (mesFechadoVendas) {
+      setMensagem("Este mês está fechado e as metas ficam somente para consulta.");
+      return;
+    }
+
     const valor = interpretarValor(metaForm.valor);
 
     if (!Number.isFinite(valor) || valor < 0) {
@@ -441,6 +467,34 @@ export default function LiderMetas({ telaInicial = "painel" }) {
       await carregarDados();
     }
     setSalvando(false);
+  }
+
+  async function fecharMesVendas() {
+    const mesFormatado = new Date(`${inicioMes(mes)}T12:00:00`).toLocaleDateString(
+      "pt-BR",
+      { month: "long", year: "numeric" }
+    );
+    const confirmou = window.confirm(
+      `Confirma o fechamento de ${mesFormatado}? Confira antes com o demonstrativo da loja. Depois do fechamento, este mês ficará somente para consulta e não poderá mais ser alterado.`
+    );
+    if (!confirmou) return;
+
+    setSalvandoFechamento(true);
+    setMensagem("");
+    const { error } = await supabase.rpc("fechar_mes_vendas", {
+      p_mes: inicioMes(mes),
+    });
+    setSalvandoFechamento(false);
+
+    if (error) {
+      setMensagem(error.message);
+      return;
+    }
+
+    setMesFechadoVendas(true);
+    setModalVendaAberto(false);
+    setModalMetaAberto(false);
+    setMensagem(`${mesFormatado} foi fechado e agora está somente para consulta.`);
   }
 
   const diasCalendario = useMemo(() => {
@@ -580,6 +634,15 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   );
   const metasPreenchidas = slotsMetas.filter((item) => item.registro).length;
   const podeVerPA = ["admin", "gestora"].includes(perfil.papel);
+  const podeGerenciarFechamento = ["admin", "gestora"].includes(perfil.papel);
+  const ultimoDiaMes = fimMes(mes);
+  const ultimoDiaCompleto = statusDoDia(ultimoDiaMes).completo;
+  const mesChegouAoFim = hojeLocal() >= ultimoDiaMes;
+  const podeFecharMes =
+    podeGerenciarFechamento &&
+    !mesFechadoVendas &&
+    ultimoDiaCompleto &&
+    mesChegouAoFim;
 
   return (
     <main className="app-shell">
@@ -681,10 +744,27 @@ export default function LiderMetas({ telaInicial = "painel" }) {
             <div className="calendar-heading">
               <div>
                 <p className="eyebrow">Lançamentos do mês</p>
-                <h2>Selecione um dia</h2>
+                <h2>{mesFechadoVendas ? "Mês fechado" : "Selecione um dia"}</h2>
                 <p className="muted">
-                  Toque no dia para preencher ou editar os caixas das lojas.
+                  {mesFechadoVendas
+                    ? "Os lançamentos continuam disponíveis para consulta, mas não podem mais ser alterados."
+                    : "Toque no dia para preencher ou editar os caixas das lojas."}
                 </p>
+                <div className="month-close-control">
+                  {mesFechadoVendas && (
+                    <span className="month-closed-badge">Somente consulta</span>
+                  )}
+                  {podeFecharMes && (
+                    <button
+                      type="button"
+                      className="primary-button"
+                      onClick={fecharMesVendas}
+                      disabled={salvandoFechamento}
+                    >
+                      {salvandoFechamento ? "Fechando..." : "Fechar mês"}
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="calendar-legend">
                 <span><i className="legend-dot complete" /> Completo</span>
@@ -881,22 +961,31 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                   placeholder="0,00"
                   value={lancamento.valor}
                   onChange={(evento) => setLancamento({ ...lancamento, valor: evento.target.value })}
-                  autoFocus
+                  autoFocus={!mesFechadoVendas}
+                  readOnly={mesFechadoVendas}
                   required
                 />
               </label>
 
-              <button
-                type="button"
-                className="zero-button"
-                onClick={() => setLancamento({ ...lancamento, valor: "0,00", observacao: "Caixa não aberto" })}
-              >
-                Marcar caixa não aberto
-              </button>
+              {!mesFechadoVendas && (
+                <button
+                  type="button"
+                  className="zero-button"
+                  onClick={() => setLancamento({ ...lancamento, valor: "0,00", observacao: "Caixa não aberto" })}
+                >
+                  Marcar caixa não aberto
+                </button>
+              )}
 
               <div className="modal-actions">
-                <button type="button" className="secondary-button" disabled={salvando} onClick={(evento) => salvarVenda(evento, "fechar")}>Salvar e fechar</button>
-                <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar lançamento"}</button>
+                {mesFechadoVendas ? (
+                  <button type="button" className="primary-button" onClick={() => setModalVendaAberto(false)}>Fechar consulta</button>
+                ) : (
+                  <>
+                    <button type="button" className="secondary-button" disabled={salvando} onClick={(evento) => salvarVenda(evento, "fechar")}>Salvar e fechar</button>
+                    <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar lançamento"}</button>
+                  </>
+                )}
               </div>
             </form>
           </section>
@@ -922,7 +1011,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
             <form className="form-stack modal-form" onSubmit={salvarMeta}>
               <label>
                 Loja
-                <select value={metaForm.loja_id} onChange={(evento) => {
+                <select disabled={mesFechadoVendas} value={metaForm.loja_id} onChange={(evento) => {
                   const lojaId = evento.target.value;
                   const existente = metaDoSlot(lojaId, metaForm.periodo);
                   setMetaForm({ ...metaForm, loja_id: lojaId, valor: existente ? valorParaEdicao(existente.valor_meta) : "" });
@@ -933,7 +1022,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
 
               <label>
                 Período
-                <select value={metaForm.periodo} onChange={(evento) => {
+                <select disabled={mesFechadoVendas} value={metaForm.periodo} onChange={(evento) => {
                   const periodo = evento.target.value;
                   const existente = metaDoSlot(metaForm.loja_id, periodo);
                   setMetaForm({ ...metaForm, periodo, valor: existente ? valorParaEdicao(existente.valor_meta) : "" });
@@ -950,15 +1039,20 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                   placeholder="0,00"
                   value={metaForm.valor}
                   onChange={(evento) => setMetaForm({ ...metaForm, valor: evento.target.value })}
-                  autoFocus
+                  autoFocus={!mesFechadoVendas}
+                  readOnly={mesFechadoVendas}
                   required
                 />
               </label>
 
               <p className="muted">Supermeta e Megameta são calculadas automaticamente em 120% e 130%.</p>
               <div className="modal-actions">
-                <button type="button" className="secondary-button" onClick={() => setModalMetaAberto(false)}>Cancelar</button>
-                <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar meta"}</button>
+                <button type="button" className="secondary-button" onClick={() => setModalMetaAberto(false)}>
+                  {mesFechadoVendas ? "Fechar consulta" : "Cancelar"}
+                </button>
+                {!mesFechadoVendas && (
+                  <button type="submit" className="primary-button" disabled={salvando}>{salvando ? "Salvando..." : "Salvar meta"}</button>
+                )}
               </div>
             </form>
           </section>
