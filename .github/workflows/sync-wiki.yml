@@ -1,10 +1,12 @@
 name: Sincronizar Wiki
+
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
       - "docs/wiki/**"
+      - "package.json"
       - ".github/workflows/sync-wiki.yml"
 
 permissions:
@@ -15,18 +17,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+
       - name: Publicar documentação na Wiki
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
+          VERSION=$(node -p "require('./package.json').version")
+
           git clone "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.wiki.git" wiki
+
+          find wiki -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -R docs/wiki/. wiki/
+
+          find wiki -type f -name "*.md" -print0 |
+            xargs -0 sed -i "s/{{APP_VERSION}}/${VERSION}/g"
+
           cd wiki
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
             exit 0
           fi
-          git add .
-          git commit -m "docs: sincronizar Wiki"
+
+          git add -A
+          git commit -m "docs: sincronizar Wiki v${VERSION}"
           git push
