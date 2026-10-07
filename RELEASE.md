@@ -1,14 +1,9 @@
-# Líder Metas v1.11.0
+# Líder Metas v1.12.0
 
-O PA agora permite fechar um mês já conferido para preservar os dados aprovados.
+O manual de usuário foi reorganizado por tarefa para facilitar a consulta no celular, mantendo atalhos em colunas no computador.
 
-- novo botão **Fechar mês** em **PA das vendedoras** para meses anteriores;
-- o fechamento só é liberado quando todas as lojas com lançamentos das vendedoras ativas estão aprovadas;
-- após o fechamento, lançamentos, correções, remoções, férias e aprovações daquele mês ficam bloqueados;
-- o mês fechado continua disponível normalmente para consulta;
-- somente administradoras ativas podem usar **Reabrir mês**;
-- proteção aplicada também no banco de dados, evitando alterações por outros fluxos;
-- teste automatizado para aprovação obrigatória, bloqueio e reabertura.
+Os grupos e as respostas são recolhíveis, com áreas de toque de pelo menos 48 px, foco visível e links para voltar às tarefas. A busca integrada aceita palavras com ou sem acento, abre os resultados e oferece a opção de limpar o filtro.
 
-A atualização inclui a migration `20261005164500_fechamento_mensal_pa.sql`.
+A ajuda passa a cobrir férias, inclusão, edição e remoção de PA, nomes em caixa alta, resumo de PA e vendedora destaque, impressão das metas em bobina de 80 mm, navegação por Configurações e fechamento mensal do PA. As regras de bloqueio e de reabertura por administradoras ficam explícitas, com erros comuns e FAQ.
 
+A Wiki, a versão no rodapé e a documentação acompanham esta atualização. O fechamento do PA é distinguido do relatório de vendas e metas.

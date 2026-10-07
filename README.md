@@ -27,14 +27,11 @@ Os horários configurados para os períodos da manhã e da noite são mantidos n
 
 ## Versão atual
 
-**v1.11.0** — Fechamento mensal do PA.
+**v1.12.0** — Manual do usuário por tarefa, com foco no celular.
 
-## Atualizações da v1.11.0
+## Atualizações da v1.12.0
 
-- botão **Fechar mês** liberado após a aprovação completa das lojas;
-- mês fechado permanece disponível para consulta, mas não aceita alterações de PA;
-- bloqueio aplicado também no banco de dados;
-- opção **Reabrir mês** exclusiva para administradoras.
+Manual com grupos recolhíveis, busca integrada, atalhos amplos e retorno às tarefas. Inclui as funções recentes do PA, férias, impressão de metas, navegação por Configurações, fechamento mensal e regras de bloqueio, além de erros comuns e FAQ. A Wiki e o rodapé acompanham a versão.
 
 ## Tecnologias
 

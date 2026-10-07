@@ -1,10 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import styles from "./ManualUsuario.module.css";
 
 const secoes = [
   {
-    titulo: "Visão geral e navegação",
+    titulo: "Começar e navegar",
     itens: [
       ["Para que serve cada aba?", [
         "Painel: acompanha o resultado geral, das lojas e dos períodos.",
@@ -20,12 +21,12 @@ const secoes = [
         "Sim. Vendas e metas são armazenadas por mês e podem ser consultadas novamente pelo seletor de mês.",
       ]],
       ["O que fazer quando uma informação parece desatualizada?", [
-        "Atualize a página. No computador, use Ctrl + F5. Antes de lançar novamente, confira se o registro já aparece para evitar duplicidade.",
+        "Atualize a página. No celular, recarregue pelo menu do navegador. No computador, use Ctrl + F5. Antes de lançar novamente, confira se o registro já aparece para evitar duplicidade.",
       ]],
     ],
   },
   {
-    titulo: "Aba Painel",
+    titulo: "Entender o painel",
     itens: [
       ["O que mostra a Jornada do mês?", [
         "Mostra o total vendido, o nível alcançado ou perseguido e a situação de Meta, Supermeta e Megameta.",
@@ -34,8 +35,8 @@ const secoes = [
       ]],
       ["Qual é a diferença entre Meta, Supermeta e Megameta?", [
         "Meta corresponde a 100% do valor cadastrado.",
-        "Supermeta corresponde a 120% da Meta.",
-        "Megameta corresponde a 130% da Meta.",
+        "Supermeta corresponde a 110% da Meta.",
+        "Megameta corresponde a 120% da Meta.",
       ]],
       ["O que significa projeção?", [
         "É uma estimativa do fechamento do mês baseada no ritmo médio das vendas já lançadas. Não é uma garantia de resultado.",
@@ -62,12 +63,12 @@ const secoes = [
         "Eles ajudam na leitura do resultado, mas não substituem a conferência dos valores lançados.",
       ]],
       ["Por que um período pode bater Megameta e o total ficar em Supermeta?", [
-        "Cada período e cada loja têm cálculos próprios. Um período pode atingir 130% enquanto outro fica abaixo, fazendo o total combinado permanecer entre 120% e 129,9%.",
+        "Cada período e cada loja têm cálculos próprios. Um período pode atingir 120% enquanto outro fica abaixo, fazendo o total combinado permanecer entre 110% e 119,9%.",
       ]],
     ],
   },
   {
-    titulo: "Aba Lançar vendas",
+    titulo: "Lançar e corrigir vendas",
     itens: [
       ["Como lançar as vendas do dia?", [
         "Abra “Lançar vendas”, toque no dia, escolha o período e a loja, informe o valor vendido e salve.",
@@ -102,11 +103,11 @@ const secoes = [
     ],
   },
   {
-    titulo: "Aba Metas — administradoras",
+    titulo: "Configurar e imprimir metas",
     itens: [
       ["Como cadastrar ou editar uma meta?", [
         "Escolha o mês no topo, abra Configurações → Metas e toque no card da loja e do período desejados.",
-        "Informe a Meta de 100%. Supermeta e Megameta são calculadas automaticamente em 120% e 130%.",
+        "Informe a Meta de 100%. Supermeta e Megameta são calculadas automaticamente em 110% e 120%.",
       ]],
       ["As metas são separadas por loja e período?", [
         "Sim. Cada loja possui uma meta de manhã e uma meta de noite. A meta total da loja é a soma dos dois períodos.",
@@ -122,7 +123,7 @@ const secoes = [
         "Depois do término da manhã, o dia atual deixa de entrar no cálculo diário da manhã. A noite continua contando até o término configurado.",
       ]],
       ["A configuração de horários fica salva?", [
-        "Sim. Ela fica associada ao perfil e continua disponível ao acessar por outro dispositivo.",
+        "Sim. Os horários ficam salvos e são compartilhados com a Calculadora de Metas.",
       ]],
     ],
   },
@@ -163,7 +164,7 @@ const secoes = [
     ],
   },
   {
-    titulo: "Boas práticas e solução de problemas",
+    titulo: "Erros comuns",
     itens: [
       ["Qual é a ordem recomendada de uso?", [
         "1. Conferir o mês selecionado.",
@@ -187,41 +188,192 @@ const secoes = [
   },
 ];
 
-export default function ManualUsuario() {
-  return (
-    <section className={styles.manual} data-manual-usuario>
-      <div className={styles.hero}>
-        <p className={styles.eyebrow}>Ajuda e referência</p>
-        <h2>Manual do usuário</h2>
-        <p className={styles.intro}>
-          Consulte aqui como usar cada aba, interpretar os cálculos e resolver as dúvidas mais comuns do Líder Metas.
-        </p>
-        <div className={styles.quick}>
-          <article><strong>Antes de analisar</strong><span>Confira mês, lançamentos e relatório Athos.</span></article>
-          <article><strong>Antes de corrigir</strong><span>Confirme loja, data e período selecionados.</span></article>
-          <article><strong>Valores por dia</strong><span>Respeitam os dias e horários restantes de cada período.</span></article>
-        </div>
-      </div>
+secoes.splice(3, 0, ...[
+  {
+    "titulo": "Conferir e corrigir o PA",
+    "itens": [
+      [
+        "Como consultar o PA?",
+        [
+          "Abra “PA das vendedoras”, confirme o mês e escolha a vendedora. Abra a loja para consultar os registros diários.",
+          "PA é a quantidade de peças dividida pela quantidade de vendas (atendimentos), não pelo valor em reais. Exemplo: 20 peças em 10 vendas = PA 2,00.",
+          "Esta área de conferência é disponível para administradoras e gestoras ativas. A vendedora usa sua área própria de PA."
+        ]
+      ],
+      [
+        "Como adicionar, editar ou remover um registro?",
+        [
+          "Para um registro ausente, use “Adicionar lançamento” e informe loja, data, vendas e peças.",
+          "Para corrigir, abra a loja e toque em “Editar”. Ajuste vendas e peças e salve; não é necessário escrever motivo.",
+          "Para excluir, abra “Editar”, toque em “Remover lançamento” e confirme. Confira os totais antes de aprovar novamente.",
+          "Inclusões, correções e remoções feitas pela gestão avisam a vendedora e desfazem a aprovação anterior da loja. Se o único registro de um dia for removido, esse dia deixa de contar no PA."
+        ]
+      ],
+      [
+        "Como ler o resumo e a vendedora destaque?",
+        [
+          "No Painel, toque em “Ver resumo do PA” para abrir o PA geral, a comparação com o mês anterior, o PA por loja e o Top 3.",
+          "A vendedora destaque é a de maior PA entre as que têm vendas e pelo menos 15 dias válidos. Se ninguém atingir 15 dias, o topo mostra uma prévia.",
+          "O PA geral usa o total de peças dividido pelo total de vendas; não é a média simples dos PAs individuais."
+        ]
+      ]
+    ]
+  },
+  {
+    "titulo": "Registrar férias e gerir vendedoras",
+    "itens": [
+      [
+        "Como registrar férias?",
+        [
+          "Em “PA das vendedoras”, selecione a vendedora e toque em “Registrar férias”. Informe início e fim, confira o intervalo e confirme.",
+          "O intervalo inclui o primeiro e o último dia e aceita até 62 dias por registro. Os dias de férias não contam como trabalhados.",
+          "Atenção: os lançamentos de PA existentes nessas datas serão removidos após a confirmação. Confira as datas antes de continuar. Um intervalo que atinja mês fechado fica bloqueado."
+        ]
+      ],
+      [
+        "Como aprovar ou desativar uma vendedora?",
+        [
+          "A administradora abre “Configurações → Vendedoras”. Em “Solicitações pendentes”, confere nome e número Athos e toca em “Aprovar e ativar”.",
+          "Em “Vendedoras cadastradas”, filtre ativos, desativados ou todos. Use “Desativar perfil” para bloquear o acesso sem apagar o histórico; é possível reativar depois."
+        ]
+      ],
+      [
+        "Por que os nomes aparecem em caixa alta?",
+        [
+          "Os nomes das vendedoras são exibidos em caixa alta para facilitar a leitura e manter a apresentação uniforme. Confira também o número Athos para identificar o perfil."
+        ]
+      ]
+    ]
+  },
+  {
+    "titulo": "Conferir e fechar o mês do PA",
+    "itens": [
+      [
+        "Como fechar um mês?",
+        [
+          "Abra “PA das vendedoras” e selecione um mês anterior ao atual. Confira cada vendedora e loja e use “Aprovar lançamentos”.",
+          "Administradoras e gestoras podem usar “Fechar mês” quando todas as lojas com lançamentos das vendedoras ativas estiverem aprovadas. Confirme o fechamento.",
+          "O fim do mês no calendário não fecha automaticamente o PA. O fechamento depende dessa conferência e confirmação."
+        ]
+      ],
+      [
+        "O que fica bloqueado após o fechamento?",
+        [
+          "O PA do mês continua disponível para consulta. Novos lançamentos, correções, remoções, férias e alterações de aprovação desse mês ficam bloqueados.",
+          "Essa regra pertence ao fechamento do PA. Não confunda com o relatório de fechamento das vendas e metas do painel."
+        ]
+      ],
+      [
+        "Como corrigir um mês fechado?",
+        [
+          "Peça a uma administradora ativa para selecionar o mês e usar “Reabrir mês”. Gestoras e vendedoras não podem reabrir.",
+          "Após a reabertura, faça a correção, refaça as aprovações necessárias e feche novamente quando a conferência estiver concluída."
+        ]
+      ]
+    ]
+  }
+]);
+secoes.find((secao) => secao.titulo === "Erros comuns").itens.push(["O PA não aceita vendas e peças. O que conferir?", ["Informe números inteiros de 0 a 999. Peças devem ser iguais ou maiores que vendas. Valores negativos, decimais ou campos vazios impedem a correção.", "Confira se a data não está em férias e se o mês não está fechado. Antes de repetir um envio, veja se o registro já foi salvo."]]);
+secoes.push({
+  "titulo": "Dúvidas frequentes",
+  "itens": [
+    [
+      "Por que não consigo editar o PA?",
+      [
+        "Confira se o mês está fechado e se seu perfil tem acesso à ação. Para mês fechado, procure a administradora para reabrir antes de corrigir."
+      ]
+    ],
+    [
+      "Por que a vendedora não aparece?",
+      [
+        "Confira o mês, os filtros e se há lançamentos. A administradora pode consultar o cadastro entre ativos, desativados e solicitações pendentes. Evite criar outra conta."
+      ]
+    ],
+    [
+      "Meu cadastro aguarda liberação. O que fazer?",
+      [
+        "Solicite a aprovação à administradora. Se esqueceu a senha, use a recuperação por e-mail; para link expirado ou já utilizado, solicite um novo."
+      ]
+    ],
+    [
+      "Não aparece a opção de imprimir no celular.",
+      [
+        "A impressão depende do navegador e do dispositivo. Confira se a janela de impressão abriu; se necessário, acesse pelo computador conectado à impressora."
+      ]
+    ],
+    [
+      "Como encontrar uma instrução rapidamente?",
+      [
+        "Use “Buscar no manual” ou toque em um atalho abaixo. A busca aceita palavras com ou sem acento, abre as respostas encontradas e permite limpar o filtro."
+      ]
+    ]
+  ]
+});
+secoes.find((secao) => secao.titulo === "Configurar e imprimir metas").itens.push(["Como imprimir as metas?", ["Abra Configurações → Metas e toque em Imprimir metas. Confira o mês e os quadros por loja; depois toque em Imprimir as lojas.", "O relatório usa bobina de 80 mm e mostra Meta Dia, Super Dia e Mega Dia por loja, com manhã, noite e total. Selecione a impressora compatível na janela do navegador."]]);
 
+function normalizar(texto) {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
+export default function ManualUsuario() {
+  const [busca, setBusca] = useState("");
+  const termo = normalizar(busca);
+  const visiveis = secoes.map((secao, indice) => ({ ...secao, id: "manual-tarefa-" + indice,
+    itens: secao.itens.filter(([pergunta, respostas]) => !termo || normalizar([secao.titulo, pergunta, ...respostas].join(" ")).includes(termo)),
+  })).filter((secao) => secao.itens.length);
+  const total = visiveis.reduce((soma, secao) => soma + secao.itens.length, 0);
+  return (
+    <section className={styles.manual} data-manual-usuario id="manual-inicio">
+      <div className={styles.hero}>
+        <p className={styles.eyebrow}>Ajuda por tarefa</p>
+        <h2>Manual do usuário</h2>
+        <p className={styles.intro}>Escolha o que precisa fazer. Abra só a instrução que quiser consultar.</p>
+        <p className={styles.version}>Líder Metas / Meta Traders · v1.12.0 · Atualizado em 07/10/2026</p>
+        <details className={styles.start}>
+          <summary>Comece por aqui</summary>
+          <div className={styles.answer}>
+            <p>Entre com seu acesso aprovado e confira o mês no topo.</p>
+            <p>Registre as vendas em “Lançar vendas”, confira com o Athos e consulte o Painel.</p>
+            <p>Para conferir peças e atendimentos, abra “PA das vendedoras”. O manual fica no rodapé.</p>
+            <p>Administradoras acessam Metas e Vendedoras em “Configurações”. A navegação lembra a última tela; sempre confira o mês ao voltar.</p>
+          </div>
+        </details>
+        <label className={styles.searchLabel} htmlFor="manual-busca">Buscar no manual</label>
+        <div className={styles.searchRow}>
+          <input id="manual-busca" type="search" value={busca} onChange={(evento) => setBusca(evento.target.value)} placeholder="Ex.: férias, editar, mês fechado" />
+          {busca && <button type="button" onClick={() => setBusca("")}>Limpar</button>}
+        </div>
+        <p className={styles.result} role="status">{termo ? total + " instruções encontradas" : "Toque em uma tarefa para ir direto à seção."}</p>
+        <nav className={styles.quick} aria-label="Tarefas do manual">
+          {visiveis.map((secao) => <a key={secao.id} href={"#" + secao.id} onClick={(evento) => {
+            evento.preventDefault();
+            const grupo = document.getElementById(secao.id);
+            if (grupo) {
+              grupo.open = true;
+              grupo.scrollIntoView({ block: "start" });
+              grupo.querySelector("summary")?.focus({ preventScroll: true });
+            }
+          }}>{secao.titulo}</a>)}
+        </nav>
+      </div>
       <div className={styles.sections}>
-        {secoes.map((secao) => (
-          <section className={styles.group} key={secao.titulo}>
-            <h3>{secao.titulo}</h3>
-            {secao.itens.map(([pergunta, respostas]) => (
-              <details key={pergunta}>
-                <summary>{pergunta}</summary>
-                <div className={styles.answer}>
-                  {respostas.map((resposta) => <p key={resposta}>{resposta}</p>)}
-                </div>
-              </details>
-            ))}
-          </section>
+        {visiveis.map((secao) => (
+          <details className={styles.group} id={secao.id} key={secao.id + "-" + termo} open={termo ? true : undefined}>
+            <summary><h3>{secao.titulo}</h3><span>{secao.itens.length} {secao.itens.length === 1 ? "instrução" : "instruções"}</span></summary>
+            <div className={styles.groupContent}>
+              {secao.itens.map(([pergunta, respostas]) => (
+                <details key={pergunta} open={termo ? true : undefined}>
+                  <summary>{pergunta}</summary>
+                  <div className={styles.answer}>{respostas.map((resposta) => <p key={resposta}>{resposta}</p>)}</div>
+                </details>
+              ))}
+              <a className={styles.back} href="#manual-inicio">Voltar às tarefas</a>
+            </div>
+          </details>
         ))}
       </div>
-
-      <div className={styles.notice}>
-        Antes de tomar uma decisão pelo painel, confirme se todos os lançamentos do período foram preenchidos corretamente.
-      </div>
+      {!total && <p className={styles.notice}>Nenhuma instrução encontrada. Tente outra palavra ou limpe a busca.</p>}
+      <p className={styles.notice}>Antes de corrigir ou fechar, confira mês, data, loja e vendedora. O PA fechado permanece disponível para consulta.</p>
     </section>
   );
 }
