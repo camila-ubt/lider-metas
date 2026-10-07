@@ -13,6 +13,12 @@ Fluxo recomendado:
 5. corrija o slot divergente;
 6. confirme novamente os totais.
 
+## Fechamento do mês de vendas
+
+Depois de concluir o último dia do mês, confira os totais com a fonte oficial. Quando manhã e noite de todas as lojas estiverem preenchidas no último dia, o botão **Fechar mês** fica disponível em **Lançar vendas**.
+
+O fechamento é manual, afeta somente o mês selecionado e transforma esse mês em somente consulta. Ele é diferente do relatório gerencial descrito abaixo.
+
 ## Prévia / fechamento
 
 O recurso reúne:
