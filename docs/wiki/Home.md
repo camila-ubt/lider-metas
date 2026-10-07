@@ -1,50 +1,26 @@
 # Líder Metas
 
-Bem-vindo à documentação do **Líder Metas**, uma aplicação web de uso interno para registrar vendas, acompanhar metas, conferir o PA das vendedoras e apoiar a leitura gerencial dos resultados.
+O **Líder Metas** é uma aplicação web de uso interno criada para centralizar o acompanhamento de vendas, metas e PA das vendedoras.
 
-## O que você encontra nesta Wiki
+O sistema reúne os lançamentos diários das lojas, o acompanhamento das metas mensais, indicadores de desempenho, conferência do PA e fechamento dos meses já validados.
 
-- orientação para acessar e navegar no aplicativo;
-- passo a passo dos lançamentos e correções;
-- explicação dos indicadores, níveis e projeções;
-- regras de perfis e permissões;
-- integração dos horários dos períodos com a Calculadora de Metas;
-- visão técnica da arquitetura e do banco de dados;
-- práticas de segurança, manutenção e publicação;
-- histórico de versões e respostas para dúvidas frequentes.
+## O que a aplicação faz
 
-## Caminhos rápidos
+- registra e consulta vendas por loja, data e período;
+- acompanha Meta, Supermeta e Megameta;
+- apresenta painel, ranking, projeções e comparativos;
+- permite conferir o PA das vendedoras por loja e por mês;
+- controla acessos, férias, aprovações e fechamentos mensais;
+- mantém meses fechados disponíveis somente para consulta.
 
-| Quero… | Página |
-|---|---|
-| começar a usar o aplicativo | [Primeiros passos](Primeiros-passos) |
-| entender o fluxo mensal | [Guia do usuário](Guia-do-usuario) |
-| interpretar o painel | [Painel e indicadores](Painel-e-indicadores) |
-| lançar ou corrigir uma venda | [Lançamentos e pendências](Lancamentos-e-pendencias) |
-| entender metas, horários e cálculos | [Metas, períodos e cálculos](Metas-periodos-e-calculos) |
-| preparar a reunião mensal | [Conferência, prévia e fechamento](Conferencia-previa-e-fechamento) |
-| conferir vendas, peças e PA das vendedoras | [PA das vendedoras](PA-das-vendedoras) |
-| aprovar, desativar ou reativar uma vendedora | [Perfis e acesso](Perfis-e-acesso) |
-| conhecer a parte técnica | [Arquitetura](Arquitetura) |
-| consultar segurança e permissões | [Banco de dados e segurança](Banco-de-dados-e-seguranca) |
+## Documentação
 
-## Referência oficial dos níveis
+Esta Wiki foi mantida propositalmente curta.
 
-- **Meta:** 100% do valor cadastrado;
-- **Supermeta:** 110% da Meta;
-- **Megameta:** 120% da Meta.
+- [Como funciona](Como-funciona)
+- [Tecnologia e segurança](Tecnologia-e-seguranca)
+- [Desenvolvimento e versões](Desenvolvimento-e-versoes)
 
-Os valores de venda e as metas reais não fazem parte desta documentação pública.
+Para instruções detalhadas de uso, consulte o **Manual do usuário dentro do próprio aplicativo**.
 
-## Integração entre os sistemas
-
-Os horários de início e fim dos períodos são mantidos de forma compartilhada. Quando a gestão altera os horários no Líder Metas, a mesma configuração passa a ser usada pela Calculadora de Metas, evitando referências diferentes entre os sistemas.
-
-## Estado do projeto
-
-- versão estável atual: **v1.9.2**;
-- branch principal protegida por Pull Request;
-- aplicação integrada ao Supabase e publicada pela Vercel;
-- acesso aos dados condicionado à autenticação e às políticas do banco.
-
-Veja também [Releases](Releases) e [FAQ](FAQ).
+Para ver o histórico de mudanças, consulte as [Releases do GitHub](https://github.com/camila-ubt/lider-metas/releases).
