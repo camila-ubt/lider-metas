@@ -15,8 +15,6 @@ O sistema reúne os lançamentos diários das lojas, o acompanhamento das metas 
 
 ## Documentação
 
-Esta Wiki foi mantida propositalmente curta.
-
 - [Como funciona](Como-funciona)
 - [Tecnologia e segurança](Tecnologia-e-seguranca)
 - [Desenvolvimento e versões](Desenvolvimento-e-versoes)
