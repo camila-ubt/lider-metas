@@ -1,6 +1,6 @@
 # Guia do usuário
 
-Líder Metas / Meta Traders · v1.12.0 · Atualizado em 07/10/2026.
+Líder Metas / Meta Traders · v1.13.0 · Atualizado em 07/10/2026.
 
 No celular, abra o Manual do usuário pelo rodapé. Use a busca por palavra, com ou sem acento, ou toque em uma tarefa. Os grupos começam recolhidos e as áreas de toque têm pelo menos 48 px. No computador, os atalhos se organizam em colunas.
 
@@ -145,6 +145,14 @@ Sim, mas use zero somente quando realmente não houve venda ou o caixa não abri
 
 Abra o lançamento já salvo e use a opção de remoção disponível no modal. Depois, confira se o dia voltou a aparecer como pendente.
 
+### Quando aparece o botão Fechar mês?
+
+O botão aparece em “Lançar vendas” quando o mês chega ao último dia e manhã e noite de todas as lojas estão preenchidas nesse último dia.
+
+Confira os valores com o demonstrativo antes de confirmar. O fechamento é manual e fecha somente o mês selecionado.
+
+Depois de fechado, o mês continua disponível para consulta, mas os lançamentos e as metas ficam sem edição.
+
 </details>
 
 <details>
@@ -216,7 +224,7 @@ O fim do mês no calendário não fecha automaticamente o PA. O fechamento depen
 
 O PA do mês continua disponível para consulta. Novos lançamentos, correções, remoções, férias e alterações de aprovação desse mês ficam bloqueados.
 
-Essa regra pertence ao fechamento do PA. Não confunda com o relatório de fechamento das vendas e metas do painel.
+O fechamento do PA é separado do fechamento das vendas. Em “Lançar vendas”, o botão “Fechar mês” encerra somente o mês de vendas selecionado.
 
 ### Como corrigir um mês fechado?
 
