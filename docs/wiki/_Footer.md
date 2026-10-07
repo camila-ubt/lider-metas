@@ -1,1 +1,1 @@
-**Líder Metas · v1.13.0** · [Início](Home) · [Manual do usuário](Guia-do-usuario) · [FAQ](FAQ) · [Repositório](https://github.com/camila-ubt/lider-metas)
+**Líder Metas · v{{APP_VERSION}}** · [Início](Home) · [Repositório](https://github.com/camila-ubt/lider-metas) · [Releases](https://github.com/camila-ubt/lider-metas/releases)
