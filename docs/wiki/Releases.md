@@ -1,5 +1,20 @@
 # Releases
 
+## v1.13.0 — Fechamento mensal das vendas
+
+Publicada em **7 de outubro de 2026**.
+
+- novo botão **Fechar mês** na aba **Lançar vendas**;
+- o botão é liberado somente no último dia do mês ou depois, com manhã e noite de todas as lojas preenchidas no último dia;
+- fechamento manual após a conferência com o demonstrativo;
+- fecha apenas o mês selecionado, sem alterar o estado dos demais meses;
+- mês fechado permanece disponível para consulta;
+- vendas e metas do mês fechado ficam protegidas contra inclusão, edição e remoção;
+- proteção aplicada no banco e modo somente leitura na interface;
+- migration e teste automatizado incluídos;
+- manual, Wiki, README e rodapé atualizados.
+
+
 ## v1.12.0 — Manual por tarefa para celular
 
 Manual com grupos recolhíveis, atalhos amplos, busca integrada e retorno às tarefas. Inclui as funções recentes do PA, férias, impressão de metas, permissões, fechamento e bloqueios, erros comuns e FAQ. A Wiki e o rodapé acompanham a versão.
