@@ -19,7 +19,6 @@ const secoes = [
       ]],
       ["Os meses anteriores ficam salvos?", [
         "Sim. Vendas e metas são armazenadas por mês e podem ser consultadas novamente pelo seletor de mês.",
-        "Depois do fechamento do histórico, os meses encerrados continuam visíveis, mas ficam somente para consulta.",
       ]],
       ["O que fazer quando uma informação parece desatualizada?", [
         "Atualize a página. No celular, recarregue pelo menu do navegador. No computador, use Ctrl + F5. Antes de lançar novamente, confira se o registro já aparece para evitar duplicidade.",
@@ -100,11 +99,6 @@ const secoes = [
       ]],
       ["Como remover um lançamento incorreto?", [
         "Abra o lançamento já salvo e use a opção de remoção disponível no modal. Depois, confira se o dia voltou a aparecer como pendente.",
-      ]],
-      ["Como fechar os meses anteriores?", [
-        "Depois de conferir os CSVs e o demonstrativo das lojas, abra “Lançar vendas” e use “Fechar meses anteriores”.",
-        "A ação fecha de uma vez todos os meses até o fim do mês passado. Vendas e metas desses meses ficam somente para consulta, enquanto o mês atual continua liberado.",
-        "O fechamento é cumulativo: no início de um novo mês, use o botão novamente para incluir o mês que acabou.",
       ]],
     ],
   },
@@ -266,7 +260,7 @@ secoes.splice(3, 0, ...[
         "O que fica bloqueado após o fechamento?",
         [
           "O PA do mês continua disponível para consulta. Novos lançamentos, correções, remoções, férias e alterações de aprovação desse mês ficam bloqueados.",
-          "O fechamento do PA é separado do fechamento do histórico de vendas. O botão em “Lançar vendas” protege vendas e metas dos meses anteriores; este fechamento protege os registros do PA."
+          "Essa regra pertence ao fechamento do PA. Não confunda com o relatório de fechamento das vendas e metas do painel."
         ]
       ],
       [
@@ -334,7 +328,7 @@ export default function ManualUsuario() {
         <p className={styles.eyebrow}>Ajuda por tarefa</p>
         <h2>Manual do usuário</h2>
         <p className={styles.intro}>Escolha o que precisa fazer. Abra só a instrução que quiser consultar.</p>
-        <p className={styles.version}>Líder Metas / Meta Traders · v1.13.0 · Atualizado em 07/10/2026</p>
+        <p className={styles.version}>Líder Metas / Meta Traders · v1.12.0 · Atualizado em 07/10/2026</p>
         <details className={styles.start}>
           <summary>Comece por aqui</summary>
           <div className={styles.answer}>
