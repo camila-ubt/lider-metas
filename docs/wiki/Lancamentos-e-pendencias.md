@@ -47,6 +47,14 @@ Use a opção própria para registrar essa situação. O sistema grava valor zer
 
 A lista considera o mês selecionado, os períodos já encerrados e os slots sem registro. O dia atual só deve ser cobrado depois do término do período configurado.
 
+## Fechar o mês
+
+Quando chegar ao último dia do mês e manhã e noite de todas as lojas estiverem preenchidas nesse dia, a gestão passa a visualizar **Fechar mês** em **Lançar vendas**.
+
+O fechamento não acontece automaticamente. Primeiro confira os valores com o demonstrativo da loja; depois confirme **Fechar mês**.
+
+A ação fecha somente o mês selecionado. Os dias e valores continuam disponíveis para consulta. Alterações ficam bloqueadas depois do fechamento.
+
 ## Boas práticas
 
 - não reutilize um lançamento de outra data;
