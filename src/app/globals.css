@@ -440,6 +440,30 @@ textarea:focus {
   font-size: 14px;
 }
 
+.month-close-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.month-close-control .primary-button {
+  min-height: 44px;
+}
+
+.month-closed-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #f8f5fa;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .calendar-legend {
   display: flex;
   flex-wrap: wrap;
@@ -514,7 +538,7 @@ textarea:focus {
     box-shadow 0.15s ease;
 }
 
-.calendar-day:not(.calendar-day-empty):hover {
+.calendar-day:not(.calendar-day-empty):not(:disabled):hover {
   transform: translateY(-1px);
   border-color: #bca5d3;
   box-shadow: 0 8px 18px rgba(82, 52, 109, 0.09);
