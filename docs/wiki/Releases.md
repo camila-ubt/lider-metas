@@ -1,5 +1,9 @@
 # Releases
 
+## v1.12.0 — Manual por tarefa para celular
+
+Manual com grupos recolhíveis, atalhos amplos, busca integrada e retorno às tarefas. Inclui as funções recentes do PA, férias, impressão de metas, permissões, fechamento e bloqueios, erros comuns e FAQ. A Wiki e o rodapé acompanham a versão.
+
 ## v1.11.0 — Fechamento mensal do PA
 
 Publicada em **5 de outubro de 2026**.
