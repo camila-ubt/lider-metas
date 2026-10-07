@@ -1,20 +1,5 @@
 # Releases
 
-## v1.13.0 — Fechamento do histórico de vendas
-
-Publicada em **7 de outubro de 2026**.
-
-- novo botão **Fechar meses anteriores** na aba **Lançar vendas**;
-- fechamento em lote de todos os meses até o último dia do mês anterior;
-- meses fechados permanecem disponíveis somente para consulta;
-- vendas e metas de meses fechados ficam protegidas contra inclusão, edição e remoção;
-- proteção aplicada diretamente no banco com controle cumulativo do período fechado;
-- somente administradoras e gestoras ativas podem executar o fechamento;
-- mês atual continua liberado;
-- migration, índice e teste automatizado incluídos;
-- manual, Wiki, README e rodapé atualizados.
-
-
 ## v1.12.0 — Manual por tarefa para celular
 
 Manual com grupos recolhíveis, atalhos amplos, busca integrada e retorno às tarefas. Inclui as funções recentes do PA, férias, impressão de metas, permissões, fechamento e bloqueios, erros comuns e FAQ. A Wiki e o rodapé acompanham a versão.
