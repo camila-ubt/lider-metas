@@ -23,6 +23,7 @@ import {
   nivelDoResultado,
   percentualDoResultado,
 } from "@/lib/contextoMes";
+import { extremosDiasSemana } from "@/lib/extremosDiasSemana.mjs";
 import styles from "./AnaliseGerencial.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -423,20 +424,10 @@ export default function InteligenciaGerencial() {
       media(ultimosValores),
     );
 
-    const semana = new Map();
-    diasObservados.forEach(([data, item]) => {
-      const indice = new Date(`${data}T12:00:00`).getDay();
-      if (!semana.has(indice)) semana.set(indice, []);
-      semana.get(indice).push(item.total);
-    });
-    const mediasSemana = Array.from(semana.entries())
-      .map(([indice, valores]) => ({
-        nome: nomesSemana[indice],
-        media: media(valores),
-        quantidade: valores.length,
-      }))
-      .filter((item) => item.quantidade >= 2)
-      .sort((a, b) => b.media - a.media);
+    const { diaForte, diaFraco, situacao: situacaoDiasSemana } = extremosDiasSemana(
+      diasCompletos,
+      nomesSemana,
+    );
 
     const serieGeral = [contexto.ano - 2, contexto.ano - 1, contexto.ano].map(
       (anoSerie) => {
@@ -546,8 +537,9 @@ export default function InteligenciaGerencial() {
         nome: nomeTendencia,
         quantidade: ultimosValores.length,
       },
-      diaForte: mediasSemana[0] || null,
-      diaFraco: mediasSemana.at(-1) || null,
+      diaForte,
+      diaFraco,
+      situacaoDiasSemana,
       maisConsistente,
       maisOscilante,
       ranking,
@@ -780,20 +772,24 @@ export default function InteligenciaGerencial() {
                   </article>
                   <article>
                     <span>Dia mais forte</span>
-                    <strong>{analise.diaForte?.nome || "Base em formação"}</strong>
+                    <strong>{analise.diaForte?.nome || (analise.situacaoDiasSemana === "empate" ? "Médias iguais" : "Base em formação")}</strong>
                     <p>
                       {analise.diaForte
-                        ? `Média de ${dinheiro.format(analise.diaForte.media)}.`
-                        : "São necessárias ao menos duas ocorrências do mesmo dia da semana."}
+                        ? `Média de ${dinheiro.format(analise.diaForte.media)} em ${analise.diaForte.quantidade} dias completos.`
+                        : analise.situacaoDiasSemana === "empate"
+                          ? "Os dias comparáveis têm a mesma média."
+                          : "São necessários dois dias da semana com pelo menos duas datas completas cada."}
                     </p>
                   </article>
                   <article>
                     <span>Dia mais fraco</span>
-                    <strong>{analise.diaFraco?.nome || "Base em formação"}</strong>
+                    <strong>{analise.diaFraco?.nome || (analise.situacaoDiasSemana === "empate" ? "Médias iguais" : "Base em formação")}</strong>
                     <p>
                       {analise.diaFraco
-                        ? `Média de ${dinheiro.format(analise.diaFraco.media)}.`
-                        : "São necessárias ao menos duas ocorrências do mesmo dia da semana."}
+                        ? `Média de ${dinheiro.format(analise.diaFraco.media)} em ${analise.diaFraco.quantidade} dias completos.`
+                        : analise.situacaoDiasSemana === "empate"
+                          ? "Os dias comparáveis têm a mesma média."
+                          : "São necessários dois dias da semana com pelo menos duas datas completas cada."}
                     </p>
                   </article>
                   <article>
