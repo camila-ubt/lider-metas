@@ -8,7 +8,7 @@ O sistema reúne os lançamentos diários das lojas, o acompanhamento das metas 
 
 - registra e consulta vendas por loja, data e período;
 - acompanha Meta, Supermeta e Megameta;
-- apresenta painel, ranking, projeções e comparativos;
+- apresenta painel, ranking, tendências, projeções e comparativos históricos;
 - permite conferir o PA das vendedoras por loja e por mês;
 - controla acessos, férias, aprovações e fechamentos mensais;
 - mantém meses fechados disponíveis somente para consulta.

@@ -27,6 +27,9 @@ const secoes = [
       ["Como imprimir as metas?", [
         "Em Configurações → Metas, toque em “Imprimir metas”, confira o mês e envie para a impressora.",
       ]],
+      ["Como consultar a tendência histórica?", [
+        "No Painel, abra “Inteligência Gerencial”. A tendência recente usa as vendas do mês selecionado; o padrão histórico compara o mesmo mês dos dois anos anteriores. “Base em formação” indica dados insuficientes.",
+      ]],
     ],
   },
   {

@@ -16,6 +16,10 @@ A aplicação calcula os níveis usados no acompanhamento mensal e apresenta o d
 
 Os horários de manhã e noite são compartilhados com a Calculadora de Metas para que os dois sistemas utilizem a mesma referência.
 
+## Inteligência Gerencial
+
+O Painel apresenta a tendência recente e o padrão do mesmo mês nos dois anos anteriores, com médias por dia da semana, comparação anual e projeção sazonal quando há dados suficientes. A análise histórica considera apenas dias completos e exige ao menos 80% do mês preenchido em cada ano de referência.
+
 ## PA das vendedoras
 
 A área de PA permite à gestão conferir os dados enviados pelo sistema de Cálculo PA.
