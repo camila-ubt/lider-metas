@@ -1,3 +1,3 @@
-# Líder Metas v1.13.1
+# Líder Metas v1.14.0
 
-A documentação do projeto e o Manual do usuário foram reorganizados e reduzidos às informações essenciais de uso. A versão exibida no aplicativo e na Wiki passa a acompanhar automaticamente o valor definido no `package.json`.
+Adicionada a análise histórica do mês com tendências, dias de maior e menor movimento, comparação entre anos e projeção sazonal. Corrigida a comparação entre os dias mais forte e mais fraco do mês atual.
