@@ -24,6 +24,7 @@ import {
   percentualDoResultado,
 } from "@/lib/contextoMes";
 import { extremosDiasSemana } from "@/lib/extremosDiasSemana.mjs";
+import { analisarHistoricoMes } from "@/lib/historicoMes.mjs";
 import styles from "./AnaliseGerencial.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -429,6 +430,16 @@ export default function InteligenciaGerencial() {
       nomesSemana,
     );
 
+    const historicoDoMes = analisarHistoricoMes({
+      historicos,
+      vendasAtuais: vendasConsideradas,
+      lojas,
+      ano: contexto.ano,
+      numeroMes: contexto.numeroMes,
+      diaCorte: contexto.diaCorte,
+      tipo: contexto.tipo,
+    });
+
     const serieGeral = [contexto.ano - 2, contexto.ano - 1, contexto.ano].map(
       (anoSerie) => {
         const lista =
@@ -540,6 +551,7 @@ export default function InteligenciaGerencial() {
       diaForte,
       diaFraco,
       situacaoDiasSemana,
+      historicoDoMes,
       maisConsistente,
       maisOscilante,
       ranking,
@@ -771,7 +783,7 @@ export default function InteligenciaGerencial() {
                     </p>
                   </article>
                   <article>
-                    <span>Dia mais forte</span>
+                    <span>Dia mais forte · mês atual</span>
                     <strong>{analise.diaForte?.nome || (analise.situacaoDiasSemana === "empate" ? "Médias iguais" : "Base em formação")}</strong>
                     <p>
                       {analise.diaForte
@@ -782,7 +794,7 @@ export default function InteligenciaGerencial() {
                     </p>
                   </article>
                   <article>
-                    <span>Dia mais fraco</span>
+                    <span>Dia mais fraco · mês atual</span>
                     <strong>{analise.diaFraco?.nome || (analise.situacaoDiasSemana === "empate" ? "Médias iguais" : "Base em formação")}</strong>
                     <p>
                       {analise.diaFraco
@@ -808,6 +820,89 @@ export default function InteligenciaGerencial() {
                     </p>
                   </article>
                 </div>
+              )}
+            </section>
+
+            <section className="inteligencia-gerencial-secao">
+              <h3>📅 Padrão histórico de {nomesMeses[analise.contexto.numeroMes - 1]}</h3>
+              {analise.historicoDoMes.referencias.length ? (
+                <>
+                  <p className={styles.explanation}>
+                    Referência: {analise.historicoDoMes.referencias.map(
+                      (item) => `${item.ano} (${item.diasCompletos}/${item.ultimoDia} dias completos)`
+                    ).join(" e ")}. Apenas datas com manhã e noite de todas as lojas;
+                    cada ano precisa ter pelo menos 80% dos dias completos.
+                  </p>
+                  <div className={styles.trendGrid}>
+                    <article>
+                      <span>Dia mais forte · histórico</span>
+                      <strong>
+                        {analise.historicoDoMes.diaForte?.nome ||
+                          (analise.historicoDoMes.situacaoDias === "empate" ? "Médias iguais" : "Sem base suficiente")}
+                      </strong>
+                      <p>
+                        {analise.historicoDoMes.diaForte
+                          ? `Média de ${dinheiro.format(analise.historicoDoMes.diaForte.media)} em ${analise.historicoDoMes.diaForte.quantidade} dias.`
+                          : "Não é possível distinguir o dia mais forte com os registros disponíveis."}
+                      </p>
+                    </article>
+                    <article>
+                      <span>Dia mais fraco · histórico</span>
+                      <strong>
+                        {analise.historicoDoMes.diaFraco?.nome ||
+                          (analise.historicoDoMes.situacaoDias === "empate" ? "Médias iguais" : "Sem base suficiente")}
+                      </strong>
+                      <p>
+                        {analise.historicoDoMes.diaFraco
+                          ? `Média de ${dinheiro.format(analise.historicoDoMes.diaFraco.media)} em ${analise.historicoDoMes.diaFraco.quantidade} dias.`
+                          : "Não é possível distinguir o dia mais fraco com os registros disponíveis."}
+                      </p>
+                    </article>
+                    <article>
+                      <span>Evolução da média diária · anos anteriores</span>
+                      <strong>
+                        {analise.historicoDoMes.variacaoMediaDiaria === null
+                          ? "Sem dois anos comparáveis"
+                          : `${analise.historicoDoMes.variacaoMediaDiaria > 0 ? "+" : ""}${percentual.format(analise.historicoDoMes.variacaoMediaDiaria)}%`}
+                      </strong>
+                      <p>
+                        {analise.historicoDoMes.variacaoMediaDiaria === null
+                          ? "É preciso ter dados suficientes nos dois anos anteriores."
+                          : `Mudança da média diária de ${analise.contexto.ano - 2} para ${analise.contexto.ano - 1}; não é uma previsão.`}
+                      </p>
+                    </article>
+                    <article>
+                      <span>{encerrado ? "Mês encerrado x histórico" : "Mês selecionado x histórico"}</span>
+                      <strong>
+                        {analise.historicoDoMes.comparacao
+                          ? `${analise.historicoDoMes.comparacao.variacao > 0 ? "+" : ""}${percentual.format(analise.historicoDoMes.comparacao.variacao)}%`
+                          : futuro ? "Mês não iniciado" : "Aguardando dias completos"}
+                      </strong>
+                      <p>
+                        {analise.historicoDoMes.comparacao
+                          ? `Vendido até o dia ${analise.historicoDoMes.comparacao.dia} comparado à média das mesmas datas de ${analise.historicoDoMes.comparacao.anos.join(" e ")}.`
+                          : futuro
+                            ? "A comparação com as vendas atuais começa após a abertura."
+                            : "A comparação exige ao menos três dias consecutivos completos desde o início do mês."}
+                      </p>
+                    </article>
+                  </div>
+                  {analise.historicoDoMes.projecao && (
+                    <p className={styles.infoText}>
+                      Projeção pelo ritmo histórico: <strong>
+                        {dinheiro.format(analise.historicoDoMes.projecao.valor)}
+                      </strong>. Usa as vendas até o dia {analise.historicoDoMes.projecao.dia} e
+                      a proporção do mês normalmente vendida até essa data em{" "}
+                      {analise.historicoDoMes.projecao.anos.join(" e ")}.
+                      Estimativa, não garantia.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className={styles.infoText}>
+                  Histórico insuficiente neste mês. São necessários pelo menos 80% dos dias
+                  completos em um dos dois anos anteriores.
+                </p>
               )}
             </section>
 
