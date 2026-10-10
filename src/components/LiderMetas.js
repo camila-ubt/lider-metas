@@ -6,6 +6,7 @@ import DashboardEstavel from "@/components/DashboardEstavel";
 import ManualUsuario from "@/components/ManualUsuario";
 import PAVendedoras from "@/components/PAVendedoras";
 import MetasImpressao from "@/components/MetasImpressao";
+import AcompanhamentoTurno from "@/components/AcompanhamentoTurno";
 import { createClient } from "@/lib/supabase/client";
 import { RECOVERY_URL } from "@/lib/recuperacao.mjs";
 import {
@@ -698,6 +699,18 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         >
           Lançar vendas
         </button>
+        <button
+          type="button"
+          data-acompanhamento-botao
+          className={tela === "acompanhamento" ? "active" : ""}
+          aria-pressed={tela === "acompanhamento"}
+          onClick={() => {
+            setMes(hojeLocal().slice(0, 7));
+            setTela("acompanhamento");
+          }}
+        >
+          Acompanhar turno
+        </button>
         {podeVerPA && (
           <button
             type="button"
@@ -736,6 +749,10 @@ export default function LiderMetas({ telaInicial = "painel" }) {
 
       {tela === "painel" && (
         <DashboardEstavel mes={mes} vendas={vendas} metas={metas} lojas={lojas} />
+      )}
+
+      {tela === "acompanhamento" && (
+        <AcompanhamentoTurno mes={mes} metas={metas} lojas={lojas} usuarioId={sessao.user.id} />
       )}
 
       {tela === "lancamentos" && (
