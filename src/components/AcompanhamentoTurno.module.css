@@ -18,6 +18,7 @@
 .progresso { height: 11px; overflow: hidden; background: #eee9f3; border-radius: 999px; }
 .progresso > div { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7650a7, #ae8ccc); transition: width 150ms ease; }
 .totais { color: var(--muted); margin: 0; font-size: 13px; }
+.referencia { color: var(--muted); margin: -10px 0 0; font-size: 12px; }
 .concluido { margin: 0; color: #267144; font-weight: 800; }
 .secundario h3 { margin: 4px 0 6px; }
 .secundario p { margin: 0; }
@@ -25,7 +26,9 @@
 .loja { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 16px; display: grid; align-content: start; gap: 12px; min-width: 0; }
 .lojaTitulo { display: flex; justify-content: space-between; align-items: center; gap: 10px; min-width: 0; }
 .lojaTitulo strong { color: var(--primary); font-size: 18px; }
-.lojaTitulo span { color: var(--muted); font-size: 12px; text-align: right; }
+.lojaTitulo span { color: var(--muted); font-size: 12px; text-align: right; display: grid; gap: 2px; }
+.lojaTitulo span b { color: var(--foreground); font-size: 13px; }
+.lojaTitulo span small { font-size: 11px; }
 .lojaConteudo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: stretch; }
 .venda, .situacao { display: grid; grid-template-rows: auto 1fr; gap: 7px; min-width: 0; }
 .venda label, .situacao span { color: var(--muted); font-size: 12px; line-height: 1.25; font-weight: 700; }

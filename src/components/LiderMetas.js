@@ -139,6 +139,36 @@ export default function LiderMetas({ telaInicial = "painel" }) {
     if (perfil?.ativo) carregarDados();
   }, [perfil, mes]);
 
+  // Reconsulta o histórico ao entrar no acompanhamento e ao voltar ao app.
+  useEffect(() => {
+    if (tela !== "acompanhamento" || !perfil?.ativo) return undefined;
+    let ativo = true;
+
+    async function atualizarHistorico() {
+      const mesCarregado = mes;
+      const { data, error } = await supabase
+        .from("vendas_diarias")
+        .select("data,loja_id,periodo,valor_vendido")
+        .gte("data", inicioMes(mesCarregado))
+        .lte("data", fimMes(mesCarregado))
+        .order("data", { ascending: true });
+      if (!ativo) return;
+      if (error) setMensagem("Não foi possível atualizar o histórico de vendas.");
+      else setVendas(data || []);
+    }
+
+    function aoRetornar() {
+      if (document.visibilityState === "visible") atualizarHistorico();
+    }
+
+    atualizarHistorico();
+    document.addEventListener("visibilitychange", aoRetornar);
+    return () => {
+      ativo = false;
+      document.removeEventListener("visibilitychange", aoRetornar);
+    };
+  }, [tela, perfil?.ativo, mes, supabase]);
+
   useEffect(() => {
     if (!modalVendaAberto && !modalMetaAberto) return undefined;
 
@@ -752,7 +782,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
       )}
 
       {tela === "acompanhamento" && (
-        <AcompanhamentoTurno mes={mes} metas={metas} lojas={lojas} usuarioId={sessao.user.id} />
+        <AcompanhamentoTurno mes={mes} metas={metas} lojas={lojas} vendas={vendas} usuarioId={sessao.user.id} />
       )}
 
       {tela === "lancamentos" && (

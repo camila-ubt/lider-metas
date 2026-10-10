@@ -35,7 +35,7 @@ function carregarRascunho(chave) {
   }
 }
 
-export default function AcompanhamentoTurno({ mes, metas, lojas, usuarioId }) {
+export default function AcompanhamentoTurno({ mes, metas, lojas, vendas, usuarioId }) {
   const [data, setData] = useState(hojeLocal);
   const [periodo, setPeriodo] = useState("noite");
   const [nivel, setNivel] = useState(100);
@@ -81,12 +81,14 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, usuarioId }) {
     () => calcularAcompanhamentoTurno({
       lojas,
       metas,
+      vendas,
       mes,
+      data,
       periodo,
       nivel,
       vendasEmCentavos: vendasAtuais,
     }),
-    [lojas, metas, mes, periodo, nivel, vendasAtuais],
+    [lojas, metas, vendas, mes, data, periodo, nivel, vendasAtuais],
   );
 
   const mesAtual = data.slice(0, 7);
@@ -227,7 +229,10 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, usuarioId }) {
             <div style={{ width: Math.min(100, resultado.percentual) + "%" }} />
           </div>
           <p className={styles.totais}>
-            Meta {moeda.format(resultado.metaTotal)} · Vendido {moeda.format(resultado.vendidoTotal)}
+            Meta ajustada {moeda.format(resultado.metaTotal)} · Vendido agora {moeda.format(resultado.vendidoTotal)}
+          </p>
+          <p className={styles.referencia}>
+            Fixa {moeda.format(resultado.metaFixaTotal)} · {resultado.diasRestantes} turnos de {periodo === "manha" ? "manhã" : "noite"} restantes
           </p>
           {resultado.faltaGeral === 0 && <p className={styles.concluido}>Meta coletiva atingida!</p>}
         </div>
@@ -242,7 +247,14 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, usuarioId }) {
           <article className={styles.loja} key={loja.id}>
             <div className={styles.lojaTitulo}>
               <strong>{loja.codigo || loja.nome}</strong>
-              <span>{mesCorreto && meta !== null ? "Meta " + moeda.format(meta) : "Meta indisponível"}</span>
+              <span>
+                {mesCorreto && meta !== null ? (
+                  <>
+                    <b>Ajustada {moeda.format(meta)}</b>
+                    <small>Fixa {moeda.format(resultado.porLoja.find((item) => item.loja.id === loja.id)?.metaFixa ?? 0)}</small>
+                  </>
+                ) : "Meta indisponível"}
+              </span>
             </div>
             <div className={styles.lojaConteudo}>
               <div className={styles.venda}>
@@ -273,7 +285,9 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, usuarioId }) {
         ))}
       </div>
       {erroSalvar && <p className={styles.aviso} role="alert">Não foi possível salvar os valores neste navegador.</p>}
-      <p className={styles.rodape}>Valores temporários salvos neste aparelho. Não alteram os lançamentos de vendas.</p>
+      <p className={styles.rodape}>
+        Metas ajustadas pelas vendas oficiais até ontem e pelos turnos restantes. Os valores digitados ficam neste aparelho e não alteram os lançamentos.
+      </p>
     </section>
   );
 }
