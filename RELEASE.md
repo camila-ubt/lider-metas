@@ -1,3 +1,3 @@
-# Líder Metas v1.14.0
+# Líder Metas v1.15.0
 
-Adicionada a análise histórica do mês com tendências, dias de maior e menor movimento, comparação entre anos e projeção sazonal. Corrigida a comparação entre os dias mais forte e mais fraco do mês atual.
+Incluído acompanhamento dos turnos com metas ajustadas, resultados individuais e coletivos, referência da meta fixa e salvamento local das vendas informadas.

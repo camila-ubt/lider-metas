@@ -16,6 +16,12 @@ A aplicação calcula os níveis usados no acompanhamento mensal e apresenta o d
 
 Os horários de manhã e noite são compartilhados com a Calculadora de Metas para que os dois sistemas utilizem a mesma referência.
 
+## Acompanhar turno
+
+A aba acompanha manhã ou noite nas faixas Meta, Supermeta e Megameta. A meta ajustada usa o saldo mensal após as vendas oficiais anteriores e os turnos restantes. A meta fixa aparece como referência.
+
+As vendas informadas durante o turno atualizam o valor restante por loja e no geral, com compensação entre lojas. Os valores ficam salvos no aparelho até serem limpos, sem alterar lançamentos oficiais.
+
 ## Inteligência Gerencial
 
 O Painel apresenta a tendência recente e o padrão do mesmo mês nos dois anos anteriores, com médias por dia da semana, comparação anual e projeção sazonal quando há dados suficientes. A análise histórica considera apenas dias completos e exige ao menos 80% do mês preenchido em cada ano de referência.
