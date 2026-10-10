@@ -244,25 +244,31 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, usuarioId }) {
               <strong>{loja.codigo || loja.nome}</strong>
               <span>{mesCorreto && meta !== null ? "Meta " + moeda.format(meta) : "Meta indisponível"}</span>
             </div>
-            <label htmlFor={"acompanhamento-loja-" + loja.id}>Vendido até agora (R$)</label>
-            <input
-              id={"acompanhamento-loja-" + loja.id}
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="0,00"
-              value={formatarEntrada(vendasAtuais[String(loja.id)] || "")}
-              onChange={(evento) => alterarVenda(loja.id, evento.target.value)}
-              disabled={!pronto}
-            />
-            {mesCorreto && meta !== null && (
-              <div className={styles.situacao}>
-                <span>{falta > 0 ? "Falta na loja" : "Meta atingida"}</span>
-                <strong className={falta > 0 ? "" : styles.positivo}>
-                  {falta > 0 ? moeda.format(falta) : excedente > 0 ? "+" + moeda.format(excedente) + " de excedente" : "Atingida"}
-                </strong>
+            <div className={styles.lojaConteudo}>
+              <div className={styles.venda}>
+                <label htmlFor={"acompanhamento-loja-" + loja.id}>Vendido até agora (R$)</label>
+                <input
+                  id={"acompanhamento-loja-" + loja.id}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="0,00"
+                  value={formatarEntrada(vendasAtuais[String(loja.id)] || "")}
+                  onChange={(evento) => alterarVenda(loja.id, evento.target.value)}
+                  disabled={!pronto}
+                />
               </div>
-            )}
+              <div className={styles.situacao}>
+                <span>{mesCorreto && meta !== null && falta === 0 ? "Meta atingida" : "Falta na loja"}</span>
+                {mesCorreto && meta !== null ? (
+                  <strong className={falta > 0 ? "" : styles.positivo}>
+                    {falta > 0 ? moeda.format(falta) : excedente > 0 ? "+" + moeda.format(excedente) : "Atingida"}
+                  </strong>
+                ) : (
+                  <strong className={styles.indisponivel}>—</strong>
+                )}
+              </div>
+            </div>
           </article>
         ))}
       </div>
