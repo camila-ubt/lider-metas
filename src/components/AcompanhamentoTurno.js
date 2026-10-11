@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { calcularAcompanhamentoTurno } from "@/lib/acompanhamentoTurno.mjs";
+import { calcularAcompanhamentoTurno, projetarMetasAmanha } from "@/lib/acompanhamentoTurno.mjs";
 import styles from "./AcompanhamentoTurno.module.css";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const numero = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+
+function descreverVariacao(valor) {
+  if (valor === null) return "Já zerada";
+  if (valor === 0) return "Igual a hoje";
+  const magnitude = Math.abs(valor) < 0.1 ? "menos de 0,1" : percentual.format(Math.abs(valor));
+  return `${magnitude}% ${valor < 0 ? "menor" : "maior"}`;
+}
 const niveis = [{ valor: 100, rotulo: "Meta 100%" }, { valor: 110, rotulo: "Super 110%" }, { valor: 120, rotulo: "Mega 120%" }];
 
 function hojeLocal() {
@@ -89,6 +97,13 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, vendas, usuario
       vendasEmCentavos: vendasAtuais,
     }),
     [lojas, metas, vendas, mes, data, periodo, nivel, vendasAtuais],
+  );
+
+  const projecao = useMemo(
+    () => projetarMetasAmanha({
+      lojas, metas, vendas, mes, data, periodo, vendasEmCentavos: vendasAtuais,
+    }),
+    [lojas, metas, vendas, mes, data, periodo, vendasAtuais],
   );
 
   const mesAtual = data.slice(0, 7);
@@ -234,7 +249,28 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, vendas, usuario
           <p className={styles.referencia}>
             Fixa {moeda.format(resultado.metaFixaTotal)} · {resultado.diasRestantes} turnos de {periodo === "manha" ? "manhã" : "noite"} restantes
           </p>
-          {resultado.faltaGeral === 0 && <p className={styles.concluido}>Meta coletiva atingida!</p>}
+          {resultado.faltaGeral === 0 && (
+            <p className={styles.concluido}>
+              {nivel === 120 ? "Megameta" : nivel === 110 ? "Supermeta" : "Meta"} coletiva atingida!
+            </p>
+          )}
+          {projecao && pronto && Object.values(vendasAtuais).some((valor) => valor !== "") && (
+            <div className={styles.projecao} aria-live="polite">
+              <p className={styles.projecaoTitulo}>Amanhã · meta geral</p>
+              {projecao.map(({ nivel: faixa, metaAmanha, variacaoPercentual }) => (
+                <div className={styles.projecaoLinha} key={faixa}>
+                  <span>{faixa === 100 ? "Meta" : faixa === 110 ? "Super" : "Mega"} {faixa}%</span>
+                  <strong>{moeda.format(metaAmanha)}</strong>
+                  <span className={variacaoPercentual === null || variacaoPercentual === 0
+                    ? styles.projecaoNeutra
+                    : variacaoPercentual < 0 ? styles.projecaoMelhora : styles.projecaoPiora}>
+                    {descreverVariacao(variacaoPercentual)}
+                  </span>
+                </div>
+              ))}
+              <small className={styles.projecaoNota}>Projeção com as vendas informadas até agora.</small>
+            </div>
+          )}
         </div>
       )}
 
