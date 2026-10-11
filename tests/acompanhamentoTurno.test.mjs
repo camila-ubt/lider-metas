@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calcularAcompanhamentoTurno } from "../src/lib/acompanhamentoTurno.mjs";
+import { calcularAcompanhamentoTurno, projetarMetasAmanha } from "../src/lib/acompanhamentoTurno.mjs";
 
 const lojas = [
   { id: 1, codigo: "CB" },
@@ -134,4 +134,65 @@ test("não usa meta de período com data inválida", () => {
   const resultado = calcular({ data: "2026-10-01" });
   assert.equal(resultado.metasCompletas, false);
   assert.equal(resultado.metaTotal, null);
+});
+
+
+test("projeta as três faixas gerais com as vendas informadas hoje", () => {
+  const projecao = projetarMetasAmanha({
+    lojas: lojas.slice(0, 1),
+    metas: metas.slice(0, 1),
+    vendas: [{ data: "2026-09-10", loja_id: 1, periodo: "noite", valor_vendido: 6000 }],
+    vendasEmCentavos: { 1: "200000" },
+    mes: "2026-09",
+    data: "2026-09-11",
+    periodo: "noite",
+  });
+  assert.deepEqual(projecao.map((item) => item.metaHoje), [1200, 1350, 1500]);
+  assert.deepEqual(projecao.map((item) => item.metaAmanha), [1157.90, 1315.79, 1473.69]);
+  assert.ok(projecao.every((item) => item.variacaoPercentual < 0));
+});
+
+test("meta geral de amanhã cresce com vendas abaixo do necessário", () => {
+  const projecao = projetarMetasAmanha({
+    lojas: lojas.slice(0, 1), metas: metas.slice(0, 1),
+    vendas: [{ data: "2026-09-10", loja_id: 1, periodo: "noite", valor_vendido: 6000 }],
+    vendasEmCentavos: { 1: "10000" },
+    mes: "2026-09", data: "2026-09-11", periodo: "noite",
+  });
+  assert.equal(projecao[0].metaHoje, 1200);
+  assert.equal(projecao[0].metaAmanha, 1257.90);
+  assert.ok(projecao[0].variacaoPercentual > 0);
+});
+
+test("projeção substitui venda oficial do dia sem duplicar e compensa entre lojas", () => {
+  const projecao = projetarMetasAmanha({
+    lojas: lojas.slice(0, 2), metas: metas.slice(0, 2),
+    vendas: [
+      { data: "2026-09-10", loja_id: 1, periodo: "noite", valor_vendido: 6000 },
+      { data: "2026-09-11", loja_id: 1, periodo: "noite", valor_vendido: 9000 },
+      { data: "2026-09-11", loja_id: 2, periodo: "manha", valor_vendido: 5000 },
+    ],
+    vendasEmCentavos: { 1: "200000", 2: "400000" },
+    mes: "2026-09", data: "2026-09-11", periodo: "noite",
+  });
+  assert.equal(projecao[0].metaHoje, 2400);
+  assert.equal(projecao[0].metaAmanha, 2210.53);
+});
+
+test("não projeta após o último dia ou com metas incompletas", () => {
+  const base = { lojas, metas, mes: "2026-09", periodo: "noite", data: "2026-09-30" };
+  assert.equal(projetarMetasAmanha(base), null);
+  assert.equal(projetarMetasAmanha({ ...base, data: "2026-09-11", metas: metas.slice(0, 2) }), null);
+});
+
+test("quando meta mensal geral já está zerada, não inventa variação percentual", () => {
+  const projecao = projetarMetasAmanha({
+    lojas: lojas.slice(0, 1), metas: metas.slice(0, 1),
+    vendas: [{ data: "2026-09-10", loja_id: 1, periodo: "noite", valor_vendido: 30000 }],
+    vendasEmCentavos: { 1: "100000" },
+    mes: "2026-09", data: "2026-09-11", periodo: "noite",
+  });
+  assert.equal(projecao[0].metaHoje, 0);
+  assert.equal(projecao[0].metaAmanha, 0);
+  assert.equal(projecao[0].variacaoPercentual, null);
 });
