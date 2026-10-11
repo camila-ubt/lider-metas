@@ -115,3 +115,46 @@ export function calcularAcompanhamentoTurno({
       : metaTotalCentavos === 0 ? 100 : (vendidoTotalCentavos / metaTotalCentavos) * 100,
   };
 }
+
+
+/**
+ * Projeta a meta coletiva do próximo dia do mesmo mês com os valores
+ * informados no acompanhamento de hoje. As vendas oficiais do próprio
+ * dia são substituídas pelos valores digitados, sem duplicação.
+ */
+export function projetarMetasAmanha(entrada) {
+  const hoje = calcularAcompanhamentoTurno({ ...entrada, nivel: 100 });
+  if (!hoje.metasCompletas || hoje.diasRestantes <= 1) return null;
+
+  const { data, periodo = "noite", lojas = [], vendas = [], vendasEmCentavos = {} } = entrada;
+  const amanha = data.slice(0, 8) + String(Number(data.slice(8, 10)) + 1).padStart(2, "0");
+  const vendasConsideradas = vendas.filter(
+    (venda) => !(venda.data === data && venda.periodo === periodo),
+  );
+  const vendasDoDia = lojas.map((loja) => ({
+    data,
+    periodo,
+    loja_id: loja.id,
+    valor_vendido: (Number(vendasEmCentavos[String(loja.id)]) || 0) / 100,
+  }));
+
+  return [100, 110, 120].map((nivel) => {
+    const metaHoje = calcularAcompanhamentoTurno({ ...entrada, nivel }).metaTotal;
+    const metaAmanha = calcularAcompanhamentoTurno({
+      ...entrada,
+      data: amanha,
+      nivel,
+      vendas: [...vendasConsideradas, ...vendasDoDia],
+      vendasEmCentavos: {},
+    }).metaTotal;
+
+    return {
+      nivel,
+      metaHoje,
+      metaAmanha,
+      variacaoPercentual: metaHoje > 0
+        ? ((metaAmanha - metaHoje) / metaHoje) * 100
+        : null,
+    };
+  });
+}
