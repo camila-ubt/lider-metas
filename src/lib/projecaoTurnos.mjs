@@ -6,19 +6,30 @@ export const NIVEIS_META_TURNO = [
   { nome: "Megameta", nivel: "mega", fator: 1.2 },
 ];
 
-// A projeção usa as vendas lançadas até agora, desde o primeiro dia do mês.
-// Se o turno de hoje ainda não foi lançado, sua média considera até ontem.
+// O horário de fechamento define se o turno de hoje ainda entra no saldo.
+export function calcularTurnosRestantes({ contexto, minutosAgora, fimTurno }) {
+  if (contexto.tipo === "encerrado") return 0;
+  if (contexto.tipo === "futuro") return contexto.ultimoDia;
+  return Math.max(contexto.ultimoDia - contexto.diaCorte, 0) +
+    (minutosAgora < fimTurno ? 1 : 0);
+}
+
+// A média usa os dias já lançados; o fechamento define se ainda falta
+// executar o turno de hoje. Um dia sem lançamento não vira venda zero.
 export function calcularProjecaoTurno({
   vendas = [],
   lojas = [],
   periodo,
   lojaId = null,
   contexto,
+  minutosAgora = 0,
+  fimTurno = 0,
 }) {
-  const lojasConsideradas = lojas.filter(
+  const lojasAtivas = lojas.filter(
     (loja) => lojaId === null || String(loja.id) === String(lojaId),
   );
-  const ids = new Set(lojasConsideradas.map((loja) => String(loja.id)));
+  const ids = new Set(lojasAtivas.map((loja) => String(loja.id)));
+  const todosIds = new Set(lojas.map((loja) => String(loja.id)));
   const prefixo = `${contexto.ano}-${String(contexto.numeroMes).padStart(2, "0")}-`;
   const registros = vendas.filter(
     (venda) =>
@@ -32,31 +43,46 @@ export function calcularProjecaoTurno({
   );
 
   if (contexto.tipo === "encerrado") {
-    return { valor: vendido, media: null, diasBase: contexto.ultimoDia };
+    return {
+      valor: vendido,
+      media: contexto.ultimoDia ? vendido / contexto.ultimoDia : null,
+      diasBase: contexto.ultimoDia,
+    };
   }
   if (contexto.tipo === "futuro" || !ids.size) {
     return { valor: null, media: null, diasBase: 0 };
   }
 
-  // O denominador do dia é comum ao conjunto e às lojas individuais,
-  // garantindo que a projeção geral seja a soma das projeções das lojas.
-  const diaAtualTemLancamento = vendas.some(
+  // Todas as lojas usam o mesmo divisor para que as projeções individuais
+  // somem exatamente o resultado geral.
+  const temLancamentoHoje = vendas.some(
     (venda) =>
       venda.periodo === periodo &&
-      lojas.some((loja) => String(loja.id) === String(venda.loja_id)) &&
+      todosIds.has(String(venda.loja_id)) &&
       String(venda.data || "").startsWith(prefixo) &&
       Number(String(venda.data).slice(8, 10)) === contexto.diaCorte,
   );
-  // Um turno sem lançamento hoje não é tratado como venda zero,
-  // mesmo depois do horário de fechamento.
-  const diasBase = Math.max(0, contexto.diaCorte - (diaAtualTemLancamento ? 0 : 1));
+  const diasBase = Math.max(0, contexto.diaCorte - (temLancamentoHoje ? 0 : 1));
   if (!diasBase || (!registros.length && lojaId === null)) {
     return { valor: null, media: null, diasBase };
   }
 
   const media = vendido / diasBase;
-  const valor = vendido + media * Math.max(contexto.ultimoDia - diasBase, 0);
-  return { valor, media, diasBase };
+  const vendidoHoje = registros
+    .filter((venda) => Number(String(venda.data).slice(8, 10)) === contexto.diaCorte)
+    .reduce((total, venda) => total + Number(venda.valor_vendido || 0), 0);
+  const diasDepoisHoje = Math.max(contexto.ultimoDia - contexto.diaCorte, 0);
+
+  // Depois do fechamento, só entram dias futuros. Enquanto o turno de hoje
+  // ainda está disponível, estima-se o saldo dele pela média observada.
+  const complementoHoje = minutosAgora < fimTurno
+    ? Math.max(media - vendidoHoje, 0)
+    : 0;
+  return {
+    valor: vendido + media * diasDepoisHoje + complementoHoje,
+    media,
+    diasBase,
+  };
 }
 
 export function somarProjecoes(...valores) {
