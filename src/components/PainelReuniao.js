@@ -149,6 +149,7 @@ export default function PainelReuniao() {
   const [historico, setHistorico] = useState([]);
   const [metas, setMetas] = useState([]);
   const [carregando, setCarregando] = useState(false);
+  const [turnosAbertos, setTurnosAbertos] = useState(false);
 
   useEffect(() => {
     let temporizador;
@@ -354,6 +355,7 @@ export default function PainelReuniao() {
         percentual: percentualDoResultado(totalAtual, metaTurno),
         nivel: nivelDoResultado(totalAtual, metaTurno),
         mediaAtual,
+        projecao: contexto.tipo === "futuro" ? null : totalAtual + mediaAtual * Math.max(contexto.ultimoDia - contexto.diaCorte, 0),
         mediaHistorica,
         variacaoHistorica,
         temVendas: atuais.length > 0,
@@ -482,6 +484,7 @@ export default function PainelReuniao() {
   const motivos = criterioNota ? [criterioNota, ...motivosBase] : motivosBase;
 
   return (
+    <>
     <section className={styles.wrap}>
       <header className={styles.header}>
         <div>
@@ -532,8 +535,19 @@ export default function PainelReuniao() {
         </article>
       </div>
 
-      <section className={styles.turnosHistoricos}>
-        <h3>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura dos turnos"}</h3>
+      <div className={styles.acoes}>
+        <h3>{futuro ? "Antes de começar" : encerrado ? "Conclusões do mês" : "Por que essa nota?"}</h3>
+        {motivos.map((item) => (
+          <p key={item}>{item}</p>
+        ))}
+      </div>
+    </section>
+    <section className={`${styles.wrap} ${styles.turnosSeparados}`}>
+        <button type="button" className={styles.turnosToggle} aria-expanded={turnosAbertos} onClick={() => setTurnosAbertos((atual) => !atual)}>
+          <span>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura e projeção dos turnos"}</span>
+          <span aria-hidden="true">{turnosAbertos ? "−" : "+"}</span>
+        </button>
+        {turnosAbertos && <div className={styles.turnosHistoricos}>
         <div className={styles.turnosGrid}>
           {resumo.turnos.map((turno) => (
             <article key={turno.periodo}>
@@ -552,6 +566,7 @@ export default function PainelReuniao() {
                     {encerrado ? "Média diária final" : "Média diária atual"}: {" "}
                     <b>{dinheiro.format(turno.mediaAtual)}</b>
                   </p>
+                  {!encerrado && turno.projecao !== null && <p>Projeção de fechamento: <b>{dinheiro.format(turno.projecao)}</b></p>}
                   <p>
                     Resultado do turno: {" "}
                     <b>
@@ -627,14 +642,8 @@ export default function PainelReuniao() {
             </article>
           ))}
         </div>
+        </div>}
       </section>
-
-      <div className={styles.acoes}>
-        <h3>{futuro ? "Antes de começar" : encerrado ? "Conclusões do mês" : "Por que essa nota?"}</h3>
-        {motivos.map((item) => (
-          <p key={item}>{item}</p>
-        ))}
-      </div>
-    </section>
+    </>
   );
 }
