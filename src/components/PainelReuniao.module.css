@@ -37,3 +37,6 @@
 .turnoNivel>small.variacaoFavoravel{color:#166534;font-weight:600}
 .turnoNivel>small.variacaoDesfavoravel{color:#b42318;font-weight:600}
 .turnoNivel>small.variacaoNeutra{color:#665274}
+
+.turnoNivel>p.turnoPorLoja{padding-top:7px;border-top:1px solid #eee4f3}
+.turnoNivel>p.turnoPorLoja b{color:#49335d}
