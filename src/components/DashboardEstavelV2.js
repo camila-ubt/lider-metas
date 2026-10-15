@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   minutosDoHorario,
   useHorariosPeriodos,
+  useMinutosAtuais,
 } from "@/lib/horariosPeriodos";
 import { contextoDoMes } from "@/lib/contextoMes";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
@@ -211,6 +212,7 @@ function PeriodoDetalhe({ periodo, encerrado }) {
 export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRelatorio = false }) {
   const supabase = useMemo(() => createClient(), []);
   const horarios = useHorariosPeriodos();
+  const minutosAtuais = useMinutosAtuais();
   const [historicoAnterior, setHistoricoAnterior] = useState([]);
   const [carregandoHistorico, setCarregandoHistorico] = useState(true);
   const [filtroLoja, setFiltroLoja] = useState("geral");
@@ -238,7 +240,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
   const dados = useMemo(() => {
     const [ano, numeroMes] = mes.split("-").map(Number);
     const agora = new Date();
-    const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+    const minutosAgora = minutosAtuais;
     const fimManha = minutosDoHorario(horarios.manhaFim);
     const fimNoite = Math.max(
       minutosDoHorario(horarios.manhaFim),
@@ -297,11 +299,11 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const supermeta = meta * 1.1;
     const megameta = meta * 1.2;
     const jornada = calcularJornada(totalVendido, meta);
-    const media = diaCorte > 0 ? totalVendido / diaCorte : 0;
     const previsaoManha = projetarTurno("manha");
     const previsaoNoite = projetarTurno("noite");
     const projecao = somarProjecoes(previsaoManha.valor, previsaoNoite.valor);
-    const mediaProjetada = somarProjecoes(previsaoManha.media, previsaoNoite.media);
+    const media = somarProjecoes(previsaoManha.media, previsaoNoite.media);
+    const mediaProjetada = media;
     const necessarioDia = diasRestantesGeral > 0 ? jornada.falta / diasRestantesGeral : 0;
 
     let acumulado = 0;
@@ -359,7 +361,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       nivelFechado: nivelFechado(totalVendido, meta),
     };
-  }, [mes, vendas, metas, lojas, horarios]);
+  }, [mes, vendas, metas, lojas, horarios, minutosAtuais]);
 
   useEffect(() => { setLojaAberta(null); }, [mes]);
 
@@ -436,7 +438,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         <article className={styles.kpi}><span>Total vendido</span><strong>{dinheiro.format(dados.totalVendido)}</strong><small>{textoPercentual(porcentagem(dados.totalVendido, dados.meta))} da Meta</small></article>
         <article className={styles.kpi}><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong><small>{dados.mesPassado ? dinheiro.format(dados.totalVendido) : dados.projecao === null ? "Aguardando vendas lançadas" : `Fechamento projetado: ${dados.nivelProjetado}`}</small></article>
         <article className={styles.kpi}><span>{dados.mesPassado ? "Fechamento" : dados.jornada.completa ? "Megameta conquistada" : `Necessário para ${dados.jornada.alvo.nome}`}</span><strong>{dados.mesPassado ? dados.nivelFechado : dinheiro.format(dados.necessarioDia)}</strong><small>{dados.mesPassado ? "Mês encerrado" : dados.diasRestantes > 1 ? `${dados.diasRestantes} dias restantes` : "Valor necessário no dia"}</small></article>
-        <article className={styles.kpi}><span>Média diária</span><strong>{dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
+        <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
 
       <div
