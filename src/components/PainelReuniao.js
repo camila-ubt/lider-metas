@@ -371,7 +371,6 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       const necessarioPorLojaPeriodo =
         lojas.length > 0 ? necessarioPorPeriodo / lojas.length : 0;
 
-      const mediaProjecao = previsao.media;
       const projecaoFechamento = previsao.valor;
       const metasAjustadas = calcularMetasTurno({
         metas,
@@ -393,7 +392,6 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         percentual: percentualDoResultado(totalAtual, metaTurno),
         nivel: nivelDoResultado(totalAtual, metaTurno),
         mediaAtual,
-        mediaProjecao,
         projecaoFechamento,
         metasAjustadas,
         mediaHistorica,
@@ -639,10 +637,6 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                           <p>
                             <span>Faturamento previsto</span>
                             <b>{dinheiro.format(turno.projecaoFechamento)}</b>
-                          </p>
-                          <p>
-                            <span>Média prevista por turno</span>
-                            <b>{dinheiro.format(turno.mediaProjecao)}</b>
                           </p>
                           <p>
                             <span>Resultado previsto</span>
