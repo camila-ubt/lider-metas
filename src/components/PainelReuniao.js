@@ -12,7 +12,7 @@ import {
   percentualDoResultado,
   proximoNivel,
 } from "@/lib/contextoMes";
-import { calcularProjecaoTurno } from "@/lib/projecaoTurnos.mjs";
+import { calcularProjecaoTurno, calcularMetasTurno } from "@/lib/projecaoTurnos.mjs";
 import styles from "./PainelReuniao.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -52,6 +52,12 @@ function media(lista) {
 
 function nomeTurno(periodo) {
   return periodo === "manha" ? "Manhã" : "Noite";
+}
+
+function compararMetaFixa(variacao) {
+  if (variacao === null) return "Sem turnos restantes";
+  if (Math.abs(variacao) < 0.05) return "Igual à meta fixa";
+  return `${percentual.format(Math.abs(variacao))}% ${variacao > 0 ? "acima" : "abaixo"} da meta fixa`;
 }
 
 function listaCodigos(lista) {
@@ -356,6 +362,14 @@ export default function PainelReuniao() {
       });
       const mediaProjecao = previsao.media;
       const projecaoFechamento = previsao.valor;
+      const metasAjustadas = calcularMetasTurno({
+        metas,
+        lojas,
+        periodo,
+        vendido: totalAtual,
+        diasMes: contexto.ultimoDia,
+        turnosRestantes: periodosRestantes,
+      });
 
       return {
         periodo,
@@ -370,6 +384,7 @@ export default function PainelReuniao() {
         mediaAtual,
         mediaProjecao,
         projecaoFechamento,
+        metasAjustadas,
         mediaHistorica,
         variacaoHistorica,
         temVendas: atuais.length > 0,
@@ -606,7 +621,7 @@ export default function PainelReuniao() {
                     <div className={styles.turnoProjecao}>
                       <h4>Projeção de fechamento</h4>
                       {turno.projecaoFechamento === null ? (
-                        <p>Sem projeção: são necessários ao menos 3 dias completos, sem lançamentos pendentes.</p>
+                        <p>A projeção aparece após os primeiros lançamentos do turno.</p>
                       ) : (
                         <>
                           <p>
@@ -628,42 +643,26 @@ export default function PainelReuniao() {
 
                   {!encerrado && turno.meta > 0 && (
                     <div className={styles.turnoMetaRestante}>
-                      {turno.faltaMeta > 0 ? (
-                        <>
+                      <p>
+                        <span>Turnos restantes (incluindo hoje, se ainda estiver aberto)</span>
+                        <b>{turno.periodosRestantes}</b>
+                      </p>
+                      {turno.metasAjustadas.map((nivel) => (
+                        <div className={styles.turnoNivel} key={nivel.nivel}>
+                          <strong>{nivel.nome}</strong>
                           <p>
-                            <span>Falta para a Meta</span>
-                            <b>{dinheiro.format(turno.faltaMeta)}</b>
+                            <span>Meta fixa por turno</span>
+                            <b>{dinheiro.format(nivel.fixa)}</b>
                           </p>
-                          {turno.periodosRestantes > 0 ? (
-                            <>
-                              <p>
-                                <span>
-                                  {turno.periodosRestantes} {turno.periodo === "manha" ? "manhã(s)" : "noite(s)"} restantes
-                                </span>
-                                <b>
-                                  {dinheiro.format(turno.necessarioPorPeriodo)} em cada {turno.periodo === "manha" ? "manhã" : "noite"}
-                                </b>
-                              </p>
-                              <p>
-                                <span>Dividindo igualmente entre {lojas.length} lojas</span>
-                                <b>
-                                  {dinheiro.format(turno.necessarioPorLojaPeriodo)} por loja/{turno.periodo === "manha" ? "manhã" : "noite"}
-                                </b>
-                              </p>
-                            </>
-                          ) : (
-                            <p>
-                              <span>Períodos restantes</span>
-                              <b>Nenhum neste mês</b>
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <p>
-                          <span>Meta do turno</span>
-                          <b>Já atingida</b>
-                        </p>
-                      )}
+                          <p>
+                            <span>Necessário por turno</span>
+                            <b>{nivel.ajustada === null
+                              ? "Sem turnos restantes"
+                              : dinheiro.format(nivel.ajustada)}</b>
+                          </p>
+                          <small>{compararMetaFixa(nivel.variacao)}</small>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </>
