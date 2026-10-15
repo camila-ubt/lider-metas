@@ -57,6 +57,16 @@ test("lançamento do turno de hoje atualiza a média e projeção imediatamente"
   assert.equal(somarProjecoes(lojaUm.valor, lojaDois.valor), resultado.valor);
 });
 
+test("projeção geral soma as lojas mesmo quando uma ainda não tem lançamento", () => {
+  const vendas = [venda(1, 1, "manha", 250)];
+  const periodo = contexto("andamento", 1);
+  const geral = projetar(vendas, "manha", periodo, 650, 720).valor;
+  const uma = projetar(vendas, "manha", periodo, 650, 720, 1).valor;
+  const duas = projetar(vendas, "manha", periodo, 650, 720, 2).valor;
+  assert.equal(duas, 0);
+  assert.equal(geral, uma + duas);
+});
+
 test("meses encerrados usam o resultado realizado, futuros não projetam", () => {
   const vendas = [venda(1, 1, "manha", 100)];
   assert.equal(projetar(vendas, "manha", contexto("encerrado", 30), 800, 720).valor, 100);
