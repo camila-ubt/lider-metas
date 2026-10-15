@@ -154,10 +154,13 @@ test("metas por turno comparam necessário com a meta fixa das lojas", () => {
   });
   assert.equal(faixas[0].fixa, 300);
   assert.equal(faixas[0].ajustada, 4800 / 11);
+  assert.equal(faixas[0].porLojaTurno, 4800 / 11 / lojas.length);
   assert.ok(faixas[0].variacao > 45 && faixas[0].variacao < 46);
   assert.equal(faixas[1].fixa, 330);
   assert.equal(faixas[2].fixa, 360);
   assert.equal(faixas[2].ajustada, 6660 / 11);
+  assert.equal(faixas[1].porLojaTurno, (9300 * 1.1 - 4500) / 11 / 2);
+  assert.equal(faixas[2].porLojaTurno, 6660 / 11 / 2);
 });
 
 test("sem turnos restantes, não divide o saldo por zero", () => {
@@ -167,5 +170,15 @@ test("sem turnos restantes, não divide o saldo por zero", () => {
     diasMes: 30, turnosRestantes: 0,
   });
   assert.equal(valores[0].ajustada, null);
+  assert.equal(valores[0].porLojaTurno, null);
   assert.equal(valores[0].variacao, null);
+});
+
+test("metas sem lojas não tentam dividir por zero", () => {
+  const niveis = calcularMetasTurno({
+    metas: [], lojas: [], periodo: "manha", vendido: 0,
+    diasMes: 31, turnosRestantes: 12,
+  });
+  assert.equal(niveis.length, 3);
+  niveis.forEach((nivel) => assert.equal(nivel.porLojaTurno, null));
 });
