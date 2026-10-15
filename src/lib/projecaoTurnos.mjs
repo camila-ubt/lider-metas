@@ -126,6 +126,9 @@ export function calcularMetasTurno({
     const variacao = ajustada !== null && fixa > 0
       ? ((ajustada / fixa) - 1) * 100
       : null;
-    return { nome, nivel, alvo, falta, fixa, ajustada, variacao };
+    const porLojaTurno = ajustada !== null && lojas.length > 0
+      ? ajustada / lojas.length
+      : null;
+    return { nome, nivel, alvo, falta, fixa, ajustada, porLojaTurno, variacao };
   });
 }
