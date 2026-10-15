@@ -68,15 +68,21 @@ export function calcularProjecaoTurno({
   }
 
   const media = vendido / diasBase;
-  const vendidoHoje = registros
-    .filter((venda) => Number(String(venda.data).slice(8, 10)) === contexto.diaCorte)
-    .reduce((total, venda) => total + Number(venda.valor_vendido || 0), 0);
   const diasDepoisHoje = Math.max(contexto.ultimoDia - contexto.diaCorte, 0);
 
-  // Depois do fechamento, só entram dias futuros. Enquanto o turno de hoje
-  // ainda está disponível, estima-se o saldo dele pela média observada.
+  // Calcula o saldo de hoje por loja, mantendo a projeção geral idêntica
+  // à soma das projeções individuais.
   const complementoHoje = minutosAgora < fimTurno
-    ? Math.max(media - vendidoHoje, 0)
+    ? [...ids].reduce((soma, id) => {
+        const vendasLoja = registros.filter((venda) => String(venda.loja_id) === id);
+        const vendidoLoja = vendasLoja.reduce(
+          (total, venda) => total + Number(venda.valor_vendido || 0), 0,
+        );
+        const vendidoHoje = vendasLoja
+          .filter((venda) => Number(String(venda.data).slice(8, 10)) === contexto.diaCorte)
+          .reduce((total, venda) => total + Number(venda.valor_vendido || 0), 0);
+        return soma + Math.max(vendidoLoja / diasBase - vendidoHoje, 0);
+      }, 0)
     : 0;
   return {
     valor: vendido + media * diasDepoisHoje + complementoHoje,
