@@ -149,6 +149,7 @@ export default function PainelReuniao() {
   const [historico, setHistorico] = useState([]);
   const [metas, setMetas] = useState([]);
   const [carregando, setCarregando] = useState(false);
+  const [turnosAbertos, setTurnosAbertos] = useState(false);
 
   useEffect(() => {
     let temporizador;
@@ -343,6 +344,39 @@ export default function PainelReuniao() {
       const necessarioPorLojaPeriodo =
         lojas.length > 0 ? necessarioPorPeriodo / lojas.length : 0;
 
+      const turnoAberto =
+        (contexto.tipo === "andamento" || contexto.tipo === "ultimo-dia") &&
+        minutosAgora < fimTurno;
+      const diasEncerrados = Math.max(contexto.diaCorte - (turnoAberto ? 1 : 0), 0);
+      const registrosDiarios = new Map();
+      atuais.forEach((venda) => {
+        if (Number(venda.data.slice(8, 10)) > diasEncerrados) return;
+        if (!registrosDiarios.has(venda.data)) {
+          registrosDiarios.set(venda.data, { lojas: new Set(), total: 0 });
+        }
+        const registro = registrosDiarios.get(venda.data);
+        registro.lojas.add(Number(venda.loja_id));
+        registro.total += Number(venda.valor_vendido || 0);
+      });
+      const diasCompletos = [...registrosDiarios.values()].filter(
+        (dia) => lojas.length > 0 && dia.lojas.size === lojas.length,
+      );
+      const mediaProjecao =
+        diasEncerrados >= 3 && diasCompletos.length === diasEncerrados
+          ? media(diasCompletos.map((dia) => dia.total))
+          : null;
+      const vendidoHoje = turnoAberto
+        ? atuais
+            .filter((venda) => Number(venda.data.slice(8, 10)) === contexto.diaCorte)
+            .reduce((total, venda) => total + Number(venda.valor_vendido || 0), 0)
+        : 0;
+      const projecaoFechamento =
+        mediaProjecao === null || contexto.tipo === "futuro" || contexto.tipo === "encerrado"
+          ? null
+          : totalAtual +
+            Math.max(contexto.ultimoDia - contexto.diaCorte, 0) * mediaProjecao +
+            (turnoAberto ? Math.max(mediaProjecao - vendidoHoje, 0) : 0);
+
       return {
         periodo,
         totalAtual,
@@ -354,6 +388,8 @@ export default function PainelReuniao() {
         percentual: percentualDoResultado(totalAtual, metaTurno),
         nivel: nivelDoResultado(totalAtual, metaTurno),
         mediaAtual,
+        mediaProjecao,
+        projecaoFechamento,
         mediaHistorica,
         variacaoHistorica,
         temVendas: atuais.length > 0,
@@ -482,6 +518,7 @@ export default function PainelReuniao() {
   const motivos = criterioNota ? [criterioNota, ...motivosBase] : motivosBase;
 
   return (
+    <>
     <section className={styles.wrap}>
       <header className={styles.header}>
         <div>
@@ -532,8 +569,32 @@ export default function PainelReuniao() {
         </article>
       </div>
 
-      <section className={styles.turnosHistoricos}>
-        <h3>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura dos turnos"}</h3>
+
+      <div className={styles.acoes}>
+        <h3>{futuro ? "Antes de começar" : encerrado ? "Conclusões do mês" : "Por que essa nota?"}</h3>
+        {motivos.map((item) => (
+          <p key={item}>{item}</p>
+        ))}
+      </div>
+    </section>
+
+    <section className={`${styles.wrap} ${styles.turnosWrap}`} aria-label="Leitura e projeção dos turnos">
+      <button
+        type="button"
+        className={styles.turnosToggle}
+        aria-expanded={turnosAbertos}
+        aria-controls="painel-leitura-projecao-turnos"
+        onClick={() => setTurnosAbertos((aberto) => !aberto)}
+      >
+        <span className={styles.turnosTitulo}>
+          <strong>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura e projeção dos turnos"}</strong>
+          <small>Manhã e noite</small>
+        </span>
+        <span className={styles.turnosSeta} aria-hidden="true">{turnosAbertos ? "−" : "+"}</span>
+      </button>
+      {turnosAbertos && (
+        <div id="painel-leitura-projecao-turnos">
+      <div className={styles.turnosHistoricos}>
         <div className={styles.turnosGrid}>
           {resumo.turnos.map((turno) => (
             <article key={turno.periodo}>
@@ -560,6 +621,30 @@ export default function PainelReuniao() {
                         : `${percentual.format(turno.percentual)}% · ${turno.nivel}`}
                     </b>
                   </p>
+
+                  {!encerrado && !futuro && turno.meta > 0 && (
+                    <div className={styles.turnoProjecao}>
+                      <h4>Projeção de fechamento</h4>
+                      {turno.projecaoFechamento === null ? (
+                        <p>Projeção disponível após 3 dias completos, com lançamentos de todas as lojas.</p>
+                      ) : (
+                        <>
+                          <p>
+                            <span>Faturamento previsto</span>
+                            <b>{dinheiro.format(turno.projecaoFechamento)}</b>
+                          </p>
+                          <p>
+                            <span>Média prevista por turno</span>
+                            <b>{dinheiro.format(turno.mediaProjecao)}</b>
+                          </p>
+                          <p>
+                            <span>Resultado previsto</span>
+                            <b>{percentual.format(turno.projecaoFechamento / turno.meta * 100)}% · {nivelDoResultado(turno.projecaoFechamento, turno.meta)}</b>
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  )}
 
                   {!encerrado && turno.meta > 0 && (
                     <div className={styles.turnoMetaRestante}>
@@ -627,14 +712,10 @@ export default function PainelReuniao() {
             </article>
           ))}
         </div>
-      </section>
-
-      <div className={styles.acoes}>
-        <h3>{futuro ? "Antes de começar" : encerrado ? "Conclusões do mês" : "Por que essa nota?"}</h3>
-        {motivos.map((item) => (
-          <p key={item}>{item}</p>
-        ))}
       </div>
+        </div>
+      )}
     </section>
+    </>
   );
 }
