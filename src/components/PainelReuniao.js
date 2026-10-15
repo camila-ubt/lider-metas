@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   minutosDoHorario,
@@ -150,6 +150,7 @@ export default function PainelReuniao() {
   const [metas, setMetas] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [turnosAbertos, setTurnosAbertos] = useState(false);
+  const idTurnos = useId();
 
   useEffect(() => {
     let temporizador;
@@ -583,7 +584,7 @@ export default function PainelReuniao() {
         type="button"
         className={styles.turnosToggle}
         aria-expanded={turnosAbertos}
-        aria-controls="painel-leitura-projecao-turnos"
+        aria-controls={idTurnos}
         onClick={() => setTurnosAbertos((aberto) => !aberto)}
       >
         <span className={styles.turnosTitulo}>
@@ -593,7 +594,7 @@ export default function PainelReuniao() {
         <span className={styles.turnosSeta} aria-hidden="true">{turnosAbertos ? "−" : "+"}</span>
       </button>
       {turnosAbertos && (
-        <div id="painel-leitura-projecao-turnos">
+        <div id={idTurnos}>
       <div className={styles.turnosHistoricos}>
         <div className={styles.turnosGrid}>
           {resumo.turnos.map((turno) => (
@@ -626,7 +627,7 @@ export default function PainelReuniao() {
                     <div className={styles.turnoProjecao}>
                       <h4>Projeção de fechamento</h4>
                       {turno.projecaoFechamento === null ? (
-                        <p>Projeção disponível após 3 dias completos, com lançamentos de todas as lojas.</p>
+                        <p>Sem projeção: são necessários ao menos 3 dias completos, sem lançamentos pendentes.</p>
                       ) : (
                         <>
                           <p>
