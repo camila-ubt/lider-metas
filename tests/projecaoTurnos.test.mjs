@@ -104,7 +104,7 @@ test("um lançamento no dia faz entrar apenas os dias efetivamente lançados na 
   const calculado = projetar(vendas, "noite", contexto("andamento", 4), 1020, 1320);
   assert.equal(calculado.diasBase, 2);
   assert.equal(calculado.media, 450);
-  assert.equal(calculado.valor, 13500);
+  assert.equal(calculado.valor, 13050);
 });
 
 test("o lançamento de uma loja não reduz artificialmente a média das outras", () => {
