@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   minutosDoHorario,
   useHorariosPeriodos,
+  useMinutosAtuais,
 } from "@/lib/horariosPeriodos";
 import {
   contextoDoMes,
@@ -13,7 +14,7 @@ import {
   percentualDoResultado,
   proximoNivel,
 } from "@/lib/contextoMes";
-import { calcularProjecaoTurno, calcularMetasTurno } from "@/lib/projecaoTurnos.mjs";
+import { calcularProjecaoTurno, calcularMetasTurno, calcularTurnosRestantes } from "@/lib/projecaoTurnos.mjs";
 import styles from "./PainelReuniao.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -150,6 +151,7 @@ function explicarNota(resumo) {
 export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
   const supabase = useMemo(() => createClient(), []);
   const horarios = useHorariosPeriodos();
+  const minutosAtuais = useMinutosAtuais();
   const [visivel, setVisivel] = useState(false);
   const [mes, setMes] = useState("");
   const [lojas, setLojas] = useState([]);
@@ -248,7 +250,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
 
     const contexto = contextoDoMes(mes);
     const agora = new Date();
-    const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+    const minutosAgora = minutosAtuais;
     const vendasAteCorte = vendas.filter(
       (item) => Number(item.data.slice(8, 10)) <= contexto.diaCorte,
     );
@@ -318,7 +320,19 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       const metaTurno = metas
         .filter((item) => item.periodo === periodo)
         .reduce((soma, item) => soma + Number(item.valor_meta || 0), 0);
-      const mediaAtual = contexto.diaCorte > 0 ? totalAtual / contexto.diaCorte : 0;
+      const fimTurno =
+        periodo === "manha"
+          ? minutosDoHorario(horarios.manhaFim)
+          : minutosDoHorario(horarios.noiteFim);
+      const previsao = calcularProjecaoTurno({
+        vendas: vendasAteCorte,
+        lojas,
+        periodo,
+        contexto,
+        minutosAgora,
+        fimTurno,
+      });
+      const mediaAtual = previsao.media;
       const mediasAnuais = [contexto.ano - 1, contexto.ano - 2]
         .map((anoHistorico) => {
           const itens = historico.filter(
@@ -338,7 +352,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         .filter((valor) => valor !== null);
       const mediaHistorica = media(mediasAnuais);
       const variacaoHistorica =
-        mediaHistorica > 0
+        mediaAtual !== null && mediaHistorica > 0
           ? ((mediaAtual - mediaHistorica) / mediaHistorica) * 100
           : null;
       const lojasTurno = ranking
@@ -349,34 +363,15 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         .sort(
           (a, b) => (b.dados?.percentual ?? -1) - (a.dados?.percentual ?? -1),
         );
-      const fimTurno =
-        periodo === "manha"
-          ? minutosDoHorario(horarios.manhaFim)
-          : Math.max(
-              minutosDoHorario(horarios.manhaFim),
-              minutosDoHorario(horarios.noiteFim),
-            );
-      const periodosRestantes =
-        contexto.tipo === "encerrado"
-          ? 0
-          : contexto.tipo === "futuro"
-            ? contexto.ultimoDia
-            : Math.max(contexto.ultimoDia - contexto.diaCorte, 0) +
-              (minutosAgora < fimTurno ? 1 : 0);
+      const periodosRestantes = calcularTurnosRestantes({
+        contexto, minutosAgora, fimTurno,
+      });
       const faltaMeta = Math.max(metaTurno - totalAtual, 0);
       const necessarioPorPeriodo =
         periodosRestantes > 0 ? faltaMeta / periodosRestantes : 0;
       const necessarioPorLojaPeriodo =
         lojas.length > 0 ? necessarioPorPeriodo / lojas.length : 0;
 
-      const previsao = calcularProjecaoTurno({
-        vendas: vendasAteCorte,
-        lojas,
-        periodo,
-        contexto,
-        minutosAgora,
-        fimTurno,
-      });
       const mediaProjecao = previsao.media;
       const projecaoFechamento = previsao.valor;
       const metasAjustadas = calcularMetasTurno({
@@ -445,7 +440,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       periodosAtingiram,
       periodosAbaixo,
     };
-  }, [mes, lojas, vendas, historico, metas, horarios]);
+  }, [mes, lojas, vendas, historico, metas, horarios, minutosAtuais]);
 
   if (!visivel || !mes || carregando || !resumo) return null;
 
@@ -624,7 +619,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                 <>
                   <p>
                     {encerrado ? "Média diária final" : "Média diária atual"}: {" "}
-                    <b>{dinheiro.format(turno.mediaAtual)}</b>
+                    <b>{turno.mediaAtual === null ? "—" : dinheiro.format(turno.mediaAtual)}</b>
                   </p>
                   <p>
                     Resultado do turno: {" "}
