@@ -12,6 +12,7 @@ import {
   percentualDoResultado,
   proximoNivel,
 } from "@/lib/contextoMes";
+import { calcularProjecaoTurno } from "@/lib/projecaoTurnos.mjs";
 import styles from "./PainelReuniao.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -345,38 +346,16 @@ export default function PainelReuniao() {
       const necessarioPorLojaPeriodo =
         lojas.length > 0 ? necessarioPorPeriodo / lojas.length : 0;
 
-      const turnoAberto =
-        (contexto.tipo === "andamento" || contexto.tipo === "ultimo-dia") &&
-        minutosAgora < fimTurno;
-      const diasEncerrados = Math.max(contexto.diaCorte - (turnoAberto ? 1 : 0), 0);
-      const registrosDiarios = new Map();
-      atuais.forEach((venda) => {
-        if (Number(venda.data.slice(8, 10)) > diasEncerrados) return;
-        if (!registrosDiarios.has(venda.data)) {
-          registrosDiarios.set(venda.data, { lojas: new Set(), total: 0 });
-        }
-        const registro = registrosDiarios.get(venda.data);
-        registro.lojas.add(Number(venda.loja_id));
-        registro.total += Number(venda.valor_vendido || 0);
+      const previsao = calcularProjecaoTurno({
+        vendas: vendasAteCorte,
+        lojas,
+        periodo,
+        contexto,
+        minutosAgora,
+        fimTurno,
       });
-      const diasCompletos = [...registrosDiarios.values()].filter(
-        (dia) => lojas.length > 0 && dia.lojas.size === lojas.length,
-      );
-      const mediaProjecao =
-        diasEncerrados >= 3 && diasCompletos.length === diasEncerrados
-          ? media(diasCompletos.map((dia) => dia.total))
-          : null;
-      const vendidoHoje = turnoAberto
-        ? atuais
-            .filter((venda) => Number(venda.data.slice(8, 10)) === contexto.diaCorte)
-            .reduce((total, venda) => total + Number(venda.valor_vendido || 0), 0)
-        : 0;
-      const projecaoFechamento =
-        mediaProjecao === null || contexto.tipo === "futuro" || contexto.tipo === "encerrado"
-          ? null
-          : totalAtual +
-            Math.max(contexto.ultimoDia - contexto.diaCorte, 0) * mediaProjecao +
-            (turnoAberto ? Math.max(mediaProjecao - vendidoHoje, 0) : 0);
+      const mediaProjecao = previsao.media;
+      const projecaoFechamento = previsao.valor;
 
       return {
         periodo,
