@@ -208,7 +208,7 @@ function PeriodoDetalhe({ periodo, encerrado }) {
   );
 }
 
-export default function DashboardEstavelV2({ mes, vendas, metas, lojas }) {
+export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRelatorio = false }) {
   const supabase = useMemo(() => createClient(), []);
   const horarios = useHorariosPeriodos();
   const [historicoAnterior, setHistoricoAnterior] = useState([]);
@@ -439,6 +439,10 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas }) {
         <article className={styles.kpi}><span>Média diária</span><strong>{dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
 
+      <div
+        id={modoRelatorio ? "relatorio-turnos-antes-pa" : "painel-turnos-antes-pa"}
+        className={styles.turnosSlot}
+      />
       <ResumoPADashboard mes={mes} />
 
       <article className={styles.card}>
