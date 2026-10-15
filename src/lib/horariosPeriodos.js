@@ -107,3 +107,26 @@ export function useHorariosPeriodos() {
 
   return horarios;
 }
+
+export function useMinutosAtuais() {
+  const [minutos, setMinutos] = useState(0);
+
+  useEffect(() => {
+    function atualizar() {
+      const agora = new Date();
+      setMinutos(agora.getHours() * 60 + agora.getMinutes());
+    }
+
+    atualizar();
+    const intervalo = window.setInterval(atualizar, 30000);
+    window.addEventListener("focus", atualizar);
+    document.addEventListener("visibilitychange", atualizar);
+    return () => {
+      window.clearInterval(intervalo);
+      window.removeEventListener("focus", atualizar);
+      document.removeEventListener("visibilitychange", atualizar);
+    };
+  }, []);
+
+  return minutos;
+}

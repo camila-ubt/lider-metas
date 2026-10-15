@@ -5,6 +5,31 @@
 .turnosHistoricos{margin-top:14px;padding:16px;border-radius:18px;background:#f8f4fb}.turnosGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.turnosGrid article{background:#fff;border:1px solid #e8deef;border-radius:16px;padding:14px}.turnosGrid header{display:grid;gap:4px;margin-bottom:10px}.turnosGrid header strong{font-size:16px;color:#382b43}.turnosGrid header span{font-size:13px;color:#6f6377;line-height:1.4}.turnosGrid article>p{margin:6px 0;font-size:13px}.turnoLojas{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.turnoLojas p{margin:0;padding:10px;border-radius:12px;background:#f7f2fa}.turnoLojas span,.turnoLojas b{display:block}.turnoLojas span{font-size:11px;color:#746a79;margin-bottom:4px}.turnoLojas b{font-size:13px;color:#4a3657}
 .acoes{margin-top:14px;background:#f7f2fa;border-radius:18px;padding:16px}.acoes label{display:flex;align-items:flex-start;gap:9px;padding:9px 0;font-size:14px;line-height:1.45}.acoes input{margin-top:3px}.acoes span{display:block}.acoes p{margin:7px 0;font-size:14px;line-height:1.45}
 @media(max-width:760px){.wrap{margin:18px 12px;padding:16px;border-radius:20px}.header{align-items:flex-start}.header h2{font-size:20px}.score{min-width:96px;padding:10px 12px}.score strong{font-size:24px}.grid,.turnosGrid{grid-template-columns:1fr}.turnoLojas{grid-template-columns:1fr 1fr}}
-@media(max-width:430px){.turnoLojas{grid-template-columns:1fr}.header{gap:10px}.score{min-width:86px}.score span{font-size:10px}}
+@media(max-width:430px){.turnoLojas{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.turnoLojas p{min-width:0;padding:9px 8px}.turnoLojas span{line-height:1.35}.header{gap:10px}.score{min-width:86px}.score span{font-size:10px}}
 
 .turnoMetaRestante{display:grid;gap:8px;margin-top:12px;padding:11px 12px;border-radius:12px;background:#fbf7fd;border:1px solid #eee4f3}.turnoMetaRestante p{display:grid;gap:2px;margin:0!important;font-size:12px!important;line-height:1.4}.turnoMetaRestante span{color:#746a79}.turnoMetaRestante b{color:#4a3657;font-size:13px}
+
+.turnosWrap{margin:0;width:100%;box-sizing:border-box;padding:0;overflow:hidden}
+.turnosToggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:18px 22px;border:0;background:transparent;color:#382b43;text-align:left;cursor:pointer;font:inherit}
+.turnosToggle:focus-visible{outline:3px solid #7650a7;outline-offset:-4px}
+.turnosTitulo{display:grid;gap:4px}
+.turnosTitulo strong{font-size:18px;font-weight:700}
+.turnosTitulo small{font-size:13px;color:#746a79}
+.turnosSeta{display:grid;place-items:center;flex-shrink:0;width:32px;height:32px;border-radius:50%;background:#f3ecf9;font-size:22px;color:#7650a7}
+.turnosWrap .turnosHistoricos{margin:0 16px 16px}
+.turnoProjecao{display:grid;gap:9px;margin-top:12px;padding:12px;border:1px solid #e3d7f0;border-radius:12px;background:#f1eaf8}
+.turnoProjecao h4{margin:0;font-size:14px;color:#49335d}
+.turnoProjecao p{display:grid;gap:3px;margin:0!important;font-size:12px!important;line-height:1.4}
+.turnoProjecao span{color:#73667c}
+.turnoProjecao b{color:#49335d;font-size:14px}
+@media(max-width:760px){.turnosToggle{padding:16px}.turnosWrap .turnosHistoricos{margin:0 12px 12px;padding:12px}.turnosTitulo strong{font-size:16px}}
+
+.turnoMetaRestante{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:10px 8px}
+.turnoMetaRestante>p{grid-column:1/-1}
+.turnoNivel{display:flex;flex-direction:column;gap:9px;min-width:0;padding:10px 7px;border:1px solid #e8deef;border-radius:12px;background:#fff}
+.turnoNivel>strong{color:#382b43;font-size:clamp(11px,2.8vw,13px);line-height:1.2}
+.turnoNivel>p{display:flex;flex-direction:column;gap:3px;min-width:0}
+.turnoNivel>p span{font-size:11px;line-height:1.25;overflow-wrap:break-word}
+.turnoNivel>p b{font-size:clamp(10px,2.9vw,13px);font-variant-numeric:tabular-nums;line-height:1.3;overflow-wrap:anywhere}
+.turnoNivel>small{margin-top:auto;color:#665274;font-size:11px;line-height:1.3;overflow-wrap:break-word}
+@media(max-width:360px){.turnoMetaRestante{gap:5px;padding:8px 6px}.turnoNivel{padding:8px 5px;gap:7px}.turnoNivel>p span,.turnoNivel>small{font-size:10px}}

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import {
   minutosDoHorario,
   useHorariosPeriodos,
+  useMinutosAtuais,
 } from "@/lib/horariosPeriodos";
 import {
   contextoDoMes,
@@ -12,6 +14,7 @@ import {
   percentualDoResultado,
   proximoNivel,
 } from "@/lib/contextoMes";
+import { calcularProjecaoTurno, calcularMetasTurno, calcularTurnosRestantes } from "@/lib/projecaoTurnos.mjs";
 import styles from "./PainelReuniao.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -51,6 +54,12 @@ function media(lista) {
 
 function nomeTurno(periodo) {
   return periodo === "manha" ? "Manhã" : "Noite";
+}
+
+function compararMetaFixa(variacao) {
+  if (variacao === null) return "Sem turnos restantes";
+  if (Math.abs(variacao) < 0.05) return "Igual à meta fixa";
+  return `${percentual.format(Math.abs(variacao))}% ${variacao > 0 ? "acima" : "abaixo"} da meta fixa`;
 }
 
 function listaCodigos(lista) {
@@ -139,9 +148,10 @@ function explicarNota(resumo) {
   return "A nota 10 exige Megameta geral, todas as lojas em Supermeta e todos os períodos com pelo menos 100% da Meta.";
 }
 
-export default function PainelReuniao() {
+export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
   const supabase = useMemo(() => createClient(), []);
   const horarios = useHorariosPeriodos();
+  const minutosAtuais = useMinutosAtuais();
   const [visivel, setVisivel] = useState(false);
   const [mes, setMes] = useState("");
   const [lojas, setLojas] = useState([]);
@@ -149,6 +159,9 @@ export default function PainelReuniao() {
   const [historico, setHistorico] = useState([]);
   const [metas, setMetas] = useState([]);
   const [carregando, setCarregando] = useState(false);
+  const [turnosAbertos, setTurnosAbertos] = useState(false);
+  const [alvoTurnos, setAlvoTurnos] = useState(null);
+  const idTurnos = useId();
 
   useEffect(() => {
     let temporizador;
@@ -178,6 +191,21 @@ export default function PainelReuniao() {
       observador.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (!visivel) {
+      setAlvoTurnos(null);
+      return undefined;
+    }
+    const seletor = destinoTurnos === "relatorio"
+      ? "#relatorio-turnos-antes-pa"
+      : "#painel-turnos-antes-pa";
+    const localizar = () => setAlvoTurnos(document.querySelector(seletor));
+    localizar();
+    const observador = new MutationObserver(localizar);
+    observador.observe(document.body, { childList: true, subtree: true });
+    return () => observador.disconnect();
+  }, [visivel, destinoTurnos]);
 
   useEffect(() => {
     if (!visivel || !mes) return undefined;
@@ -221,8 +249,7 @@ export default function PainelReuniao() {
     if (!mes) return null;
 
     const contexto = contextoDoMes(mes);
-    const agora = new Date();
-    const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+    const minutosAgora = minutosAtuais;
     const vendasAteCorte = vendas.filter(
       (item) => Number(item.data.slice(8, 10)) <= contexto.diaCorte,
     );
@@ -292,7 +319,19 @@ export default function PainelReuniao() {
       const metaTurno = metas
         .filter((item) => item.periodo === periodo)
         .reduce((soma, item) => soma + Number(item.valor_meta || 0), 0);
-      const mediaAtual = contexto.diaCorte > 0 ? totalAtual / contexto.diaCorte : 0;
+      const fimTurno =
+        periodo === "manha"
+          ? minutosDoHorario(horarios.manhaFim)
+          : minutosDoHorario(horarios.noiteFim);
+      const previsao = calcularProjecaoTurno({
+        vendas: vendasAteCorte,
+        lojas,
+        periodo,
+        contexto,
+        minutosAgora,
+        fimTurno,
+      });
+      const mediaAtual = previsao.media;
       const mediasAnuais = [contexto.ano - 1, contexto.ano - 2]
         .map((anoHistorico) => {
           const itens = historico.filter(
@@ -312,7 +351,7 @@ export default function PainelReuniao() {
         .filter((valor) => valor !== null);
       const mediaHistorica = media(mediasAnuais);
       const variacaoHistorica =
-        mediaHistorica > 0
+        mediaAtual !== null && mediaHistorica > 0
           ? ((mediaAtual - mediaHistorica) / mediaHistorica) * 100
           : null;
       const lojasTurno = ranking
@@ -323,25 +362,24 @@ export default function PainelReuniao() {
         .sort(
           (a, b) => (b.dados?.percentual ?? -1) - (a.dados?.percentual ?? -1),
         );
-      const fimTurno =
-        periodo === "manha"
-          ? minutosDoHorario(horarios.manhaFim)
-          : Math.max(
-              minutosDoHorario(horarios.manhaFim),
-              minutosDoHorario(horarios.noiteFim),
-            );
-      const periodosRestantes =
-        contexto.tipo === "encerrado"
-          ? 0
-          : contexto.tipo === "futuro"
-            ? contexto.ultimoDia
-            : Math.max(contexto.ultimoDia - contexto.diaCorte, 0) +
-              (minutosAgora < fimTurno ? 1 : 0);
+      const periodosRestantes = calcularTurnosRestantes({
+        contexto, minutosAgora, fimTurno,
+      });
       const faltaMeta = Math.max(metaTurno - totalAtual, 0);
       const necessarioPorPeriodo =
         periodosRestantes > 0 ? faltaMeta / periodosRestantes : 0;
       const necessarioPorLojaPeriodo =
         lojas.length > 0 ? necessarioPorPeriodo / lojas.length : 0;
+
+      const projecaoFechamento = previsao.valor;
+      const metasAjustadas = calcularMetasTurno({
+        metas,
+        lojas,
+        periodo,
+        vendido: totalAtual,
+        diasMes: contexto.ultimoDia,
+        turnosRestantes: periodosRestantes,
+      });
 
       return {
         periodo,
@@ -354,6 +392,8 @@ export default function PainelReuniao() {
         percentual: percentualDoResultado(totalAtual, metaTurno),
         nivel: nivelDoResultado(totalAtual, metaTurno),
         mediaAtual,
+        projecaoFechamento,
+        metasAjustadas,
         mediaHistorica,
         variacaoHistorica,
         temVendas: atuais.length > 0,
@@ -397,7 +437,7 @@ export default function PainelReuniao() {
       periodosAtingiram,
       periodosAbaixo,
     };
-  }, [mes, lojas, vendas, historico, metas, horarios]);
+  }, [mes, lojas, vendas, historico, metas, horarios, minutosAtuais]);
 
   if (!visivel || !mes || carregando || !resumo) return null;
 
@@ -482,6 +522,7 @@ export default function PainelReuniao() {
   const motivos = criterioNota ? [criterioNota, ...motivosBase] : motivosBase;
 
   return (
+    <>
     <section className={styles.wrap}>
       <header className={styles.header}>
         <div>
@@ -532,8 +573,33 @@ export default function PainelReuniao() {
         </article>
       </div>
 
-      <section className={styles.turnosHistoricos}>
-        <h3>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura dos turnos"}</h3>
+
+      <div className={styles.acoes}>
+        <h3>{futuro ? "Antes de começar" : encerrado ? "Conclusões do mês" : "Por que essa nota?"}</h3>
+        {motivos.map((item) => (
+          <p key={item}>{item}</p>
+        ))}
+      </div>
+    </section>
+
+    {alvoTurnos && createPortal(
+      <section className={`${styles.wrap} ${styles.turnosWrap}`} aria-label="Leitura e projeção dos turnos">
+      <button
+        type="button"
+        className={styles.turnosToggle}
+        aria-expanded={turnosAbertos}
+        aria-controls={idTurnos}
+        onClick={() => setTurnosAbertos((aberto) => !aberto)}
+      >
+        <span className={styles.turnosTitulo}>
+          <strong>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura e projeção dos turnos"}</strong>
+          <small>Manhã e noite</small>
+        </span>
+        <span className={styles.turnosSeta} aria-hidden="true">{turnosAbertos ? "−" : "+"}</span>
+      </button>
+      {turnosAbertos && (
+        <div id={idTurnos}>
+      <div className={styles.turnosHistoricos}>
         <div className={styles.turnosGrid}>
           {resumo.turnos.map((turno) => (
             <article key={turno.periodo}>
@@ -550,7 +616,7 @@ export default function PainelReuniao() {
                 <>
                   <p>
                     {encerrado ? "Média diária final" : "Média diária atual"}: {" "}
-                    <b>{dinheiro.format(turno.mediaAtual)}</b>
+                    <b>{turno.mediaAtual === null ? "—" : dinheiro.format(turno.mediaAtual)}</b>
                   </p>
                   <p>
                     Resultado do turno: {" "}
@@ -561,44 +627,48 @@ export default function PainelReuniao() {
                     </b>
                   </p>
 
-                  {!encerrado && turno.meta > 0 && (
-                    <div className={styles.turnoMetaRestante}>
-                      {turno.faltaMeta > 0 ? (
+                  {!encerrado && !futuro && turno.meta > 0 && (
+                    <div className={styles.turnoProjecao}>
+                      <h4>Projeção de fechamento</h4>
+                      {turno.projecaoFechamento === null ? (
+                        <p>A projeção aparece após os primeiros lançamentos do turno.</p>
+                      ) : (
                         <>
                           <p>
-                            <span>Falta para a Meta</span>
-                            <b>{dinheiro.format(turno.faltaMeta)}</b>
+                            <span>Faturamento previsto</span>
+                            <b>{dinheiro.format(turno.projecaoFechamento)}</b>
                           </p>
-                          {turno.periodosRestantes > 0 ? (
-                            <>
-                              <p>
-                                <span>
-                                  {turno.periodosRestantes} {turno.periodo === "manha" ? "manhã(s)" : "noite(s)"} restantes
-                                </span>
-                                <b>
-                                  {dinheiro.format(turno.necessarioPorPeriodo)} em cada {turno.periodo === "manha" ? "manhã" : "noite"}
-                                </b>
-                              </p>
-                              <p>
-                                <span>Dividindo igualmente entre {lojas.length} lojas</span>
-                                <b>
-                                  {dinheiro.format(turno.necessarioPorLojaPeriodo)} por loja/{turno.periodo === "manha" ? "manhã" : "noite"}
-                                </b>
-                              </p>
-                            </>
-                          ) : (
-                            <p>
-                              <span>Períodos restantes</span>
-                              <b>Nenhum neste mês</b>
-                            </p>
-                          )}
+                          <p>
+                            <span>Resultado previsto</span>
+                            <b>{percentual.format(turno.projecaoFechamento / turno.meta * 100)}% · {nivelDoResultado(turno.projecaoFechamento, turno.meta)}</b>
+                          </p>
                         </>
-                      ) : (
-                        <p>
-                          <span>Meta do turno</span>
-                          <b>Já atingida</b>
-                        </p>
                       )}
+                    </div>
+                  )}
+
+                  {!encerrado && turno.meta > 0 && (
+                    <div className={styles.turnoMetaRestante}>
+                      <p>
+                        <span>Turnos restantes (incluindo hoje, se ainda estiver aberto)</span>
+                        <b>{turno.periodosRestantes}</b>
+                      </p>
+                      {turno.metasAjustadas.map((nivel) => (
+                        <div className={styles.turnoNivel} key={nivel.nivel}>
+                          <strong>{nivel.nome}</strong>
+                          <p>
+                            <span>Meta fixa</span>
+                            <b>{dinheiro.format(nivel.fixa)}</b>
+                          </p>
+                          <p>
+                            <span>Meta ajustada</span>
+                            <b>{nivel.ajustada === null
+                              ? "Sem turnos restantes"
+                              : dinheiro.format(nivel.ajustada)}</b>
+                          </p>
+                          <small>{compararMetaFixa(nivel.variacao)}</small>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </>
@@ -627,14 +697,12 @@ export default function PainelReuniao() {
             </article>
           ))}
         </div>
-      </section>
-
-      <div className={styles.acoes}>
-        <h3>{futuro ? "Antes de começar" : encerrado ? "Conclusões do mês" : "Por que essa nota?"}</h3>
-        {motivos.map((item) => (
-          <p key={item}>{item}</p>
-        ))}
       </div>
-    </section>
+        </div>
+      )}
+    </section>,
+    alvoTurnos
+    )}
+    </>
   );
 }

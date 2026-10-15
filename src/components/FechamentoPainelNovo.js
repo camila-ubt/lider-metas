@@ -387,8 +387,9 @@ export default function FechamentoPainelNovo() {
               <>
                 <div id="fechamento-painel-original">
                   <div className="fechamento-conteudo-completo">
-                    <PainelReuniao />
+                    <PainelReuniao destinoTurnos="relatorio" />
                     <DashboardEstavelV2
+                      modoRelatorio
                       mes={dados.mes}
                       vendas={dados.vendas}
                       metas={dados.metas}
