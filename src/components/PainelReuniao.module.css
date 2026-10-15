@@ -23,3 +23,9 @@
 .turnoProjecao span{color:#73667c}
 .turnoProjecao b{color:#49335d;font-size:14px}
 @media(max-width:760px){.turnosToggle{padding:16px}.turnosWrap .turnosHistoricos{margin:0 12px 12px;padding:12px}.turnosTitulo strong{font-size:16px}}
+
+.turnoNivel{display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:8px;padding:12px;border:1px solid #e8deef;border-radius:12px;background:#fff}
+.turnoNivel>strong{grid-column:1/-1;color:#382b43;font-size:13px}
+.turnoNivel>p{min-width:0}
+.turnoNivel>small{grid-column:1/-1;color:#665274;font-size:12px}
+@media(max-width:430px){.turnoNivel{grid-template-columns:1fr}.turnoNivel>strong,.turnoNivel>small{grid-column:1}}
