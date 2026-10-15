@@ -651,11 +651,11 @@ export default function PainelReuniao() {
                         <div className={styles.turnoNivel} key={nivel.nivel}>
                           <strong>{nivel.nome}</strong>
                           <p>
-                            <span>Meta fixa por turno</span>
+                            <span>Meta fixa</span>
                             <b>{dinheiro.format(nivel.fixa)}</b>
                           </p>
                           <p>
-                            <span>Necessário por turno</span>
+                            <span>Meta ajustada</span>
                             <b>{nivel.ajustada === null
                               ? "Sem turnos restantes"
                               : dinheiro.format(nivel.ajustada)}</b>
