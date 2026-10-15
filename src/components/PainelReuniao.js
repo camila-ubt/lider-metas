@@ -249,7 +249,6 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
     if (!mes) return null;
 
     const contexto = contextoDoMes(mes);
-    const agora = new Date();
     const minutosAgora = minutosAtuais;
     const vendasAteCorte = vendas.filter(
       (item) => Number(item.data.slice(8, 10)) <= contexto.diaCorte,
