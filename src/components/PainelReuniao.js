@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import {
   minutosDoHorario,
@@ -146,7 +147,7 @@ function explicarNota(resumo) {
   return "A nota 10 exige Megameta geral, todas as lojas em Supermeta e todos os períodos com pelo menos 100% da Meta.";
 }
 
-export default function PainelReuniao() {
+export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
   const supabase = useMemo(() => createClient(), []);
   const horarios = useHorariosPeriodos();
   const [visivel, setVisivel] = useState(false);
@@ -157,6 +158,7 @@ export default function PainelReuniao() {
   const [metas, setMetas] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [turnosAbertos, setTurnosAbertos] = useState(false);
+  const [alvoTurnos, setAlvoTurnos] = useState(null);
   const idTurnos = useId();
 
   useEffect(() => {
@@ -187,6 +189,21 @@ export default function PainelReuniao() {
       observador.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (!visivel) {
+      setAlvoTurnos(null);
+      return undefined;
+    }
+    const seletor = destinoTurnos === "relatorio"
+      ? "#relatorio-turnos-antes-pa"
+      : "#painel-turnos-antes-pa";
+    const localizar = () => setAlvoTurnos(document.querySelector(seletor));
+    localizar();
+    const observador = new MutationObserver(localizar);
+    observador.observe(document.body, { childList: true, subtree: true });
+    return () => observador.disconnect();
+  }, [visivel, destinoTurnos]);
 
   useEffect(() => {
     if (!visivel || !mes) return undefined;
@@ -573,7 +590,8 @@ export default function PainelReuniao() {
       </div>
     </section>
 
-    <section className={`${styles.wrap} ${styles.turnosWrap}`} aria-label="Leitura e projeção dos turnos">
+    {alvoTurnos && createPortal(
+      <section className={`${styles.wrap} ${styles.turnosWrap}`} aria-label="Leitura e projeção dos turnos">
       <button
         type="button"
         className={styles.turnosToggle}
@@ -694,7 +712,9 @@ export default function PainelReuniao() {
       </div>
         </div>
       )}
-    </section>
+    </section>,
+    alvoTurnos
+    )}
     </>
   );
 }
