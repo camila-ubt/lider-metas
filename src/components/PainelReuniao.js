@@ -57,9 +57,9 @@ function nomeTurno(periodo) {
 }
 
 function compararMetaFixa(variacao) {
-  if (variacao === null) return "Sem turnos restantes";
-  if (Math.abs(variacao) < 0.05) return "Igual à meta fixa";
-  return `${percentual.format(Math.abs(variacao))}% ${variacao > 0 ? "acima" : "abaixo"} da meta fixa`;
+  if (variacao === null) return "—";
+  if (Math.abs(variacao) < 0.05) return "0,0% vs. meta fixa";
+  return `${variacao > 0 ? "+" : "−"}${percentual.format(Math.abs(variacao))}% vs. meta fixa`;
 }
 
 function listaCodigos(lista) {
@@ -650,7 +650,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                   {!encerrado && turno.meta > 0 && (
                     <div className={styles.turnoMetaRestante}>
                       <p>
-                        <span>Turnos restantes (incluindo hoje, se ainda estiver aberto)</span>
+                        <span>Turnos restantes:</span>
                         <b>{turno.periodosRestantes}</b>
                       </p>
                       {turno.metasAjustadas.map((nivel) => (
@@ -666,7 +666,15 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                               ? "Sem turnos restantes"
                               : dinheiro.format(nivel.ajustada)}</b>
                           </p>
-                          <small>{compararMetaFixa(nivel.variacao)}</small>
+                          <small className={
+                            nivel.variacao === null || Math.abs(nivel.variacao) < 0.05
+                              ? styles.variacaoNeutra
+                              : nivel.variacao < 0
+                                ? styles.variacaoFavoravel
+                                : styles.variacaoDesfavoravel
+                          }>
+                            {compararMetaFixa(nivel.variacao)}
+                          </small>
                         </div>
                       ))}
                     </div>
