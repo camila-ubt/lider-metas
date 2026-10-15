@@ -650,7 +650,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                   {!encerrado && turno.meta > 0 && (
                     <div className={styles.turnoMetaRestante}>
                       <p>
-                        <span>Turnos restantes (incluindo hoje, se ainda estiver aberto)</span>
+                        <span>Turnos restantes:</span>
                         <b>{turno.periodosRestantes}</b>
                       </p>
                       {turno.metasAjustadas.map((nivel) => (
