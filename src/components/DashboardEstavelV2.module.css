@@ -674,4 +674,11 @@
   }
 }
 
-.turnosSlot { display: contents; }
+.turnosSlot {
+  width: 100%;
+  min-width: 0;
+}
+
+.turnosSlot:empty {
+  display: none;
+}
