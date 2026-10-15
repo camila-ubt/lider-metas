@@ -14,8 +14,6 @@ export function calcularProjecaoTurno({
   periodo,
   lojaId = null,
   contexto,
-  minutosAgora = 0,
-  fimTurno = 0,
 }) {
   const lojasConsideradas = lojas.filter(
     (loja) => lojaId === null || String(loja.id) === String(lojaId),
@@ -49,12 +47,10 @@ export function calcularProjecaoTurno({
       String(venda.data || "").startsWith(prefixo) &&
       Number(String(venda.data).slice(8, 10)) === contexto.diaCorte,
   );
-  const turnoAindaAberto = minutosAgora < fimTurno;
-  const diasBase = Math.max(
-    0,
-    contexto.diaCorte - (turnoAindaAberto && !diaAtualTemLancamento ? 1 : 0),
-  );
-  if (!diasBase || !registros.length) {
+  // Um turno sem lançamento hoje não é tratado como venda zero,
+  // mesmo depois do horário de fechamento.
+  const diasBase = Math.max(0, contexto.diaCorte - (diaAtualTemLancamento ? 0 : 1));
+  if (!diasBase || (!registros.length && lojaId === null)) {
     return { valor: null, media: null, diasBase };
   }
 
