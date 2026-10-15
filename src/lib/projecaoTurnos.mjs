@@ -14,8 +14,9 @@ export function calcularTurnosRestantes({ contexto, minutosAgora, fimTurno }) {
     (minutosAgora < fimTurno ? 1 : 0);
 }
 
-// A média usa os dias já lançados; o fechamento define se ainda falta
-// executar o turno de hoje. Um dia sem lançamento não vira venda zero.
+// A média se baseia somente nos dias com lançamento de cada loja.
+// O horário determina se hoje ainda é um turno restante; lançamento e
+// horário nunca são confundidos com venda zero.
 export function calcularProjecaoTurno({
   vendas = [],
   lojas = [],
@@ -25,68 +26,65 @@ export function calcularProjecaoTurno({
   minutosAgora = 0,
   fimTurno = 0,
 }) {
-  const lojasAtivas = lojas.filter(
-    (loja) => lojaId === null || String(loja.id) === String(lojaId),
-  );
-  const ids = new Set(lojasAtivas.map((loja) => String(loja.id)));
-  const todosIds = new Set(lojas.map((loja) => String(loja.id)));
+  const ids = lojas
+    .filter((loja) => lojaId === null || String(loja.id) === String(lojaId))
+    .map((loja) => String(loja.id));
   const prefixo = `${contexto.ano}-${String(contexto.numeroMes).padStart(2, "0")}-`;
   const registros = vendas.filter(
     (venda) =>
       venda.periodo === periodo &&
-      ids.has(String(venda.loja_id)) &&
+      ids.includes(String(venda.loja_id)) &&
       String(venda.data || "").startsWith(prefixo) &&
       Number(String(venda.data).slice(8, 10)) <= contexto.diaCorte,
   );
-  const vendido = registros.reduce(
+
+  const totalVendido = registros.reduce(
     (total, venda) => total + Number(venda.valor_vendido || 0), 0,
   );
 
-  if (contexto.tipo === "encerrado") {
-    return {
-      valor: vendido,
-      media: contexto.ultimoDia ? vendido / contexto.ultimoDia : null,
-      diasBase: contexto.ultimoDia,
-    };
-  }
-  if (contexto.tipo === "futuro" || !ids.size) {
+  if (contexto.tipo === "futuro" || !ids.length) {
     return { valor: null, media: null, diasBase: 0 };
   }
 
-  // Todas as lojas usam o mesmo divisor para que as projeções individuais
-  // somem exatamente o resultado geral.
-  const temLancamentoHoje = vendas.some(
-    (venda) =>
-      venda.periodo === periodo &&
-      todosIds.has(String(venda.loja_id)) &&
-      String(venda.data || "").startsWith(prefixo) &&
-      Number(String(venda.data).slice(8, 10)) === contexto.diaCorte,
-  );
-  const diasBase = Math.max(0, contexto.diaCorte - (temLancamentoHoje ? 0 : 1));
-  if (!diasBase || (!registros.length && lojaId === null)) {
-    return { valor: null, media: null, diasBase };
+  const diaAtual = `${prefixo}${String(contexto.diaCorte).padStart(2, "0")}`;
+  const diasFuturos = Math.max(contexto.ultimoDia - contexto.diaCorte, 0);
+  let mediaTotal = 0;
+  let projecaoTotal = 0;
+  const diasBase = new Set(registros.map((venda) => venda.data)).size;
+
+  for (const id of ids) {
+    const registrosLoja = registros.filter(
+      (venda) => String(venda.loja_id) === id,
+    );
+    const vendidoLoja = registrosLoja.reduce(
+      (total, venda) => total + Number(venda.valor_vendido || 0), 0,
+    );
+    const diasLancados = new Set(registrosLoja.map((venda) => venda.data)).size;
+    const mediaLoja = diasLancados > 0 ? vendidoLoja / diasLancados : 0;
+    const lancadoHoje = registrosLoja.some((venda) => venda.data === diaAtual);
+
+    mediaTotal += mediaLoja;
+    projecaoTotal += vendidoLoja +
+      (contexto.tipo === "encerrado" ? 0 :
+        mediaLoja * (diasFuturos + (minutosAgora < fimTurno && !lancadoHoje ? 1 : 0)));
   }
 
-  const media = vendido / diasBase;
-  const diasDepoisHoje = Math.max(contexto.ultimoDia - contexto.diaCorte, 0);
+  if (contexto.tipo === "encerrado") {
+    return {
+      valor: totalVendido,
+      media: diasBase > 0 ? mediaTotal : null,
+      diasBase,
+    };
+  }
 
-  // Calcula o saldo de hoje por loja, mantendo a projeção geral idêntica
-  // à soma das projeções individuais.
-  const complementoHoje = minutosAgora < fimTurno
-    ? [...ids].reduce((soma, id) => {
-        const vendasLoja = registros.filter((venda) => String(venda.loja_id) === id);
-        const vendidoLoja = vendasLoja.reduce(
-          (total, venda) => total + Number(venda.valor_vendido || 0), 0,
-        );
-        const vendidoHoje = vendasLoja
-          .filter((venda) => Number(String(venda.data).slice(8, 10)) === contexto.diaCorte)
-          .reduce((total, venda) => total + Number(venda.valor_vendido || 0), 0);
-        return soma + Math.max(vendidoLoja / diasBase - vendidoHoje, 0);
-      }, 0)
-    : 0;
+  // Sem nenhum lançamento não há base para estimar uma projeção.
+  if (!diasBase && lojaId === null) {
+    return { valor: null, media: null, diasBase: 0 };
+  }
+
   return {
-    valor: vendido + media * diasDepoisHoje + complementoHoje,
-    media,
+    valor: projecaoTotal,
+    media: diasBase > 0 ? mediaTotal : null,
     diasBase,
   };
 }
