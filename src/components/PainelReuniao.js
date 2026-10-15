@@ -666,6 +666,12 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                               ? "Sem turnos restantes"
                               : dinheiro.format(nivel.ajustada)}</b>
                           </p>
+                          {nivel.porLojaTurno !== null && (
+                            <p className={styles.turnoPorLoja}>
+                              <span>Por loja/turno</span>
+                              <b>{dinheiro.format(nivel.porLojaTurno)}</b>
+                            </p>
+                          )}
                           <small className={
                             nivel.variacao === null || Math.abs(nivel.variacao) < 0.05
                               ? styles.variacaoNeutra
