@@ -78,6 +78,7 @@ export function encontrarPeriodoMaisAtrasado({
         (total, dia) => total + dia.registros.get(item.chave), 0,
       );
       const atrasoCentavos = Math.max(0, esperadoCentavos - vendidoCentavos);
+      const projecaoCentavos = Math.round(vendidoCentavos * ultimoDia / diasCompletos.length);
       resultados.push({
         loja: item.loja,
         periodo,
@@ -88,6 +89,9 @@ export function encontrarPeriodoMaisAtrasado({
         vendido: vendidoCentavos / 100,
         atraso: atrasoCentavos / 100,
         atrasoPercentual: esperadoCentavos > 0 ? (atrasoCentavos / esperadoCentavos) * 100 : 0,
+        projecao: projecaoCentavos / 100,
+        percentualProjetado: (projecaoCentavos / metaCentavos) * 100,
+        faltaProjetada: Math.max(0, metaCentavos - projecaoCentavos) / 100,
       });
     }
   }
