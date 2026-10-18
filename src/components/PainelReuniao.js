@@ -587,32 +587,6 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
           )}
         </article>
 
-        <div className={styles.resumoPeriodos}>
-          <div className={styles.resumoPeriodosCabecalho}>
-            <h3>Desempenho dos períodos</h3>
-            <small>{encerrado ? "Resultado final · meta mensal" : futuro ? "Aguardando início do mês" : "Parcial · esperado até hoje"}</small>
-          </div>
-          <div className={styles.resumoPeriodosColunas}>
-            {resumo.desempenhoDosPeriodos.map((turno) => {
-              const positivo = turno.percentual !== null && turno.percentual >= 100;
-              return (
-                <div className={styles.resumoPeriodo} key={turno.periodo}>
-                  <strong>{nomeTurno(turno.periodo)}</strong>
-                  <b className={turno.percentual === null
-                    ? styles.resumoPeriodoSemDados
-                    : positivo ? styles.resumoPeriodoPositivo : styles.resumoPeriodoAtencao}>
-                    {turno.percentual === null ? "—" : `${percentual.format(turno.percentual)}%`}
-                  </b>
-                  <span>{turno.percentual === null
-                    ? turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"
-                    : positivo ? encerrado ? "Meta atingida" : "No ritmo da meta"
-                    : encerrado ? "Abaixo da Meta" : "Abaixo do esperado"}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         <article className={styles.atencao}>
           <h3>{futuro ? "Antes da abertura" : "Prioridades de atenção"}</h3>
           {futuro ? (
@@ -652,6 +626,33 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
             </div>
           )}
         </article>
+
+        <div className={styles.resumoPeriodos}>
+          <div className={styles.resumoPeriodosCabecalho}>
+            <h3>Desempenho dos períodos</h3>
+            <small>{encerrado ? "Resultado final · meta mensal" : futuro ? "Aguardando início do mês" : "Parcial · esperado até hoje"}</small>
+          </div>
+          <div className={styles.resumoPeriodosColunas}>
+            {resumo.desempenhoDosPeriodos.map((turno) => {
+              const positivo = turno.percentual !== null && turno.percentual >= 100;
+              return (
+                <div className={styles.resumoPeriodo} key={turno.periodo}>
+                  <strong>{nomeTurno(turno.periodo)}</strong>
+                  <b className={turno.percentual === null
+                    ? styles.resumoPeriodoSemDados
+                    : positivo ? styles.resumoPeriodoPositivo : styles.resumoPeriodoAtencao}>
+                    {turno.percentual === null ? "—" : `${percentual.format(turno.percentual)}%`}
+                  </b>
+                  <span>{turno.percentual === null
+                    ? turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"
+                    : positivo ? encerrado ? "Meta atingida" : "No ritmo da meta"
+                    : encerrado ? "Abaixo da Meta" : "Abaixo do esperado"}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
       </div>
 
       <details className={styles.acoes}>
