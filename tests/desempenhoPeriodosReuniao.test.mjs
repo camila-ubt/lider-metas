@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { desempenhoPeriodosReuniao } from "../src/lib/desempenhoPeriodosReuniao.mjs";
+import { classificarDesempenhoPeriodo, desempenhoPeriodosReuniao } from "../src/lib/desempenhoPeriodosReuniao.mjs";
 
 const lojas = [{ id: 1 }, { id: 2 }];
 const metas = lojas.flatMap((loja) =>
@@ -88,4 +88,36 @@ test("futuro, falta de meta e período sem lançamento mostram ausência de dado
   assert.equal(calcular([], "andamento", 1)[0].percentual, null);
   assert.equal(calcular([], "andamento", 1, 1020, { metas: [] })[1].referencia, "sem-meta");
   assert.equal(calcular([], "andamento", 0)[0].referencia, "sem-lancamentos");
+});
+
+
+test("a diferença percentual substitui a porcentagem acumulada exibida", () => {
+  const acima = classificarDesempenhoPeriodo(127.6, true);
+  const abaixo = classificarDesempenhoPeriodo(83.8, true);
+  assert.ok(Math.abs(acima.diferenca - 27.6) < 0.00001);
+  assert.equal(acima.simbolo, "▲");
+  assert.equal(acima.classificacao, "Megameta atingida");
+  assert.ok(Math.abs(abaixo.diferenca - 16.2) < 0.00001);
+  assert.equal(abaixo.simbolo, "▼");
+  assert.equal(abaixo.classificacao, "Meta não atingida");
+});
+
+test("classificação identifica níveis de meta e separa parcial de resultado final", () => {
+  const faixas = [
+    [99.9, null, "Meta não atingida"],
+    [100, "Ritmo de Meta", "Meta atingida"],
+    [109.9, "Ritmo de Meta", "Meta atingida"],
+    [110, "Ritmo de Supermeta", "Supermeta atingida"],
+    [119.9, "Ritmo de Supermeta", "Supermeta atingida"],
+    [120, "Ritmo de Megameta", "Megameta atingida"],
+  ];
+  for (const [indice, parcial, final] of faixas) {
+    if (parcial !== null) {
+      assert.equal(classificarDesempenhoPeriodo(indice, false).classificacao, parcial);
+    }
+    assert.equal(classificarDesempenhoPeriodo(indice, true).classificacao, final);
+  }
+  assert.equal(classificarDesempenhoPeriodo(100, true).situacao, "na-meta");
+  assert.equal(classificarDesempenhoPeriodo(100, true).simbolo, "");
+  assert.equal(classificarDesempenhoPeriodo(null, false), null);
 });
