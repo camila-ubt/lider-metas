@@ -15,6 +15,7 @@ import {
   proximoNivel,
 } from "@/lib/contextoMes";
 import { calcularProjecaoTurno, calcularMetasTurno, calcularTurnosRestantes } from "@/lib/projecaoTurnos.mjs";
+import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import styles from "./PainelReuniao.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -275,6 +276,18 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
     const nivelGeral = nivelDoResultado(totalVendido, totalMeta);
     const percentualGeral = percentualDoResultado(totalVendido, totalMeta);
     const proximo = proximoNivel(totalVendido, totalMeta);
+    const periodoMaisAtrasado = encontrarPeriodoMaisAtrasado({
+      lojas,
+      metas,
+      vendas: vendasAteCorte,
+      contexto,
+      minutosAgora,
+      fimManha: minutosDoHorario(horarios.manhaFim),
+      fimNoite: Math.max(
+        minutosDoHorario(horarios.manhaFim),
+        minutosDoHorario(horarios.noiteFim),
+      ),
+    });
 
     const ranking = lojas
       .map((loja) => {
@@ -438,8 +451,9 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       percentualGeral,
       proximo,
       ranking,
-      destaque: ranking[0] || null,
-      atencao: ranking.at(-1) || null,
+      destaque: ranking.find((loja) => loja.meta > 0) || null,
+      atencao: [...ranking].reverse().find((loja) => loja.meta > 0) || null,
+      periodoMaisAtrasado,
       turnos,
       lojasAtingiram,
       lojasAbaixo,
@@ -486,9 +500,9 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       : 0;
     titulo = ultimoDia
       ? "Último dia para consolidar o resultado"
-      : "Onde concentrar os esforços até o fechamento";
+      : "Onde concentrar os esforços";
     sintese = resumo.proximo
-      ? `A operação está em ${percentual.format(resumo.percentualGeral || 0)}% da Meta. Faltam ${dinheiro.format(falta)} para a ${resumo.proximo.nome}. O resultado ainda está em construção: mantenha o foco nas lojas e turnos com maior distância do objetivo.`
+      ? `${percentual.format(resumo.percentualGeral || 0)}% da Meta geral · Faltam ${dinheiro.format(falta)} para a ${resumo.proximo.nome}.`
       : "A Megameta já foi conquistada. Continue preservando o ritmo e a qualidade dos lançamentos até o fechamento.";
     notaTexto = notaCalculada === null ? "—" : notaCalculada.toFixed(1);
   }
@@ -545,49 +559,76 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
 
       <p className={styles.sintese}>{sintese}</p>
 
-      <div className={styles.grid}>
+      <div className={styles.resumoPrioridades}>
         <article className={styles.positivo}>
-          <h3>{futuro ? "Preparar" : "Reconhecer"}</h3>
-          <p>
-            {futuro
-              ? resumo.temMeta
-                ? `As metas estão definidas em ${dinheiro.format(resumo.totalMeta)} para o conjunto das lojas.`
-                : "A prioridade agora é cadastrar as metas por loja e período."
-              : encerrado
-                ? resumo.destaque?.percentual !== null
-                  ? `${resumo.destaque?.codigo} foi o destaque final, encerrando com ${percentual.format(resumo.destaque?.percentual || 0)}% da Meta.`
-                  : `O maior faturamento foi de ${resumo.destaque?.codigo || "—"}.`
-                : resumo.destaque?.percentual !== null
-                  ? `${resumo.destaque?.codigo} lidera o mês com ${percentual.format(resumo.destaque?.percentual || 0)}% da Meta.`
-                  : "O destaque aparecerá quando houver metas e vendas comparáveis."}
-          </p>
+          <h3>{futuro ? "Preparar" : "Destaque geral"}</h3>
+          {futuro ? (
+            <p>{resumo.temMeta
+              ? `Metas definidas: ${dinheiro.format(resumo.totalMeta)}.`
+              : "Cadastre as metas das lojas e períodos."}</p>
+          ) : resumo.destaque ? (
+            <div className={styles.prioridadeItem}>
+              <strong>{resumo.destaque.codigo} — {resumo.destaque.nome}</strong>
+              <span>{percentual.format(resumo.destaque.percentual)}% da meta mensal da loja</span>
+            </div>
+          ) : (
+            <p>Aguardando metas por loja.</p>
+          )}
         </article>
 
         <article className={styles.atencao}>
-          <h3>{futuro ? "Antes da abertura" : "Ponto de atenção"}</h3>
-          <p>
-            {futuro
-              ? "Confirme metas, escala e distribuição dos objetivos entre manhã e noite antes do primeiro lançamento."
-              : encerrado
-                ? resumo.lojasAbaixo.length
-                  ? `${listaCodigos(resumo.lojasAbaixo)} encerraram abaixo da Meta e devem orientar o plano do próximo mês.`
-                  : resumo.temMeta
-                    ? "Todas as lojas encerraram com pelo menos 100% da Meta."
-                    : "Sem metas cadastradas, não é possível identificar quem ficou atrás do objetivo."
-                : resumo.atencao?.percentual !== null
-                  ? `${resumo.atencao?.codigo} tem o menor desempenho proporcional e precisa de acompanhamento mais próximo.`
-                  : "Cadastre as metas e mantenha os lançamentos atualizados para identificar prioridades."}
-          </p>
+          <h3>{futuro ? "Antes da abertura" : "Prioridades de atenção"}</h3>
+          {futuro ? (
+            <p>Confirme as metas e a distribuição por período.</p>
+          ) : (
+            <div className={styles.prioridadesLista}>
+              <div className={styles.prioridadeItem}>
+                <span>Loja com menor desempenho geral</span>
+                {resumo.atencao ? (
+                  <>
+                    <strong>{resumo.atencao.codigo} — {resumo.atencao.nome}</strong>
+                    <small>{percentual.format(resumo.atencao.percentual)}% da meta mensal da loja</small>
+                  </>
+                ) : (
+                  <small>Aguardando metas por loja.</small>
+                )}
+              </div>
+              <div className={styles.prioridadeItem}>
+                <span>Período com maior atraso até hoje</span>
+                {resumo.periodoMaisAtrasado.status === "atrasado" ? (
+                  <>
+                    <strong>
+                      {resumo.periodoMaisAtrasado.loja.codigo || resumo.periodoMaisAtrasado.loja.nome}
+                      {" · "}
+                      {nomeTurno(resumo.periodoMaisAtrasado.periodo)}
+                    </strong>
+                    <small className={styles.prioridadeAlerta}>
+                      {percentual.format(resumo.periodoMaisAtrasado.atrasoPercentual)}% abaixo da meta acumulada
+                    </small>
+                  </>
+                ) : (
+                  <small>{resumo.periodoMaisAtrasado.status === "em-dia"
+                    ? "Nenhum período está abaixo do esperado."
+                    : "Aguardando metas e períodos encerrados com lançamentos."}</small>
+                )}
+              </div>
+            </div>
+          )}
         </article>
       </div>
 
-
-      <div className={styles.acoes}>
-        <h3>{futuro ? "Antes de começar" : encerrado ? "Conclusões do mês" : "Por que essa nota?"}</h3>
-        {motivos.map((item) => (
-          <p key={item}>{item}</p>
-        ))}
-      </div>
+      <details className={styles.acoes}>
+        <summary>{futuro ? "Antes de começar" : notaCalculada === null ? "Critérios da avaliação" : "Entenda a nota " + notaTexto}</summary>
+        <div className={styles.acoesConteudo}>
+          {criterioNota && <p>{criterioNota}</p>}
+          {notaCalculada !== null && (
+            <p>A nota considera o resultado geral, o desempenho das lojas e dos períodos.</p>
+          )}
+          {notaCalculada === null && motivos.map((item) => (
+            <p key={item}>{item}</p>
+          ))}
+        </div>
+      </details>
     </section>
   );
 
