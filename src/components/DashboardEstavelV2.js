@@ -61,6 +61,11 @@ function nivelFechado(vendido, metaBase) {
   return "abaixo da Meta";
 }
 
+function textoNivelProjetado(percentualProjetado) {
+  const nivel = nivelFechado(percentualProjetado, 100);
+  return nivel === "abaixo da Meta" ? "Abaixo da Meta" : `Fecha em ${nivel}`;
+}
+
 function calcularJornada(vendido, metaBase) {
   const niveis = [
     { nome: "Meta", valor: metaBase, simbolo: "★" },
@@ -479,15 +484,20 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
             {dados.mesAtual && (
               <div className={styles.periodoAlertaProjecao}>
                 <h3>Projeção no ritmo atual</h3>
-                <div className={styles.periodoAlertaProjecaoLinha}>
-                  <strong>{dinheiro.format(dados.periodoMaisAtrasado.projecao)}</strong>
-                  <span>
-                    {textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal
-                    {dados.periodoMaisAtrasado.faltaProjetada > 0 &&
-                      ` · Faltariam ${dinheiro.format(dados.periodoMaisAtrasado.faltaProjetada)}`}
-                    {dados.periodoMaisAtrasado.adicionalPorPeriodoRestante !== null &&
-                      ` · +${dinheiro.format(dados.periodoMaisAtrasado.adicionalPorPeriodoRestante)}/${dados.periodoMaisAtrasado.periodo === "manha" ? "manhã" : "noite"} restante`}
-                  </span>
+                <strong className={`${styles.periodoAlertaProjecaoDestaque} ${dados.periodoMaisAtrasado.percentualProjetado < 100 ? styles.periodoAlertaProjecaoAbaixo : ""}`}>
+                  {textoNivelProjetado(dados.periodoMaisAtrasado.percentualProjetado)}
+                </strong>
+                <div className={styles.periodoAlertaProjecaoDetalhes}>
+                  <small>
+                    {dinheiro.format(dados.periodoMaisAtrasado.projecao)} · {textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal
+                  </small>
+                  {dados.periodoMaisAtrasado.faltaProjetada > 0 && (
+                    <small>
+                      Faltariam {dinheiro.format(dados.periodoMaisAtrasado.faltaProjetada)}
+                      {dados.periodoMaisAtrasado.adicionalPorPeriodoRestante !== null &&
+                        ` · +${dinheiro.format(dados.periodoMaisAtrasado.adicionalPorPeriodoRestante)}/${dados.periodoMaisAtrasado.periodo === "manha" ? "manhã" : "noite"} restante`}
+                    </small>
+                  )}
                 </div>
               </div>
             )}
