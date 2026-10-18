@@ -643,13 +643,17 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                     : positivo ? styles.resumoPeriodoPositivo : styles.resumoPeriodoAtencao}>
                     {turno.percentual === null ? "—" : `${percentual.format(turno.percentual)}%`}
                   </b>
-                  <span>{turno.percentual === null
-                    ? turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"
-                    : `${encerrado ? "da meta mensal" : "do esperado até hoje"} · ${turno.percentual > 100
-                      ? `${percentual.format(turno.percentual - 100)}% acima`
-                      : turno.percentual < 100
-                        ? `${percentual.format(100 - turno.percentual)}% abaixo`
-                        : "meta atingida"}`}</span>
+                  <span className={turno.percentual === null || turno.percentual === 100
+                    ? styles.resumoPeriodoSemDados
+                    : turno.percentual > 100 ? styles.resumoPeriodoPositivo : styles.resumoPeriodoAtencao}>
+                    {turno.percentual === null
+                      ? turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"
+                      : turno.percentual > 100
+                        ? `▲ ${percentual.format(turno.percentual - 100)}% acima`
+                        : turno.percentual < 100
+                          ? `▼ ${percentual.format(100 - turno.percentual)}% abaixo`
+                          : "Meta atingida"}
+                  </span>
                 </div>
               );
             })}
