@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import {
   acumuladoPorDia,
@@ -196,6 +197,18 @@ export default function InteligenciaGerencial() {
   const [erro, setErro] = useState("");
   const [filtroLoja, setFiltroLoja] = useState("geral");
   const [filtroPeriodo, setFiltroPeriodo] = useState("todos");
+  const [alvoInteligencia, setAlvoInteligencia] = useState(null);
+
+  useEffect(() => {
+    const localizar = () => {
+      const alvo = document.getElementById("painel-inteligencia-antes-roteiro");
+      setAlvoInteligencia((atual) => atual === alvo ? atual : alvo);
+    };
+    localizar();
+    const observador = new MutationObserver(localizar);
+    observador.observe(document.body, { childList: true, subtree: true });
+    return () => observador.disconnect();
+  }, []);
 
   useEffect(() => {
     let ativo = true;
@@ -614,8 +627,8 @@ export default function InteligenciaGerencial() {
     resumoHistorico = "Há vendas no mês selecionado, mas não existe base do ano anterior para comparação.";
   }
 
-  return (
-    <details className="inteligencia-gerencial-unificada">
+  const conteudo = (
+    <details className={`inteligencia-gerencial-unificada${alvoInteligencia ? " inteligencia-gerencial-no-painel" : ""}`}>
       <summary>
         <div>
           <strong>🧠 Inteligência Gerencial</strong>
@@ -930,4 +943,6 @@ export default function InteligenciaGerencial() {
       </div>
     </details>
   );
+
+  return alvoInteligencia ? createPortal(conteudo, alvoInteligencia) : conteudo;
 }
