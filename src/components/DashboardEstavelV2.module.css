@@ -682,3 +682,162 @@
 .turnosSlot:empty {
   display: none;
 }
+
+/* Indicador geral de atraso (loja + período) */
+.periodoAlerta {
+  display: grid;
+  gap: 13px;
+  border-color: #e8dbe7;
+}
+
+.periodoAlertaTopo,
+.periodoAlertaPrincipal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.periodoAlertaTopo h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.periodoAlertaSelo {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #f9e5e9;
+  color: #983e52;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.periodoAlertaPrincipal {
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.periodoAlertaPrincipal > strong {
+  color: var(--primary-dark);
+  font-size: 19px;
+}
+
+.periodoAlertaPrincipal > b,
+.periodoAlertaDeficit {
+  color: #a3324c;
+  font-weight: 850;
+}
+
+.periodoAlertaPrincipal > b {
+  font-size: 14px;
+}
+
+.periodoAlertaValores {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.periodoAlertaValores > div {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid #efe5f2;
+  border-radius: 12px;
+  background: #fbf9fc;
+}
+
+.periodoAlertaValores span,
+.periodoAlertaValores strong {
+  display: block;
+}
+
+.periodoAlertaValores span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.periodoAlertaValores strong {
+  margin-top: 5px;
+  font-size: clamp(12px, 1.8vw, 16px);
+  overflow-wrap: anywhere;
+}
+
+.periodoAlertaBase,
+.periodoAlertaVazio {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.periodoAlertaVazio {
+  margin: 0;
+}
+
+@media (max-width: 620px) {
+  .periodoAlertaTopo,
+  .periodoAlertaPrincipal {
+    align-items: flex-start;
+  }
+  .periodoAlertaTopo h2 {
+    font-size: 17px;
+  }
+  .periodoAlertaPrincipal {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .periodoAlertaValores > div {
+    padding: 8px;
+  }
+}
+
+
+.periodoAlertaProjecao {
+  padding: 12px 14px;
+  border: 1px solid #e8ddef;
+  border-radius: 14px;
+  background: #f8f5fb;
+}
+
+.periodoAlertaProjecao h3 {
+  margin: 0 0 7px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.periodoAlertaProjecaoDestaque {
+  display: block;
+  margin-bottom: 5px;
+  color: #2c7243;
+  font-size: 19px;
+  line-height: 1.3;
+}
+
+.periodoAlertaProjecaoAbaixo {
+  color: #a3324c;
+}
+
+.periodoAlertaProjecaoDetalhes {
+  display: grid;
+  gap: 3px;
+}
+
+.periodoAlertaProjecaoDetalhes small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+
+/* O roteiro usa o mesmo espaçamento dos outros cards no painel. */
+.roteiroSlot,
+.inteligenciaSlot {
+  width: 100%;
+  min-width: 0;
+}
+
+.roteiroSlot:empty,
+.inteligenciaSlot:empty {
+  display: none;
+}

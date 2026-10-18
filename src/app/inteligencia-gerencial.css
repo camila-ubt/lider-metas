@@ -14,3 +14,12 @@
 .inteligencia-gerencial-insights article{border:1px solid #e7deec;border-radius:15px;padding:14px;background:#faf8fb}
 .inteligencia-gerencial-insights p{margin:0;color:#51475a;font-size:13px;line-height:1.5}
 @media(max-width:760px){.inteligencia-gerencial-unificada{width:calc(100% - 24px);margin:18px 12px 22px;border-radius:20px}.inteligencia-gerencial-unificada>summary{padding:17px 18px}.inteligencia-gerencial-unificada>summary strong{font-size:16px}.inteligencia-gerencial-unificada>summary i{width:40px;height:40px;flex-basis:40px}.inteligencia-gerencial-conteudo{padding:4px 18px 18px}.inteligencia-gerencial-secao{padding:17px 0}.inteligencia-gerencial-insights{grid-template-columns:1fr}}
+
+
+/* Card integrado ao grid do painel, com espaçamento uniforme. */
+.inteligencia-gerencial-unificada.inteligencia-gerencial-no-painel {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
+}

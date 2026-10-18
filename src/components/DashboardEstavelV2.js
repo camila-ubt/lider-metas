@@ -9,6 +9,7 @@ import {
 } from "@/lib/horariosPeriodos";
 import { contextoDoMes } from "@/lib/contextoMes";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
+import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
 import styles from "./DashboardEstavelV2.module.css";
 
@@ -58,6 +59,11 @@ function nivelFechado(vendido, metaBase) {
   if (vendido >= metaBase * 1.1) return "Supermeta";
   if (vendido >= metaBase) return "Meta";
   return "abaixo da Meta";
+}
+
+function textoNivelProjetado(percentualProjetado) {
+  const nivel = nivelFechado(percentualProjetado, 100);
+  return nivel === "abaixo da Meta" ? "Projeção de fechar abaixo da Meta" : `Projeção de fechar em ${nivel}`;
 }
 
 function calcularJornada(vendido, metaBase) {
@@ -252,6 +258,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const mesFuturo = !mesAtual && !mesPassado;
     const diaCorte = mesAtual ? Math.min(agora.getDate(), totalDias) : mesPassado ? totalDias : 0;
     const contexto = contextoDoMes(mes, agora);
+    const periodoMaisAtrasado = encontrarPeriodoMaisAtrasado({
+      lojas, metas, vendas, contexto, minutosAgora, fimManha, fimNoite,
+    });
     const projetarTurno = (periodo, lojaId = null) => calcularProjecaoTurno({
       vendas, lojas, periodo, lojaId, contexto, minutosAgora,
       fimTurno: periodo === "manha" ? fimManha : fimNoite,
@@ -359,6 +368,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
       meta, supermeta, megameta, jornada, media, projecao, necessarioDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
+      periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
     };
   }, [mes, vendas, metas, lojas, horarios, minutosAtuais]);
@@ -441,11 +451,104 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
 
+      <article className={`${styles.card} ${styles.periodoAlerta}`} aria-label="Período que precisa de atenção">
+        <div className={styles.periodoAlertaTopo}>
+          <div>
+            <p className={styles.eyebrow}>Ponto de atenção</p>
+            <h2>Período mais atrasado</h2>
+          </div>
+          {dados.periodoMaisAtrasado.status === "atrasado" && (
+            <span className={styles.periodoAlertaSelo}>Maior atraso</span>
+          )}
+        </div>
+        {dados.periodoMaisAtrasado.status === "atrasado" ? (
+          <>
+            <div className={styles.periodoAlertaPrincipal}>
+              <strong>
+                {dados.periodoMaisAtrasado.loja.codigo || dados.periodoMaisAtrasado.loja.nome}
+                {" · "}
+                {dados.periodoMaisAtrasado.periodo === "manha" ? "Manhã" : "Noite"}
+              </strong>
+              <b>{textoPercentual(dados.periodoMaisAtrasado.atrasoPercentual)} abaixo do esperado</b>
+            </div>
+            <div className={styles.periodoAlertaValores}>
+              <div><span>Meta acumulada</span><strong>{dinheiro.format(dados.periodoMaisAtrasado.esperado)}</strong></div>
+              <div><span>Vendido</span><strong>{dinheiro.format(dados.periodoMaisAtrasado.vendido)}</strong></div>
+              <div><span>Diferença</span><strong className={styles.periodoAlertaDeficit}>−{dinheiro.format(dados.periodoMaisAtrasado.atraso)}</strong></div>
+            </div>
+            <small className={styles.periodoAlertaBase}>
+              Até {String(dados.periodoMaisAtrasado.dia).padStart(2, "0")}/{String(dados.periodoMaisAtrasado.mes).padStart(2, "0")}
+              {" · "}
+              {dados.periodoMaisAtrasado.diasAnalisados} {dados.periodoMaisAtrasado.diasAnalisados === 1 ? "dia completo" : "dias completos"} do período
+            </small>
+            {dados.mesAtual && (
+              <div className={styles.periodoAlertaProjecao}>
+                <h3>Se continuar nesse ritmo...</h3>
+                <strong className={`${styles.periodoAlertaProjecaoDestaque} ${dados.periodoMaisAtrasado.percentualProjetado < 100 ? styles.periodoAlertaProjecaoAbaixo : ""}`}>
+                  {textoNivelProjetado(dados.periodoMaisAtrasado.percentualProjetado)}
+                </strong>
+                <div className={styles.periodoAlertaProjecaoDetalhes}>
+                  <small>
+                    {dinheiro.format(dados.periodoMaisAtrasado.projecao)} · {textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal
+                  </small>
+                  {dados.periodoMaisAtrasado.faltaProjetada > 0 && (
+                    <small>
+                      Faltariam {dinheiro.format(dados.periodoMaisAtrasado.faltaProjetada)}
+                      {dados.periodoMaisAtrasado.adicionalPorPeriodoRestante !== null &&
+                        ` · +${dinheiro.format(dados.periodoMaisAtrasado.adicionalPorPeriodoRestante)}/${dados.periodoMaisAtrasado.periodo === "manha" ? "manhã" : "noite"} restante`}
+                    </small>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className={styles.periodoAlertaVazio}>
+            {dados.periodoMaisAtrasado.status === "em-dia"
+              ? "Nenhum período abaixo da meta acumulada."
+              : dados.periodoMaisAtrasado.status === "sem-metas"
+                ? "Cadastre as metas de todas as lojas e períodos para comparar."
+                : dados.periodoMaisAtrasado.status === "sem-dados"
+                  ? "A comparação estará disponível após o início do mês."
+                  : "Aguardando lançamentos de períodos encerrados."}
+          </p>
+        )}
+      </article>
+
       <div
         id={modoRelatorio ? "relatorio-turnos-antes-pa" : "painel-turnos-antes-pa"}
         className={styles.turnosSlot}
       />
-      <ResumoPADashboard mes={mes} />
+      <article className={styles.card}>
+        <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>Ranking interativo</p><h2>Toque na loja para abrir os detalhes</h2></div></div>
+        <div className={styles.rankList}>
+          {dados.ranking.map((loja, indice) => {
+            const aberta = Number(lojaAberta) === Number(loja.id);
+            const resultadoLoja = nivelFechado(loja.vendido, loja.meta);
+            return (
+              <div className={styles.rankWrapper} key={loja.id}>
+                <button type="button" className={`${styles.rankButton} ${aberta ? styles.rankButtonOpen : ""}`} onClick={() => setLojaAberta(aberta ? null : loja.id)} aria-expanded={aberta}>
+                  <span className={styles.rankNumber}>{indice + 1}</span>
+                  <span className={styles.rankName}><strong>{loja.codigo} — {loja.nome}</strong><small>{dados.mesPassado ? `Fechou em ${resultadoLoja}` : loja.jornada.completa ? "Megameta batida" : `Próximo nível: ${loja.jornada.alvo.nome}`}</small></span>
+                  <b>{textoPercentual(loja.percentual)}</b><span className={styles.chevron}>⌄</span>
+                </button>
+                {aberta && (
+                  <div className={styles.rankDetails}>
+                    <div className={styles.storeOverview}>
+                      <div><span>Vendido</span><strong>{dinheiro.format(loja.vendido)}</strong></div>
+                      <div><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.projecao === null ? "—" : dinheiro.format(loja.projecao)}</strong></div>
+                      <div><span>{dados.mesPassado ? "Fechamento" : "Próximo nível"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.jornada.alvo.nome}</strong></div>
+                    </div>
+                    <Niveis vendido={loja.vendido} jornada={loja.jornada} encerrado={dados.mesPassado} diasRestantes={loja.diasRestantes} />
+                    <div className={styles.periodGrid}>{loja.periodos.map((periodo) => <PeriodoDetalhe periodo={periodo} encerrado={dados.mesPassado} key={periodo.nome} />)}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </article>
+
 
       <article className={styles.card}>
         <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>Evolução acumulada</p><h2>Realizado, projeção e rotas de meta</h2></div></div>
@@ -481,36 +584,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         </article>
       </div>
 
-      <article className={styles.card}>
-        <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>Ranking interativo</p><h2>Toque na loja para abrir os detalhes</h2></div></div>
-        <div className={styles.rankList}>
-          {dados.ranking.map((loja, indice) => {
-            const aberta = Number(lojaAberta) === Number(loja.id);
-            const resultadoLoja = nivelFechado(loja.vendido, loja.meta);
-            return (
-              <div className={styles.rankWrapper} key={loja.id}>
-                <button type="button" className={`${styles.rankButton} ${aberta ? styles.rankButtonOpen : ""}`} onClick={() => setLojaAberta(aberta ? null : loja.id)} aria-expanded={aberta}>
-                  <span className={styles.rankNumber}>{indice + 1}</span>
-                  <span className={styles.rankName}><strong>{loja.codigo} — {loja.nome}</strong><small>{dados.mesPassado ? `Fechou em ${resultadoLoja}` : loja.jornada.completa ? "Megameta batida" : `Próximo nível: ${loja.jornada.alvo.nome}`}</small></span>
-                  <b>{textoPercentual(loja.percentual)}</b><span className={styles.chevron}>⌄</span>
-                </button>
-                {aberta && (
-                  <div className={styles.rankDetails}>
-                    <div className={styles.storeOverview}>
-                      <div><span>Vendido</span><strong>{dinheiro.format(loja.vendido)}</strong></div>
-                      <div><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.projecao === null ? "—" : dinheiro.format(loja.projecao)}</strong></div>
-                      <div><span>{dados.mesPassado ? "Fechamento" : "Próximo nível"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.jornada.alvo.nome}</strong></div>
-                    </div>
-                    <Niveis vendido={loja.vendido} jornada={loja.jornada} encerrado={dados.mesPassado} diasRestantes={loja.diasRestantes} />
-                    <div className={styles.periodGrid}>{loja.periodos.map((periodo) => <PeriodoDetalhe periodo={periodo} encerrado={dados.mesPassado} key={periodo.nome} />)}</div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </article>
-
+      <ResumoPADashboard mes={mes} />
+      <div id="painel-inteligencia-antes-roteiro" className={styles.inteligenciaSlot} />
+      <div id="painel-roteiro-apos-pa" className={styles.roteiroSlot} />
       <div className={styles.twoColumns}>
         <article className={styles.card}>
           <div className={styles.sectionHeader}>
