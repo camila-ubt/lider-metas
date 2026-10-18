@@ -87,3 +87,29 @@ export function desempenhoPeriodosReuniao({
     };
   });
 }
+
+
+/** Desvio da meta e nível de desempenho, sem repetir o percentual atingido. */
+export function classificarDesempenhoPeriodo(percentual, encerrado = false) {
+  if (percentual === null || !Number.isFinite(percentual)) return null;
+
+  const diferenca = percentual - 100;
+  const situacao = diferenca > 0 ? "acima" : diferenca < 0 ? "abaixo" : "na-meta";
+  const nivel = percentual >= 120 ? "Megameta"
+    : percentual >= 110 ? "Supermeta"
+      : percentual >= 100 ? "Meta" : null;
+
+  const descricao = situacao === "acima" ? "Acima da meta"
+    : situacao === "abaixo" ? "Abaixo da meta" : "Na meta";
+  const classificacao = nivel
+    ? encerrado ? `${nivel} atingida` : `Ritmo de ${nivel}`
+    : encerrado ? "Meta não atingida" : "Abaixo do ritmo da Meta";
+
+  return {
+    diferenca: Math.abs(diferenca),
+    simbolo: diferenca > 0 ? "▲" : diferenca < 0 ? "▼" : "",
+    situacao,
+    descricao,
+    classificacao,
+  };
+}
