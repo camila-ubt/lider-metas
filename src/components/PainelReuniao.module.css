@@ -205,9 +205,17 @@
   line-height: 1.3;
 }
 
-.resumoPeriodoPositivo { color: #26744a; }
-.resumoPeriodoAtencao { color: #a3324c; }
-.resumoPeriodoSemDados { color: #746a79; }
+.resumoPeriodoPositivo,
+.resumoPeriodo span.resumoPeriodoPositivo { color: #26744a; }
+.resumoPeriodoAtencao,
+.resumoPeriodo span.resumoPeriodoAtencao { color: #a3324c; }
+.resumoPeriodoSemDados,
+.resumoPeriodo span.resumoPeriodoSemDados { color: #746a79; }
+
+.resumoPeriodo span.resumoPeriodoPositivo,
+.resumoPeriodo span.resumoPeriodoAtencao {
+  font-weight: 700;
+}
 
 @media (max-width: 760px) {
   .resumoPeriodos { padding: 12px; }
