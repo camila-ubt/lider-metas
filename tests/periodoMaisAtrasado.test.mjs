@@ -41,6 +41,9 @@ test("um único destaque identifica o maior atraso percentual, não o maior déf
   assert.equal(resultado.atrasoPercentual, 70);
   assert.equal(resultado.atraso, 70);
   assert.equal(resultado.diasAnalisados, 1);
+  assert.equal(resultado.projecao, 900);
+  assert.equal(resultado.percentualProjetado, 30);
+  assert.equal(resultado.faltaProjetada, 2100);
 });
 
 test("após as 16h a manhã de hoje entra, mas a noite aguarda seu encerramento", () => {
@@ -105,4 +108,31 @@ test("sem metas completas ou no futuro, não inventa último colocado", () => {
 
 test("quando todas as lojas estão em dia, não sinaliza atraso", () => {
   assert.equal(calcular(lancamentos(1)).status, "em-dia");
+});
+
+
+test("projeção usa a média dos dias encerrados e a meta mensal inteira", () => {
+  const resultado = calcular([
+    ...lancamentos(1, (loja, periodo) => loja === 3 && periodo === "manha" ? 20 : null),
+    ...lancamentos(2, (loja, periodo) => loja === 3 && periodo === "manha" ? 40 : null),
+  ], { contexto: contexto("andamento", 2) });
+  assert.equal(resultado.loja.nome, "Adoro");
+  assert.equal(resultado.diasAnalisados, 2);
+  assert.equal(resultado.vendido, 60);
+  assert.equal(resultado.projecao, 900);
+  assert.equal(resultado.percentualProjetado, 30);
+  assert.equal(resultado.faltaProjetada, 2100);
+});
+
+test("projeção considera somente o ciclo encerrado e evita antecipar o resultado da noite", () => {
+  const dia1 = lancamentos(1);
+  const dia2 = lancamentos(2, (loja, periodo) => loja === 3 && periodo === "manha" ? 50 : null);
+  const resultado = calcular([...dia1, ...dia2], {
+    contexto: contexto("andamento", 2), minutosAgora: 17 * 60,
+  });
+  assert.equal(resultado.periodo, "manha");
+  assert.equal(resultado.diasAnalisados, 2);
+  assert.equal(resultado.projecao, 2250);
+  assert.equal(resultado.percentualProjetado, 75);
+  assert.equal(resultado.faltaProjetada, 750);
 });
