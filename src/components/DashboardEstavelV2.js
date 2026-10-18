@@ -63,7 +63,7 @@ function nivelFechado(vendido, metaBase) {
 
 function textoNivelProjetado(percentualProjetado) {
   const nivel = nivelFechado(percentualProjetado, 100);
-  return nivel === "abaixo da Meta" ? "Abaixo da Meta" : `Fecha em ${nivel}`;
+  return nivel === "abaixo da Meta" ? "Projeção de fechar abaixo da Meta" : `Projeção de fechar em ${nivel}`;
 }
 
 function calcularJornada(vendido, metaBase) {
@@ -483,7 +483,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
             </small>
             {dados.mesAtual && (
               <div className={styles.periodoAlertaProjecao}>
-                <h3>Projeção no ritmo atual</h3>
+                <h3>Se continuar nesse ritmo...</h3>
                 <strong className={`${styles.periodoAlertaProjecaoDestaque} ${dados.periodoMaisAtrasado.percentualProjetado < 100 ? styles.periodoAlertaProjecaoAbaixo : ""}`}>
                   {textoNivelProjetado(dados.periodoMaisAtrasado.percentualProjetado)}
                 </strong>
