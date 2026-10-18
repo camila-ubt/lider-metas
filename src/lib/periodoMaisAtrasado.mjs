@@ -1,3 +1,5 @@
+import { calcularTurnosRestantes } from "./projecaoTurnos.mjs";
+
 const PERIODOS = ["manha", "noite"];
 
 function idCombinacao(lojaId, periodo) {
@@ -59,6 +61,9 @@ export function encontrarPeriodoMaisAtrasado({
     const limite = contexto.tipo === "encerrado"
       ? ultimoDia
       : Math.max(0, (contexto.diaCorte || 0) - (minutosAgora < fimPeriodo ? 1 : 0));
+    const periodosRestantes = calcularTurnosRestantes({
+      contexto, minutosAgora, fimTurno: fimPeriodo,
+    });
     const chaves = combinacoes.filter((item) => item.periodo === periodo);
     const diasCompletos = [];
 
@@ -79,6 +84,10 @@ export function encontrarPeriodoMaisAtrasado({
       );
       const atrasoCentavos = Math.max(0, esperadoCentavos - vendidoCentavos);
       const projecaoCentavos = Math.round(vendidoCentavos * ultimoDia / diasCompletos.length);
+      const faltaProjetadaCentavos = Math.max(0, metaCentavos - projecaoCentavos);
+      const adicionalPorPeriodoRestante = periodosRestantes > 0 && faltaProjetadaCentavos > 0
+        ? Math.ceil(faltaProjetadaCentavos / periodosRestantes) / 100
+        : null;
       resultados.push({
         loja: item.loja,
         periodo,
@@ -91,7 +100,9 @@ export function encontrarPeriodoMaisAtrasado({
         atrasoPercentual: esperadoCentavos > 0 ? (atrasoCentavos / esperadoCentavos) * 100 : 0,
         projecao: projecaoCentavos / 100,
         percentualProjetado: (projecaoCentavos / metaCentavos) * 100,
-        faltaProjetada: Math.max(0, metaCentavos - projecaoCentavos) / 100,
+        faltaProjetada: faltaProjetadaCentavos / 100,
+        periodosRestantes,
+        adicionalPorPeriodoRestante,
       });
     }
   }
