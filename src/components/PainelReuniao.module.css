@@ -138,3 +138,78 @@
     padding: 14px;
   }
 }
+
+
+/* Resumo compacto de manhã e noite, sempre em duas colunas. */
+.resumoPeriodos {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid #e8deef;
+  border-radius: 18px;
+  background: #faf8fc;
+}
+
+.resumoPeriodosCabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3px 12px;
+}
+
+.resumoPeriodosCabecalho h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #302638;
+}
+
+.resumoPeriodosCabecalho small {
+  font-size: 11px;
+  color: #746a79;
+}
+
+.resumoPeriodosColunas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.resumoPeriodo {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e8deef;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.resumoPeriodo strong {
+  color: #382b43;
+  font-size: 13px;
+}
+
+.resumoPeriodo b {
+  font-size: clamp(19px, 5vw, 25px);
+  font-variant-numeric: tabular-nums;
+}
+
+.resumoPeriodo span {
+  color: #746a79;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.resumoPeriodoPositivo { color: #26744a; }
+.resumoPeriodoAtencao { color: #a3324c; }
+.resumoPeriodoSemDados { color: #746a79; }
+
+@media (max-width: 760px) {
+  .resumoPeriodos { padding: 12px; }
+  .resumoPeriodo { padding: 10px; }
+}
