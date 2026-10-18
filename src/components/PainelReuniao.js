@@ -645,8 +645,11 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                   </b>
                   <span>{turno.percentual === null
                     ? turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"
-                    : positivo ? encerrado ? "Meta atingida" : "No ritmo da meta"
-                    : encerrado ? "Abaixo da Meta" : "Abaixo do esperado"}</span>
+                    : `${encerrado ? "da meta mensal" : "do esperado até hoje"} · ${turno.percentual > 100
+                      ? `${percentual.format(turno.percentual - 100)}% acima`
+                      : turno.percentual < 100
+                        ? `${percentual.format(100 - turno.percentual)}% abaixo`
+                        : "meta atingida"}`}</span>
                 </div>
               );
             })}
