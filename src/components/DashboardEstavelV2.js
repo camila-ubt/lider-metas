@@ -9,6 +9,7 @@ import {
 } from "@/lib/horariosPeriodos";
 import { contextoDoMes } from "@/lib/contextoMes";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
+import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
 import styles from "./DashboardEstavelV2.module.css";
 
@@ -252,6 +253,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const mesFuturo = !mesAtual && !mesPassado;
     const diaCorte = mesAtual ? Math.min(agora.getDate(), totalDias) : mesPassado ? totalDias : 0;
     const contexto = contextoDoMes(mes, agora);
+    const periodoMaisAtrasado = encontrarPeriodoMaisAtrasado({
+      lojas, metas, vendas, contexto, minutosAgora, fimManha, fimNoite,
+    });
     const projetarTurno = (periodo, lojaId = null) => calcularProjecaoTurno({
       vendas, lojas, periodo, lojaId, contexto, minutosAgora,
       fimTurno: periodo === "manha" ? fimManha : fimNoite,
@@ -359,6 +363,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
       meta, supermeta, megameta, jornada, media, projecao, necessarioDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
+      periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
     };
   }, [mes, vendas, metas, lojas, horarios, minutosAtuais]);
@@ -440,6 +445,50 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         <article className={styles.kpi}><span>{dados.mesPassado ? "Fechamento" : dados.jornada.completa ? "Megameta conquistada" : `Necessário para ${dados.jornada.alvo.nome}`}</span><strong>{dados.mesPassado ? dados.nivelFechado : dinheiro.format(dados.necessarioDia)}</strong><small>{dados.mesPassado ? "Mês encerrado" : dados.diasRestantes > 1 ? `${dados.diasRestantes} dias restantes` : "Valor necessário no dia"}</small></article>
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
+
+      <article className={`${styles.card} ${styles.periodoAlerta}`} aria-label="Período que precisa de atenção">
+        <div className={styles.periodoAlertaTopo}>
+          <div>
+            <p className={styles.eyebrow}>Ponto de atenção</p>
+            <h2>Período mais atrasado</h2>
+          </div>
+          {dados.periodoMaisAtrasado.status === "atrasado" && (
+            <span className={styles.periodoAlertaSelo}>Maior atraso</span>
+          )}
+        </div>
+        {dados.periodoMaisAtrasado.status === "atrasado" ? (
+          <>
+            <div className={styles.periodoAlertaPrincipal}>
+              <strong>
+                {dados.periodoMaisAtrasado.loja.codigo || dados.periodoMaisAtrasado.loja.nome}
+                {" · "}
+                {dados.periodoMaisAtrasado.periodo === "manha" ? "Manhã" : "Noite"}
+              </strong>
+              <b>{textoPercentual(dados.periodoMaisAtrasado.atrasoPercentual)} abaixo do esperado</b>
+            </div>
+            <div className={styles.periodoAlertaValores}>
+              <div><span>Meta acumulada</span><strong>{dinheiro.format(dados.periodoMaisAtrasado.esperado)}</strong></div>
+              <div><span>Vendido</span><strong>{dinheiro.format(dados.periodoMaisAtrasado.vendido)}</strong></div>
+              <div><span>Diferença</span><strong className={styles.periodoAlertaDeficit}>−{dinheiro.format(dados.periodoMaisAtrasado.atraso)}</strong></div>
+            </div>
+            <small className={styles.periodoAlertaBase}>
+              Até {String(dados.periodoMaisAtrasado.dia).padStart(2, "0")}/{String(dados.periodoMaisAtrasado.mes).padStart(2, "0")}
+              {" · "}
+              {dados.periodoMaisAtrasado.diasAnalisados} {dados.periodoMaisAtrasado.diasAnalisados === 1 ? "dia completo" : "dias completos"} do período
+            </small>
+          </>
+        ) : (
+          <p className={styles.periodoAlertaVazio}>
+            {dados.periodoMaisAtrasado.status === "em-dia"
+              ? "Nenhum período abaixo da meta acumulada."
+              : dados.periodoMaisAtrasado.status === "sem-metas"
+                ? "Cadastre as metas de todas as lojas e períodos para comparar."
+                : dados.periodoMaisAtrasado.status === "sem-dados"
+                  ? "A comparação estará disponível após o início do mês."
+                  : "Aguardando lançamentos de períodos encerrados."}
+          </p>
+        )}
+      </article>
 
       <div
         id={modoRelatorio ? "relatorio-turnos-antes-pa" : "painel-turnos-antes-pa"}
