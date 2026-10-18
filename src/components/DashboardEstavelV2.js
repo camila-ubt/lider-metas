@@ -485,6 +485,8 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                     {textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal
                     {dados.periodoMaisAtrasado.faltaProjetada > 0 &&
                       ` · Faltariam ${dinheiro.format(dados.periodoMaisAtrasado.faltaProjetada)}`}
+                    {dados.periodoMaisAtrasado.adicionalPorPeriodoRestante !== null &&
+                      ` · +${dinheiro.format(dados.periodoMaisAtrasado.adicionalPorPeriodoRestante)}/${dados.periodoMaisAtrasado.periodo === "manha" ? "manhã" : "noite"} restante`}
                   </span>
                 </div>
               </div>
