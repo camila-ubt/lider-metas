@@ -16,6 +16,7 @@ import {
 } from "@/lib/contextoMes";
 import { calcularProjecaoTurno, calcularMetasTurno, calcularTurnosRestantes } from "@/lib/projecaoTurnos.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
+import { desempenhoPeriodosReuniao } from "@/lib/desempenhoPeriodosReuniao.mjs";
 import styles from "./PainelReuniao.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -276,6 +277,15 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
     const nivelGeral = nivelDoResultado(totalVendido, totalMeta);
     const percentualGeral = percentualDoResultado(totalVendido, totalMeta);
     const proximo = proximoNivel(totalVendido, totalMeta);
+    const desempenhoDosPeriodos = desempenhoPeriodosReuniao({
+      lojas,
+      metas,
+      vendas: vendasAteCorte,
+      contexto,
+      minutosAgora,
+      fimManha: minutosDoHorario(horarios.manhaFim),
+      fimNoite: minutosDoHorario(horarios.noiteFim),
+    });
     const periodoMaisAtrasado = encontrarPeriodoMaisAtrasado({
       lojas,
       metas,
@@ -454,6 +464,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       destaque: ranking.find((loja) => loja.meta > 0) || null,
       atencao: [...ranking].reverse().find((loja) => loja.meta > 0) || null,
       periodoMaisAtrasado,
+      desempenhoDosPeriodos,
       turnos,
       lojasAtingiram,
       lojasAbaixo,
@@ -575,6 +586,32 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
             <p>Aguardando metas por loja.</p>
           )}
         </article>
+
+        <div className={styles.resumoPeriodos}>
+          <div className={styles.resumoPeriodosCabecalho}>
+            <h3>Desempenho dos períodos</h3>
+            <small>{encerrado ? "Resultado final · meta mensal" : futuro ? "Aguardando início do mês" : "Parcial · esperado até hoje"}</small>
+          </div>
+          <div className={styles.resumoPeriodosColunas}>
+            {resumo.desempenhoDosPeriodos.map((turno) => {
+              const positivo = turno.percentual !== null && turno.percentual >= 100;
+              return (
+                <div className={styles.resumoPeriodo} key={turno.periodo}>
+                  <strong>{nomeTurno(turno.periodo)}</strong>
+                  <b className={turno.percentual === null
+                    ? styles.resumoPeriodoSemDados
+                    : positivo ? styles.resumoPeriodoPositivo : styles.resumoPeriodoAtencao}>
+                    {turno.percentual === null ? "—" : `${percentual.format(turno.percentual)}%`}
+                  </b>
+                  <span>{turno.percentual === null
+                    ? turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"
+                    : positivo ? encerrado ? "Meta atingida" : "No ritmo da meta"
+                    : encerrado ? "Abaixo da Meta" : "Abaixo do esperado"}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         <article className={styles.atencao}>
           <h3>{futuro ? "Antes da abertura" : "Prioridades de atenção"}</h3>
