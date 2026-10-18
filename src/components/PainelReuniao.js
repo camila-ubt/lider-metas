@@ -161,6 +161,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
   const [carregando, setCarregando] = useState(false);
   const [turnosAbertos, setTurnosAbertos] = useState(false);
   const [alvoTurnos, setAlvoTurnos] = useState(null);
+  const [alvoRoteiro, setAlvoRoteiro] = useState(null);
   const idTurnos = useId();
 
   useEffect(() => {
@@ -195,12 +196,20 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
   useEffect(() => {
     if (!visivel) {
       setAlvoTurnos(null);
+      setAlvoRoteiro(null);
       return undefined;
     }
     const seletor = destinoTurnos === "relatorio"
       ? "#relatorio-turnos-antes-pa"
       : "#painel-turnos-antes-pa";
-    const localizar = () => setAlvoTurnos(document.querySelector(seletor));
+    const localizar = () => {
+      setAlvoTurnos(document.querySelector(seletor));
+      setAlvoRoteiro(
+        destinoTurnos === "painel"
+          ? document.querySelector("#painel-roteiro-apos-pa")
+          : null,
+      );
+    };
     localizar();
     const observador = new MutationObserver(localizar);
     observador.observe(document.body, { childList: true, subtree: true });
@@ -521,9 +530,8 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         ];
   const motivos = criterioNota ? [criterioNota, ...motivosBase] : motivosBase;
 
-  return (
-    <>
-    <section className={styles.wrap}>
+  const roteiro = (
+    <section className={`${styles.wrap} ${destinoTurnos === "painel" ? styles.roteiroNoPainel : ""}`}>
       <header className={styles.header}>
         <div>
           <p>ROTEIRO DA REUNIÃO</p>
@@ -581,6 +589,13 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         ))}
       </div>
     </section>
+  );
+
+  return (
+    <>
+      {destinoTurnos === "painel"
+        ? alvoRoteiro && createPortal(roteiro, alvoRoteiro)
+        : roteiro}
 
     {alvoTurnos && createPortal(
       <section className={`${styles.wrap} ${styles.turnosWrap}`} aria-label="Leitura diária e projeção dos turnos">
