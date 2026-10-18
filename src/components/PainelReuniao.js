@@ -583,7 +583,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
     </section>
 
     {alvoTurnos && createPortal(
-      <section className={`${styles.wrap} ${styles.turnosWrap}`} aria-label="Leitura e projeção dos turnos">
+      <section className={`${styles.wrap} ${styles.turnosWrap}`} aria-label="Leitura diária e projeção dos turnos">
       <button
         type="button"
         className={styles.turnosToggle}
@@ -592,8 +592,8 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         onClick={() => setTurnosAbertos((aberto) => !aberto)}
       >
         <span className={styles.turnosTitulo}>
-          <strong>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura e projeção dos turnos"}</strong>
-          <small>Manhã e noite</small>
+          <strong>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura diária e projeção dos turnos"}</strong>
+          <small>Médias e metas por dia · projeção mensal</small>
         </span>
         <span className={styles.turnosSeta} aria-hidden="true">{turnosAbertos ? "−" : "+"}</span>
       </button>
@@ -616,10 +616,10 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                 <>
                   <p>
                     {encerrado ? "Média diária final" : "Média diária atual"}: {" "}
-                    <b>{turno.mediaAtual === null ? "—" : dinheiro.format(turno.mediaAtual)}</b>
+                    <b>{turno.mediaAtual === null ? "—" : `${dinheiro.format(turno.mediaAtual)}/dia`}</b>
                   </p>
                   <p>
-                    Resultado do turno: {" "}
+                    Meta mensal atingida: {" "}
                     <b>
                       {turno.percentual === null
                         ? turno.nivel
@@ -629,17 +629,17 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
 
                   {!encerrado && !futuro && turno.meta > 0 && (
                     <div className={styles.turnoProjecao}>
-                      <h4>Projeção de fechamento</h4>
+                      <h4>Projeção de fechamento do mês</h4>
                       {turno.projecaoFechamento === null ? (
                         <p>A projeção aparece após os primeiros lançamentos do turno.</p>
                       ) : (
                         <>
                           <p>
-                            <span>Faturamento previsto</span>
+                            <span>Faturamento mensal previsto</span>
                             <b>{dinheiro.format(turno.projecaoFechamento)}</b>
                           </p>
                           <p>
-                            <span>Resultado previsto</span>
+                            <span>Resultado mensal previsto</span>
                             <b>{percentual.format(turno.projecaoFechamento / turno.meta * 100)}% · {nivelDoResultado(turno.projecaoFechamento, turno.meta)}</b>
                           </p>
                         </>
@@ -650,25 +650,25 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                   {!encerrado && turno.meta > 0 && (
                     <div className={styles.turnoMetaRestante}>
                       <p>
-                        <span>Turnos restantes:</span>
+                        <span>{turno.periodo === "manha" ? "Manhãs restantes:" : "Noites restantes:"}</span>
                         <b>{turno.periodosRestantes}</b>
                       </p>
                       {turno.metasAjustadas.map((nivel) => (
                         <div className={styles.turnoNivel} key={nivel.nivel}>
                           <strong>{nivel.nome}</strong>
                           <p>
-                            <span>Meta fixa</span>
+                            <span>Meta fixa diária</span>
                             <b>{dinheiro.format(nivel.fixa)}</b>
                           </p>
                           <p>
-                            <span>Meta ajustada</span>
+                            <span>Meta ajustada diária</span>
                             <b>{nivel.ajustada === null
                               ? "Sem turnos restantes"
                               : dinheiro.format(nivel.ajustada)}</b>
                           </p>
                           {nivel.porLojaTurno !== null && (
                             <p className={styles.turnoPorLoja}>
-                              <span>Por loja/turno</span>
+                              <span>Por loja/dia</span>
                               <b>{dinheiro.format(nivel.porLojaTurno)}</b>
                             </p>
                           )}
