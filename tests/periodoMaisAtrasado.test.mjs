@@ -136,3 +136,57 @@ test("projeção considera somente o ciclo encerrado e evita antecipar o resulta
   assert.equal(resultado.percentualProjetado, 75);
   assert.equal(resultado.faltaProjetada, 750);
 });
+
+
+test("adicional por manhã restante é calculado sobre a falta projetada", () => {
+  const vendas = Array.from({ length: 18 }, (_, indice) =>
+    lancamentos(indice + 1, (loja, periodo) => loja === 3 && periodo === "manha"
+      ? (indice === 17 ? 457.53 : 457.60)
+      : null),
+  ).flat();
+  const metasDoMes = metas.map((item) => item.loja_id === 3 && item.periodo === "manha"
+    ? { ...item, valor_meta: 18100 }
+    : item);
+  const resultado = calcular(vendas, {
+    metas: metasDoMes,
+    contexto: { ...contexto("andamento", 18), ultimoDia: 31 },
+    minutosAgora: 19 * 60,
+  });
+  assert.equal(resultado.loja.nome, "Adoro");
+  assert.equal(resultado.periodo, "manha");
+  assert.equal(resultado.projecao, 14185.48);
+  assert.equal(resultado.faltaProjetada, 3914.52);
+  assert.equal(resultado.periodosRestantes, 13);
+  assert.equal(resultado.adicionalPorPeriodoRestante, 301.12);
+});
+
+test("a manhã encerrada deixa de contar hoje e a noite aberta ainda conta", () => {
+  const vendas = [
+    ...lancamentos(1, (loja, periodo) => loja === 3 && periodo === "noite" ? 0 : null),
+    ...lancamentos(2, (loja, periodo) => loja === 3 && periodo === "noite" ? 0 : null),
+  ];
+  const antesDoFim = calcular(vendas, {
+    contexto: contexto("andamento", 2),
+    minutosAgora: 17 * 60,
+  });
+  assert.equal(antesDoFim.periodo, "noite");
+  assert.equal(antesDoFim.periodosRestantes, 29);
+  assert.equal(antesDoFim.adicionalPorPeriodoRestante, 103.45);
+
+  const depoisDoFim = calcular(vendas, {
+    contexto: contexto("andamento", 2),
+    minutosAgora: 22 * 60,
+  });
+  assert.equal(depoisDoFim.periodo, "noite");
+  assert.equal(depoisDoFim.periodosRestantes, 28);
+  assert.equal(depoisDoFim.adicionalPorPeriodoRestante, 107.15);
+});
+
+test("sem períodos restantes não divide a falta projetada por zero", () => {
+  const resultado = calcular(
+    lancamentos(30, (loja, periodo) => loja === 3 && periodo === "noite" ? 0 : null),
+    { contexto: contexto("ultimo-dia", 30), minutosAgora: 22 * 60 },
+  );
+  assert.equal(resultado.periodosRestantes, 0);
+  assert.equal(resultado.adicionalPorPeriodoRestante, null);
+});
