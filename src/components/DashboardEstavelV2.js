@@ -476,6 +476,19 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
               {" · "}
               {dados.periodoMaisAtrasado.diasAnalisados} {dados.periodoMaisAtrasado.diasAnalisados === 1 ? "dia completo" : "dias completos"} do período
             </small>
+            {dados.mesAtual && (
+              <div className={styles.periodoAlertaProjecao}>
+                <h3>Projeção no ritmo atual</h3>
+                <div className={styles.periodoAlertaProjecaoLinha}>
+                  <strong>{dinheiro.format(dados.periodoMaisAtrasado.projecao)}</strong>
+                  <span>
+                    {textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal
+                    {dados.periodoMaisAtrasado.faltaProjetada > 0 &&
+                      ` · Faltariam ${dinheiro.format(dados.periodoMaisAtrasado.faltaProjetada)}`}
+                  </span>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <p className={styles.periodoAlertaVazio}>
