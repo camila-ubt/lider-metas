@@ -789,3 +789,36 @@
     padding: 8px;
   }
 }
+
+
+.periodoAlertaProjecao {
+  padding: 12px 14px;
+  border: 1px solid #e8ddef;
+  border-radius: 14px;
+  background: #f8f5fb;
+}
+
+.periodoAlertaProjecao h3 {
+  margin: 0 0 7px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.periodoAlertaProjecaoLinha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 7px 14px;
+  flex-wrap: wrap;
+}
+
+.periodoAlertaProjecaoLinha strong {
+  font-size: 19px;
+  color: var(--foreground);
+}
+
+.periodoAlertaProjecaoLinha span {
+  font-size: 12px;
+  color: var(--muted);
+}
