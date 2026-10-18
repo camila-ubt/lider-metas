@@ -49,3 +49,92 @@
   width: 100%;
   box-sizing: border-box;
 }
+
+
+/* Resumo de prioridades para reunião, com leitura rápida no celular. */
+.resumoPrioridades {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.resumoPrioridades article {
+  min-width: 0;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.resumoPrioridades h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.resumoPrioridades p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.prioridadesLista {
+  display: grid;
+  gap: 12px;
+}
+
+.prioridadeItem {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.prioridadeItem + .prioridadeItem {
+  padding-top: 12px;
+  border-top: 1px solid rgba(111, 89, 86, .15);
+}
+
+.prioridadeItem strong {
+  color: #302638;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.prioridadeItem span,
+.prioridadeItem small {
+  color: #685f6d;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.prioridadeItem .prioridadeAlerta {
+  color: #a3324c;
+  font-weight: 700;
+}
+
+.acoes summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  color: #49335d;
+  list-style-position: inside;
+}
+
+.acoes summary:focus-visible {
+  outline: 2px solid #7650a7;
+  outline-offset: 4px;
+}
+
+.acoesConteudo {
+  padding-top: 10px;
+}
+
+.acoesConteudo p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .resumoPrioridades {
+    grid-template-columns: 1fr;
+  }
+  .resumoPrioridades article {
+    padding: 14px;
+  }
+}
