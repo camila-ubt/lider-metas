@@ -629,7 +629,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
 
         <div className={styles.resumoPeriodos}>
           <div className={styles.resumoPeriodosCabecalho}>
-            <h3>{encerrado ? "Resultado final dos períodos" : "Desempenho até hoje"}</h3>
+            <h3>{encerrado ? "Resultado final dos períodos" : futuro ? "Desempenho dos períodos" : "Desempenho até hoje"}</h3>
             <small>{encerrado ? "Meta mensal" : futuro ? "Aguardando início do mês" : "Meta proporcional · períodos encerrados"}</small>
           </div>
           <div className={styles.resumoPeriodosColunas}>
