@@ -494,7 +494,36 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         id={modoRelatorio ? "relatorio-turnos-antes-pa" : "painel-turnos-antes-pa"}
         className={styles.turnosSlot}
       />
-      <ResumoPADashboard mes={mes} />
+      <article className={styles.card}>
+        <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>Ranking interativo</p><h2>Toque na loja para abrir os detalhes</h2></div></div>
+        <div className={styles.rankList}>
+          {dados.ranking.map((loja, indice) => {
+            const aberta = Number(lojaAberta) === Number(loja.id);
+            const resultadoLoja = nivelFechado(loja.vendido, loja.meta);
+            return (
+              <div className={styles.rankWrapper} key={loja.id}>
+                <button type="button" className={`${styles.rankButton} ${aberta ? styles.rankButtonOpen : ""}`} onClick={() => setLojaAberta(aberta ? null : loja.id)} aria-expanded={aberta}>
+                  <span className={styles.rankNumber}>{indice + 1}</span>
+                  <span className={styles.rankName}><strong>{loja.codigo} — {loja.nome}</strong><small>{dados.mesPassado ? `Fechou em ${resultadoLoja}` : loja.jornada.completa ? "Megameta batida" : `Próximo nível: ${loja.jornada.alvo.nome}`}</small></span>
+                  <b>{textoPercentual(loja.percentual)}</b><span className={styles.chevron}>⌄</span>
+                </button>
+                {aberta && (
+                  <div className={styles.rankDetails}>
+                    <div className={styles.storeOverview}>
+                      <div><span>Vendido</span><strong>{dinheiro.format(loja.vendido)}</strong></div>
+                      <div><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.projecao === null ? "—" : dinheiro.format(loja.projecao)}</strong></div>
+                      <div><span>{dados.mesPassado ? "Fechamento" : "Próximo nível"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.jornada.alvo.nome}</strong></div>
+                    </div>
+                    <Niveis vendido={loja.vendido} jornada={loja.jornada} encerrado={dados.mesPassado} diasRestantes={loja.diasRestantes} />
+                    <div className={styles.periodGrid}>{loja.periodos.map((periodo) => <PeriodoDetalhe periodo={periodo} encerrado={dados.mesPassado} key={periodo.nome} />)}</div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </article>
+
 
       <article className={styles.card}>
         <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>Evolução acumulada</p><h2>Realizado, projeção e rotas de meta</h2></div></div>
@@ -530,36 +559,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         </article>
       </div>
 
-      <article className={styles.card}>
-        <div className={styles.sectionHeader}><div><p className={styles.eyebrow}>Ranking interativo</p><h2>Toque na loja para abrir os detalhes</h2></div></div>
-        <div className={styles.rankList}>
-          {dados.ranking.map((loja, indice) => {
-            const aberta = Number(lojaAberta) === Number(loja.id);
-            const resultadoLoja = nivelFechado(loja.vendido, loja.meta);
-            return (
-              <div className={styles.rankWrapper} key={loja.id}>
-                <button type="button" className={`${styles.rankButton} ${aberta ? styles.rankButtonOpen : ""}`} onClick={() => setLojaAberta(aberta ? null : loja.id)} aria-expanded={aberta}>
-                  <span className={styles.rankNumber}>{indice + 1}</span>
-                  <span className={styles.rankName}><strong>{loja.codigo} — {loja.nome}</strong><small>{dados.mesPassado ? `Fechou em ${resultadoLoja}` : loja.jornada.completa ? "Megameta batida" : `Próximo nível: ${loja.jornada.alvo.nome}`}</small></span>
-                  <b>{textoPercentual(loja.percentual)}</b><span className={styles.chevron}>⌄</span>
-                </button>
-                {aberta && (
-                  <div className={styles.rankDetails}>
-                    <div className={styles.storeOverview}>
-                      <div><span>Vendido</span><strong>{dinheiro.format(loja.vendido)}</strong></div>
-                      <div><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.projecao === null ? "—" : dinheiro.format(loja.projecao)}</strong></div>
-                      <div><span>{dados.mesPassado ? "Fechamento" : "Próximo nível"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.jornada.alvo.nome}</strong></div>
-                    </div>
-                    <Niveis vendido={loja.vendido} jornada={loja.jornada} encerrado={dados.mesPassado} diasRestantes={loja.diasRestantes} />
-                    <div className={styles.periodGrid}>{loja.periodos.map((periodo) => <PeriodoDetalhe periodo={periodo} encerrado={dados.mesPassado} key={periodo.nome} />)}</div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </article>
-
+      <ResumoPADashboard mes={mes} />
       <div className={styles.twoColumns}>
         <article className={styles.card}>
           <div className={styles.sectionHeader}>
