@@ -593,7 +593,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       >
         <span className={styles.turnosTitulo}>
           <strong>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura diária e projeção dos turnos"}</strong>
-          <small>Médias e metas por dia · projeção mensal</small>
+          <small>Manhã e noite</small>
         </span>
         <span className={styles.turnosSeta} aria-hidden="true">{turnosAbertos ? "−" : "+"}</span>
       </button>
@@ -616,10 +616,10 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                 <>
                   <p>
                     {encerrado ? "Média diária final" : "Média diária atual"}: {" "}
-                    <b>{turno.mediaAtual === null ? "—" : `${dinheiro.format(turno.mediaAtual)}/dia`}</b>
+                    <b>{turno.mediaAtual === null ? "—" : dinheiro.format(turno.mediaAtual)}</b>
                   </p>
                   <p>
-                    Meta mensal atingida: {" "}
+                    Resultado do turno: {" "}
                     <b>
                       {turno.percentual === null
                         ? turno.nivel
@@ -629,17 +629,17 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
 
                   {!encerrado && !futuro && turno.meta > 0 && (
                     <div className={styles.turnoProjecao}>
-                      <h4>Projeção de fechamento do mês</h4>
+                      <h4>Projeção de fechamento</h4>
                       {turno.projecaoFechamento === null ? (
                         <p>A projeção aparece após os primeiros lançamentos do turno.</p>
                       ) : (
                         <>
                           <p>
-                            <span>Faturamento mensal previsto</span>
+                            <span>Faturamento previsto</span>
                             <b>{dinheiro.format(turno.projecaoFechamento)}</b>
                           </p>
                           <p>
-                            <span>Resultado mensal previsto</span>
+                            <span>Resultado previsto</span>
                             <b>{percentual.format(turno.projecaoFechamento / turno.meta * 100)}% · {nivelDoResultado(turno.projecaoFechamento, turno.meta)}</b>
                           </p>
                         </>
@@ -650,25 +650,25 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                   {!encerrado && turno.meta > 0 && (
                     <div className={styles.turnoMetaRestante}>
                       <p>
-                        <span>{turno.periodo === "manha" ? "Manhãs restantes:" : "Noites restantes:"}</span>
+                        <span>Turnos restantes:</span>
                         <b>{turno.periodosRestantes}</b>
                       </p>
                       {turno.metasAjustadas.map((nivel) => (
                         <div className={styles.turnoNivel} key={nivel.nivel}>
                           <strong>{nivel.nome}</strong>
                           <p>
-                            <span>Meta fixa diária</span>
+                            <span>Meta fixa</span>
                             <b>{dinheiro.format(nivel.fixa)}</b>
                           </p>
                           <p>
-                            <span>Meta ajustada diária</span>
+                            <span>Meta ajustada</span>
                             <b>{nivel.ajustada === null
                               ? "Sem turnos restantes"
                               : dinheiro.format(nivel.ajustada)}</b>
                           </p>
                           {nivel.porLojaTurno !== null && (
                             <p className={styles.turnoPorLoja}>
-                              <span>Por loja/dia</span>
+                              <span>Por loja/turno</span>
                               <b>{dinheiro.format(nivel.porLojaTurno)}</b>
                             </p>
                           )}
