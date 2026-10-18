@@ -16,7 +16,7 @@ import {
 } from "@/lib/contextoMes";
 import { calcularProjecaoTurno, calcularMetasTurno, calcularTurnosRestantes } from "@/lib/projecaoTurnos.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
-import { desempenhoPeriodosReuniao } from "@/lib/desempenhoPeriodosReuniao.mjs";
+import { classificarDesempenhoPeriodo, desempenhoPeriodosReuniao } from "@/lib/desempenhoPeriodosReuniao.mjs";
 import styles from "./PainelReuniao.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -629,30 +629,25 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
 
         <div className={styles.resumoPeriodos}>
           <div className={styles.resumoPeriodosCabecalho}>
-            <h3>Desempenho dos períodos</h3>
-            <small>{encerrado ? "Resultado final · meta mensal" : futuro ? "Aguardando início do mês" : "Parcial · esperado até hoje"}</small>
+            <h3>{encerrado ? "Resultado final dos períodos" : "Desempenho até hoje"}</h3>
+            <small>{encerrado ? "Meta mensal" : futuro ? "Aguardando início do mês" : "Meta proporcional · períodos encerrados"}</small>
           </div>
           <div className={styles.resumoPeriodosColunas}>
             {resumo.desempenhoDosPeriodos.map((turno) => {
-              const positivo = turno.percentual !== null && turno.percentual >= 100;
+              const situacao = classificarDesempenhoPeriodo(turno.percentual, encerrado);
+              const estilo = situacao?.situacao === "acima" ? styles.resumoPeriodoPositivo
+                : situacao?.situacao === "abaixo" ? styles.resumoPeriodoAtencao
+                  : styles.resumoPeriodoSemDados;
               return (
                 <div className={styles.resumoPeriodo} key={turno.periodo}>
                   <strong>{nomeTurno(turno.periodo)}</strong>
-                  <b className={turno.percentual === null
-                    ? styles.resumoPeriodoSemDados
-                    : positivo ? styles.resumoPeriodoPositivo : styles.resumoPeriodoAtencao}>
-                    {turno.percentual === null ? "—" : `${percentual.format(turno.percentual)}%`}
+                  <b className={estilo}>
+                    {situacao ? `${situacao.simbolo ? `${situacao.simbolo} ` : ""}${percentual.format(situacao.diferenca)}%` : "—"}
                   </b>
-                  <span className={turno.percentual === null || turno.percentual === 100
-                    ? styles.resumoPeriodoSemDados
-                    : turno.percentual > 100 ? styles.resumoPeriodoPositivo : styles.resumoPeriodoAtencao}>
-                    {turno.percentual === null
-                      ? turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"
-                      : turno.percentual > 100
-                        ? `▲ ${percentual.format(turno.percentual - 100)}% acima`
-                        : turno.percentual < 100
-                          ? `▼ ${percentual.format(100 - turno.percentual)}% abaixo`
-                          : "Meta atingida"}
+                  <span>
+                    {situacao
+                      ? `${situacao.descricao} · ${situacao.classificacao}`
+                      : turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"}
                   </span>
                 </div>
               );
