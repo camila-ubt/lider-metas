@@ -575,6 +575,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       </div>
 
       <ResumoPADashboard mes={mes} />
+      <div id="painel-inteligencia-antes-roteiro" className={styles.inteligenciaSlot} />
       <div id="painel-roteiro-apos-pa" className={styles.roteiroSlot} />
       <div className={styles.twoColumns}>
         <article className={styles.card}>
