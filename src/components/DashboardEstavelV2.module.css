@@ -825,11 +825,13 @@
 
 
 /* O roteiro usa o mesmo espaçamento dos outros cards no painel. */
-.roteiroSlot {
+.roteiroSlot,
+.inteligenciaSlot {
   width: 100%;
   min-width: 0;
 }
 
-.roteiroSlot:empty {
+.roteiroSlot:empty,
+.inteligenciaSlot:empty {
   display: none;
 }
