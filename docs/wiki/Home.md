@@ -2,7 +2,7 @@
 
 O **Líder Metas** reúne vendas diárias, metas mensais, desempenho por loja e período e PA das vendedoras.
 
-O acompanhamento de turnos mostra metas ajustadas pelo resultado acumulado do mês, saldo por loja e meta coletiva. O sistema também oferece painel, tendências históricas, aprovações e fechamento mensal.
+O acompanhamento de turnos reúne metas ajustadas, projeções, médias por loja e previsão das metas de amanhã. O Painel e o Roteiro da Reunião comparam o desempenho de lojas e períodos. O sistema também oferece tendências históricas, PA e fechamento mensal.
 
 ## Documentação
 

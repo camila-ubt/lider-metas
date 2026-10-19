@@ -20,7 +20,11 @@ Os horários de manhã e noite são compartilhados com a Calculadora de Metas pa
 
 A aba acompanha manhã ou noite nas faixas Meta, Supermeta e Megameta. A meta ajustada usa o saldo mensal após as vendas oficiais anteriores e os turnos restantes. A meta fixa aparece como referência.
 
-As vendas informadas durante o turno atualizam o valor restante por loja e no geral, com compensação entre lojas. Os valores ficam salvos no aparelho até serem limpos, sem alterar lançamentos oficiais.
+As vendas informadas durante o turno atualizam o valor restante por loja e no geral, com compensação entre lojas, e permitem prever as metas de amanhã. Os valores ficam salvos no aparelho até serem limpos, sem alterar lançamentos oficiais.
+
+## Painel e Roteiro da Reunião
+
+O Painel mostra projeções de fechamento, turnos restantes e média necessária por loja para Meta, Supermeta e Megameta. Destaca o menor desempenho entre lojas e períodos. O Roteiro da Reunião também compara manhã e noite em relação à meta.
 
 ## Inteligência Gerencial
 
