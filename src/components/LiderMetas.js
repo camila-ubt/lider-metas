@@ -87,7 +87,6 @@ export default function LiderMetas({ telaInicial = "painel" }) {
     }
 
     document.addEventListener("lider-metas:vendedoras", aoAlternarVendedoras);
-    setVendedorasAberta(Boolean(document.querySelector(".app-shell.config-vendedoras-aberta")));
     return () => document.removeEventListener("lider-metas:vendedoras", aoAlternarVendedoras);
   }, []);
 
