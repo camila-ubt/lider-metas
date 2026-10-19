@@ -626,6 +626,7 @@
 
   .kpiGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .twoColumns,
@@ -634,11 +635,24 @@
   }
 
   .kpi {
-    padding: 13px;
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  .kpi span {
+    font-size: 12px;
+    line-height: 1.2;
   }
 
   .kpi strong {
-    font-size: 18px;
+    margin: 6px 0 3px;
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
+  .kpi small {
+    font-size: 10px;
+    line-height: 1.3;
   }
 
   .rankButton {
