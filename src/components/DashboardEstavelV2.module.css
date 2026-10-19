@@ -611,6 +611,12 @@
     flex-direction: column;
   }
 
+  .hero .subtitle {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
   .levels {
     grid-template-columns: 1fr;
   }
