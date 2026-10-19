@@ -151,4 +151,31 @@
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSummary"] span:first-child {
     display: none !important;
   }
+
+
+  /* Jornada do mês: textos dos três níveis no celular. */
+  [class*="DashboardEstavelV2"][class*="dashboard"] > [class*="hero"] [class*="levels"] > [class*="level"] {
+    padding: 4px 2px !important;
+    gap: 1px !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] > [class*="hero"] [class*="levels"] > [class*="level"] > span {
+    width: 19px !important;
+    height: 19px !important;
+    flex-basis: 19px !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] > [class*="hero"] [class*="levels"] > [class*="level"] strong::after {
+    font-size: 11px !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] > [class*="hero"] [class*="levels"] > [class*="level"] small,
+  [class*="DashboardEstavelV2"][class*="dashboard"] > [class*="hero"] [class*="levels"] > [class*="level"] em {
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] > [class*="hero"] [class*="levels"] > [class*="level"] em {
+    min-height: 0 !important;
+  }
 }
