@@ -13,7 +13,6 @@ import AjusteDiasEquivalentes from "@/components/AjusteDiasEquivalentes";
 import FluxoPendenciasLancamento from "@/components/FluxoPendenciasLancamento";
 import ConfiguracaoHorarios from "@/components/ConfiguracaoHorarios";
 import OrdenarGraficoPainel from "@/components/OrdenarGraficoPainel";
-import DetalhesMetasRanking from "@/components/DetalhesMetasRanking";
 import AtualizarTextosNiveis from "@/components/AtualizarTextosNiveis";
 import RodapeAutoria from "@/components/RodapeAutoria";
 import ConfiguracaoVendedoras from "@/components/ConfiguracaoVendedoras";
@@ -37,7 +36,6 @@ export default function AppEnhancements() {
       <FluxoPendenciasLancamento />
       <ConfiguracaoHorarios />
       <OrdenarGraficoPainel />
-      <DetalhesMetasRanking />
       <AtualizarTextosNiveis />
       <ConfiguracaoVendedoras />
       <RodapeAutoria />

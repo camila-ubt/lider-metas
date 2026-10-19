@@ -11,6 +11,7 @@ import { contextoDoMes } from "@/lib/contextoMes";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
+import { descreverSituacaoNivel } from "@/lib/situacaoNiveis.mjs";
 import styles from "./DashboardEstavelV2.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -153,40 +154,25 @@ function GraficoAcumulado({ dados, maximo }) {
   );
 }
 
-function textoNivel(nivel, vendido, encerrado, diasRestantes) {
-  const falta = Math.max(nivel.valor - vendido, 0);
-  if (!(nivel.valor > 0)) return "Sem meta";
-  if (vendido >= nivel.valor) return encerrado ? "Conquistada" : "Batida";
-  if (encerrado) return `Faltaram ${dinheiro.format(falta)}`;
-  if (diasRestantes > 0) {
-    return `${dinheiro.format(falta / diasRestantes)}/dia`;
-  }
-  return `Faltam ${dinheiro.format(falta)}`;
-}
-
-function textoPorLojaDia(nivel, vendido, encerrado, diasRestantes, quantidadeLojas) {
-  if (encerrado || !(nivel.valor > 0) || vendido >= nivel.valor) return null;
-  if (!(diasRestantes > 0) || !(quantidadeLojas > 0)) return null;
-
-  const falta = Math.max(nivel.valor - vendido, 0);
-  return `${dinheiro.format(falta / diasRestantes / quantidadeLojas)}/loja/dia`;
-}
-
 function Niveis({ vendido, jornada, encerrado = false, diasRestantes = 0, quantidadeLojas = 0, compacto: compactoVisual = false }) {
   return (
     <div className={compactoVisual ? styles.levelsCompact : styles.levels}>
       {jornada.niveis.map((nivel) => {
-        const batida = nivel.valor > 0 && vendido >= nivel.valor;
+        const situacao = descreverSituacaoNivel({
+          alvo: nivel.valor,
+          vendido,
+          encerrado,
+          diasRestantes,
+          quantidadeLojas,
+        });
         const atual = !encerrado && !jornada.completa && nivel.nome === jornada.alvo.nome;
         return (
-          <div className={`${styles.level} ${batida ? styles.levelDone : ""} ${atual ? styles.levelCurrent : ""}`} key={nivel.nome}>
+          <div className={`${styles.level} ${situacao.atingida ? styles.levelDone : ""} ${atual ? styles.levelCurrent : ""}`} key={nivel.nome}>
             <span>{nivel.simbolo}</span>
             <div><strong>{nivel.nome}</strong><small>{dinheiro.format(nivel.valor)}</small></div>
-            <em>{textoNivel(nivel, vendido, encerrado, diasRestantes)}</em>
-            {textoPorLojaDia(nivel, vendido, encerrado, diasRestantes, quantidadeLojas) && (
-              <small className={styles.perStoreDay}>
-                {textoPorLojaDia(nivel, vendido, encerrado, diasRestantes, quantidadeLojas)}
-              </small>
+            <em>{situacao.texto}</em>
+            {situacao.porLojaDia && (
+              <small className={styles.perStoreDay}>{situacao.porLojaDia}</small>
             )}
           </div>
         );
