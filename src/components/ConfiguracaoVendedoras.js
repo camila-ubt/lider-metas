@@ -112,29 +112,14 @@ export default function ConfiguracaoVendedoras() {
   useEffect(() => {
     if (!alvos.app || !alvos.tabs) return undefined;
 
-    alvos.app.classList.toggle("config-vendedoras-aberta", aberta && admin);
-    const outrosBotoes = [...alvos.tabs.querySelectorAll("button:not([data-config-vendedoras-botao])")];
-
-    if (aberta && admin) {
-      outrosBotoes.forEach((botao) => {
-        botao.dataset.configVendedorasActiveAnterior = botao.classList.contains("active") ? "true" : "false";
-        botao.dataset.configVendedorasPressedAnterior = botao.getAttribute("aria-pressed") ?? "";
-        botao.classList.remove("active");
-        if (botao.hasAttribute("aria-pressed")) botao.setAttribute("aria-pressed", "false");
-      });
-    }
+    const vendedorasAberta = aberta && admin;
+    alvos.app.classList.toggle("config-vendedoras-aberta", vendedorasAberta);
+    document.dispatchEvent(new CustomEvent("lider-metas:vendedoras", {
+      detail: { aberta: vendedorasAberta },
+    }));
 
     return () => {
       alvos.app?.classList.remove("config-vendedoras-aberta");
-      outrosBotoes.forEach((botao) => {
-        if (botao.dataset.configVendedorasActiveAnterior === "true") botao.classList.add("active");
-        if (botao.dataset.configVendedorasPressedAnterior !== undefined) {
-          const anterior = botao.dataset.configVendedorasPressedAnterior;
-          if (anterior) botao.setAttribute("aria-pressed", anterior);
-          delete botao.dataset.configVendedorasPressedAnterior;
-        }
-        delete botao.dataset.configVendedorasActiveAnterior;
-      });
     };
   }, [aberta, admin, alvos.app, alvos.tabs]);
 
