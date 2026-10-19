@@ -455,11 +455,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         <div className={styles.periodoAlertaTopo}>
           <div>
             <p className={styles.eyebrow}>Ponto de atenção</p>
-            <h2>Loja e período com menor desempenho</h2>
+            <h2>Menor desempenho</h2>
+            <small className={styles.periodoAlertaBase}>Comparativo entre todas as lojas e períodos</small>
           </div>
-          {dados.periodoMaisAtrasado.status === "atrasado" && (
-            <span className={styles.periodoAlertaSelo}>Menor desempenho</span>
-          )}
         </div>
         {dados.periodoMaisAtrasado.status === "atrasado" ? (
           <>
@@ -471,7 +469,6 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
               </strong>
               <b>{textoPercentual(dados.periodoMaisAtrasado.atrasoPercentual)} abaixo do esperado</b>
             </div>
-            <small className={styles.periodoAlertaBase}>Comparativo entre todas as lojas e períodos.</small>
             <div className={styles.periodoAlertaValores}>
               <div><span>Meta acumulada</span><strong>{dinheiro.format(dados.periodoMaisAtrasado.esperado)}</strong></div>
               <div><span>Vendido</span><strong>{dinheiro.format(dados.periodoMaisAtrasado.vendido)}</strong></div>
