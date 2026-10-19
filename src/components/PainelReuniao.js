@@ -735,17 +735,16 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
 
                   {!encerrado && !futuro && turno.meta > 0 && (
                     <div className={styles.turnoProjecao}>
-                      <h4>Projeção de fechamento</h4>
                       {turno.projecaoFechamento === null ? (
-                        <p>A projeção aparece após os primeiros lançamentos do turno.</p>
+                        <p>Projeção disponível após os primeiros lançamentos.</p>
                       ) : (
                         <>
                           <p>
-                            <span>Faturamento previsto</span>
+                            <span>Projeção de fechamento:</span>
                             <b>{dinheiro.format(turno.projecaoFechamento)}</b>
                           </p>
                           <p>
-                            <span>Resultado previsto</span>
+                            <span>Resultado previsto:</span>
                             <b>{percentual.format(turno.projecaoFechamento / turno.meta * 100)}% · {nivelDoResultado(turno.projecaoFechamento, turno.meta)}</b>
                           </p>
                         </>
