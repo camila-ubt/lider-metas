@@ -28,7 +28,10 @@ const secoes = [
         "Em Configurações → Metas, toque em “Imprimir metas”, confira o mês e envie para a impressora.",
       ]],
       ["Como acompanhar o turno?", [
-        "Abra “Acompanhar turno”, selecione manhã ou noite e o nível da meta. Informe as vendas de cada loja para ver quanto falta na meta ajustada e no geral. A meta fixa aparece como referência. Os valores ficam salvos no aparelho até tocar em “Limpar valores”.",
+        "Abra “Acompanhar turno”, escolha manhã ou noite e o nível da meta. Informe as vendas para acompanhar o saldo por loja, a meta ajustada e a previsão das metas de amanhã. Os valores ficam salvos no aparelho até tocar em “Limpar valores”.",
+      ]],
+      ["Como consultar as projeções e prioridades do Painel?", [
+        "No Painel, veja a projeção dos turnos, a média necessária por loja e o menor desempenho entre lojas e períodos. O Roteiro da Reunião compara manhã e noite.",
       ]],
       ["Como consultar a tendência histórica?", [
         "No Painel, abra “Inteligência Gerencial”. A tendência recente usa as vendas do mês selecionado; o padrão histórico compara o mesmo mês dos dois anos anteriores. “Base em formação” indica dados insuficientes.",

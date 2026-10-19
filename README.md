@@ -2,7 +2,7 @@
 
 Aplicação web de uso interno para acompanhamento das vendas, metas e desempenho das lojas.
 
-O sistema reúne lançamentos diários, metas mensais, PA das vendedoras e acompanhamento de turnos com metas ajustadas pelo desempenho do mês.
+O sistema reúne vendas, metas, PA das vendedoras, projeções por turno e análises de desempenho das lojas.
 
 Desenvolvido com **Next.js, React e Supabase**.
 

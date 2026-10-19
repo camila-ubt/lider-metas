@@ -1,3 +1,3 @@
-# Líder Metas v1.15.0
+# Líder Metas v1.16.0
 
-Incluído acompanhamento dos turnos com metas ajustadas, resultados individuais e coletivos, referência da meta fixa e salvamento local das vendas informadas.
+Acompanhamento de turnos com projeções, média necessária por loja e previsão das metas de amanhã. Painel e Roteiro da Reunião com destaque do menor desempenho, comparação entre manhã e noite e rótulos padronizados.
