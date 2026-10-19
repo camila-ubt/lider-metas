@@ -80,7 +80,7 @@ test("mês encerrado usa total vendido dividido pela meta mensal, sem projeçõe
   const resultado = calcular(vendas, "encerrado", 30, 0);
   assert.equal(resultado[0].referencia, "final");
   assert.equal(resultado[0].percentual, 100);
-  assert.equal(resultado[1].percentual, 110);
+  assert.ok(Math.abs(resultado[1].percentual - 110) < 1e-9);
 });
 
 test("futuro, falta de meta e período sem lançamento mostram ausência de dados", () => {
