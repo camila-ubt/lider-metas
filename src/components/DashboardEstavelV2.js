@@ -424,10 +424,6 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
           <div>
             <p className={styles.eyebrow}>Jornada do mês</p>
             <h2>{tituloJornada}</h2>
-            <p className={styles.subtitle}>
-              {dinheiro.format(dados.totalVendido)} vendidos
-              {!dados.mesPassado && dados.projecao !== null && ` · projeção de ${dinheiro.format(dados.projecao)}`}
-            </p>
           </div>
           <span className={styles.status}>
             {dados.mesPassado ? `Resultado final: ${dados.nivelFechado}` : dados.jornada.completa ? "Nível máximo" : `Próximo: ${dados.jornada.alvo.nome}`}
