@@ -451,14 +451,14 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
 
-      <article className={`${styles.card} ${styles.periodoAlerta}`} aria-label="Período que precisa de atenção">
+      <article className={`${styles.card} ${styles.periodoAlerta}`} aria-label="Comparativo de desempenho entre lojas e períodos">
         <div className={styles.periodoAlertaTopo}>
           <div>
             <p className={styles.eyebrow}>Ponto de atenção</p>
-            <h2>Período mais atrasado</h2>
+            <h2>Loja e período com menor desempenho</h2>
           </div>
           {dados.periodoMaisAtrasado.status === "atrasado" && (
-            <span className={styles.periodoAlertaSelo}>Maior atraso</span>
+            <span className={styles.periodoAlertaSelo}>Menor desempenho</span>
           )}
         </div>
         {dados.periodoMaisAtrasado.status === "atrasado" ? (
@@ -471,6 +471,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
               </strong>
               <b>{textoPercentual(dados.periodoMaisAtrasado.atrasoPercentual)} abaixo do esperado</b>
             </div>
+            <small className={styles.periodoAlertaBase}>Comparativo entre todas as lojas e períodos.</small>
             <div className={styles.periodoAlertaValores}>
               <div><span>Meta acumulada</span><strong>{dinheiro.format(dados.periodoMaisAtrasado.esperado)}</strong></div>
               <div><span>Vendido</span><strong>{dinheiro.format(dados.periodoMaisAtrasado.vendido)}</strong></div>
