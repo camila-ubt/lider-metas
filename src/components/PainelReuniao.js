@@ -58,6 +58,17 @@ function nomeTurno(periodo) {
   return periodo === "manha" ? "Manhã" : "Noite";
 }
 
+function rotuloLoja(loja) {
+  if (!loja) return "—";
+  return loja.codigo && loja.nome
+    ? `${loja.codigo} — ${loja.nome}`
+    : loja.codigo || loja.nome || "—";
+}
+
+function rotuloLojaPeriodo(loja, periodo) {
+  return `${loja?.codigo || loja?.nome || "—"} · ${nomeTurno(periodo)}`;
+}
+
 function compararMetaFixa(variacao) {
   if (variacao === null) return "—";
   if (Math.abs(variacao) < 0.05) return "0,0% vs. meta fixa";
@@ -579,7 +590,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
               : "Cadastre as metas das lojas e períodos."}</p>
           ) : resumo.destaque ? (
             <div className={styles.prioridadeItem}>
-              <strong>{resumo.destaque.codigo} — {resumo.destaque.nome}</strong>
+              <strong>{rotuloLoja(resumo.destaque)}</strong>
               <span>{percentual.format(resumo.destaque.percentual)}% da meta mensal da loja</span>
             </div>
           ) : (
@@ -597,7 +608,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                 <span>Loja com menor desempenho geral</span>
                 {resumo.atencao ? (
                   <>
-                    <strong>{resumo.atencao.codigo} — {resumo.atencao.nome}</strong>
+                    <strong>{rotuloLoja(resumo.atencao)}</strong>
                     <small>{percentual.format(resumo.atencao.percentual)}% da meta mensal da loja</small>
                   </>
                 ) : (
@@ -609,9 +620,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                 {resumo.periodoMaisAtrasado.status === "atrasado" ? (
                   <>
                     <strong>
-                      {resumo.periodoMaisAtrasado.loja.codigo || resumo.periodoMaisAtrasado.loja.nome}
-                      {" · "}
-                      {nomeTurno(resumo.periodoMaisAtrasado.periodo)}
+                      {rotuloLojaPeriodo(resumo.periodoMaisAtrasado.loja, resumo.periodoMaisAtrasado.periodo)}
                     </strong>
                     <small className={styles.prioridadeAlerta}>
                       {percentual.format(resumo.periodoMaisAtrasado.atrasoPercentual)}% abaixo da meta acumulada
