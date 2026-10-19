@@ -79,6 +79,19 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   const [perfil, setPerfil] = useState(null);
   const [tela, setTela] = useState(telaInicial);
   const [alvoAjuda, setAlvoAjuda] = useState(null);
+  const [vendedorasAberta, setVendedorasAberta] = useState(false);
+
+  useEffect(() => {
+    function aoAlternarVendedoras(evento) {
+      setVendedorasAberta(Boolean(evento.detail?.aberta));
+    }
+
+    document.addEventListener("lider-metas:vendedoras", aoAlternarVendedoras);
+    setVendedorasAberta(Boolean(document.querySelector(".app-shell.config-vendedoras-aberta")));
+    return () => document.removeEventListener("lider-metas:vendedoras", aoAlternarVendedoras);
+  }, []);
+
+  const abaAtiva = (nome) => !vendedorasAberta && tela === nome;
 
   useEffect(() => {
     function localizarRodape() {
@@ -715,16 +728,16 @@ export default function LiderMetas({ telaInicial = "painel" }) {
       >
         <button
           type="button"
-          className={tela === "painel" ? "active" : ""}
-          aria-pressed={tela === "painel"}
+          className={abaAtiva("painel") ? "active" : ""}
+          aria-pressed={abaAtiva("painel")}
           onClick={() => setTela("painel")}
         >
           Painel
         </button>
         <button
           type="button"
-          className={tela === "lancamentos" ? "active" : ""}
-          aria-pressed={tela === "lancamentos"}
+          className={abaAtiva("lancamentos") ? "active" : ""}
+          aria-pressed={abaAtiva("lancamentos")}
           onClick={() => setTela("lancamentos")}
         >
           Lançar vendas
@@ -732,8 +745,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         <button
           type="button"
           data-acompanhamento-botao
-          className={tela === "acompanhamento" ? "active" : ""}
-          aria-pressed={tela === "acompanhamento"}
+          className={abaAtiva("acompanhamento") ? "active" : ""}
+          aria-pressed={abaAtiva("acompanhamento")}
           onClick={() => {
             setMes(hojeLocal().slice(0, 7));
             setTela("acompanhamento");
@@ -745,8 +758,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
           <button
             type="button"
             data-pa-botao
-            className={tela === "pa" ? "active" : ""}
-            aria-pressed={tela === "pa"}
+            className={abaAtiva("pa") ? "active" : ""}
+            aria-pressed={abaAtiva("pa")}
             onClick={() => setTela("pa")}
           >
             PA das vendedoras
@@ -758,8 +771,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
             <div className="config-navigation-options" data-config-navigation-options>
               <button
                 type="button"
-                className={tela === "metas" ? "active" : ""}
-                aria-pressed={tela === "metas"}
+                className={abaAtiva("metas") ? "active" : ""}
+                aria-pressed={abaAtiva("metas")}
                 onClick={() => setTela("metas")}
               >
                 Metas
@@ -1106,8 +1119,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         </div>
       )}
       {alvoAjuda && createPortal(<div className="app-help">
-        <button type="button" data-manual-botao aria-pressed={tela === "manual"}
-          className={tela === "manual" ? "active" : ""}
+        <button type="button" data-manual-botao aria-pressed={abaAtiva("manual")}
+          className={abaAtiva("manual") ? "active" : ""}
           onClick={() => setTela("manual")}>
           Manual do usuário
         </button>
