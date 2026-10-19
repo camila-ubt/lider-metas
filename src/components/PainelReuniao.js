@@ -16,6 +16,7 @@ import {
 } from "@/lib/contextoMes";
 import { calcularProjecaoTurno, calcularMetasTurno, calcularTurnosRestantes } from "@/lib/projecaoTurnos.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
+import { classificarDesempenhoPeriodo, desempenhoPeriodosReuniao } from "@/lib/desempenhoPeriodosReuniao.mjs";
 import styles from "./PainelReuniao.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -276,6 +277,15 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
     const nivelGeral = nivelDoResultado(totalVendido, totalMeta);
     const percentualGeral = percentualDoResultado(totalVendido, totalMeta);
     const proximo = proximoNivel(totalVendido, totalMeta);
+    const desempenhoDosPeriodos = desempenhoPeriodosReuniao({
+      lojas,
+      metas,
+      vendas: vendasAteCorte,
+      contexto,
+      minutosAgora,
+      fimManha: minutosDoHorario(horarios.manhaFim),
+      fimNoite: minutosDoHorario(horarios.noiteFim),
+    });
     const periodoMaisAtrasado = encontrarPeriodoMaisAtrasado({
       lojas,
       metas,
@@ -454,6 +464,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       destaque: ranking.find((loja) => loja.meta > 0) || null,
       atencao: [...ranking].reverse().find((loja) => loja.meta > 0) || null,
       periodoMaisAtrasado,
+      desempenhoDosPeriodos,
       turnos,
       lojasAtingiram,
       lojasAbaixo,
@@ -615,6 +626,36 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
             </div>
           )}
         </article>
+
+        <div className={styles.resumoPeriodos}>
+          <div className={styles.resumoPeriodosCabecalho}>
+            <h3>{encerrado ? "Resultado final dos períodos" : futuro ? "Desempenho dos períodos" : "Desempenho até hoje"}</h3>
+            {encerrado && <small>Mês encerrado</small>}
+            {futuro && <small>Aguardando início do mês</small>}
+          </div>
+          <div className={styles.resumoPeriodosColunas}>
+            {resumo.desempenhoDosPeriodos.map((turno) => {
+              const situacao = classificarDesempenhoPeriodo(turno.percentual, encerrado);
+              const estilo = situacao?.situacao === "acima" ? styles.resumoPeriodoPositivo
+                : situacao?.situacao === "abaixo" ? styles.resumoPeriodoAtencao
+                  : styles.resumoPeriodoSemDados;
+              return (
+                <div className={styles.resumoPeriodo} key={turno.periodo}>
+                  <strong>{nomeTurno(turno.periodo)}</strong>
+                  <b className={estilo}>
+                    {situacao ? `${situacao.simbolo ? `${situacao.simbolo} ` : ""}${percentual.format(situacao.diferenca)}%` : "—"}
+                  </b>
+                  <span>
+                    {situacao
+                      ? `${situacao.descricao} · ${situacao.classificacao}`
+                      : turno.referencia === "sem-meta" ? "Sem meta" : "Aguardando dados"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
       </div>
 
       <details className={styles.acoes}>
