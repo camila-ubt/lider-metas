@@ -41,12 +41,6 @@
   margin: 0;
 }
 
-.subtitle {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: 14px;
-}
-
 .status {
   flex: 0 0 auto;
   border-radius: 999px;
@@ -609,12 +603,6 @@
   .heroTop,
   .sectionHeader {
     flex-direction: column;
-  }
-
-  .hero .subtitle {
-    margin-top: 4px;
-    font-size: 12px;
-    line-height: 1.25;
   }
 
   .levels {
