@@ -221,3 +221,25 @@
   .resumoPeriodos { padding: 12px; }
   .resumoPeriodo { padding: 10px; }
 }
+
+/* Variação versus meta fixa em uma linha nos cartões dos turnos. */
+@media (max-width: 760px) {
+  .turnoMetaRestante {
+    gap: 5px;
+    padding-inline: 5px;
+  }
+
+  .turnoNivel {
+    padding-inline: 3px;
+  }
+
+  .turnoNivel > small.variacaoFavoravel,
+  .turnoNivel > small.variacaoDesfavoravel,
+  .turnoNivel > small.variacaoNeutra {
+    align-self: center;
+    font-size: clamp(7px, 2.1vw, 9px);
+    letter-spacing: -0.025em;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+}
