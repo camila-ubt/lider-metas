@@ -735,17 +735,16 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
 
                   {!encerrado && !futuro && turno.meta > 0 && (
                     <div className={styles.turnoProjecao}>
-                      <h4>Projeção de fechamento</h4>
                       {turno.projecaoFechamento === null ? (
-                        <p>A projeção aparece após os primeiros lançamentos do turno.</p>
+                        <p>Projeção disponível após os primeiros lançamentos.</p>
                       ) : (
                         <>
                           <p>
-                            <span>Faturamento previsto</span>
+                            <span>Projeção de fechamento:</span>
                             <b>{dinheiro.format(turno.projecaoFechamento)}</b>
                           </p>
                           <p>
-                            <span>Resultado previsto</span>
+                            <span>Resultado previsto:</span>
                             <b>{percentual.format(turno.projecaoFechamento / turno.meta * 100)}% · {nivelDoResultado(turno.projecaoFechamento, turno.meta)}</b>
                           </p>
                         </>
@@ -763,21 +762,11 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                         <div className={styles.turnoNivel} key={nivel.nivel}>
                           <strong>{nivel.nome}</strong>
                           <p>
-                            <span>Meta fixa</span>
-                            <b>{dinheiro.format(nivel.fixa)}</b>
-                          </p>
-                          <p>
                             <span>Meta ajustada</span>
                             <b>{nivel.ajustada === null
                               ? "Sem turnos restantes"
                               : dinheiro.format(nivel.ajustada)}</b>
                           </p>
-                          {nivel.porLojaTurno !== null && (
-                            <p className={styles.turnoPorLoja}>
-                              <span>Por loja/turno</span>
-                              <b>{dinheiro.format(nivel.porLojaTurno)}</b>
-                            </p>
-                          )}
                           <small className={
                             nivel.variacao === null || Math.abs(nivel.variacao) < 0.05
                               ? styles.variacaoNeutra
@@ -787,6 +776,12 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                           }>
                             {compararMetaFixa(nivel.variacao)}
                           </small>
+                          {nivel.porLojaTurno !== null && (
+                            <p className={styles.turnoPorLoja}>
+                              <span>Por loja/turno</span>
+                              <b>{dinheiro.format(nivel.porLojaTurno)}</b>
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>
