@@ -599,17 +599,64 @@
     margin-top: 12px;
   }
 
-  .levels {
-    grid-template-columns: 1fr;
+  /* Níveis da jornada e dos cartões sempre em três colunas no celular. */
+  .levels,
+  .levelsCompact {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 5px;
   }
 
-  .level {
-    grid-template-columns: 30px minmax(0, 1fr) auto;
+  .levels .level,
+  .levelsCompact .level {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+    padding: 7px 3px;
+    text-align: center;
   }
 
-  .level em {
+  .levels .level > span,
+  .levelsCompact .level > span {
+    width: 23px;
+    height: 23px;
+    flex: 0 0 23px;
+    font-size: 11px;
+  }
+
+  .levels .level > div,
+  .levelsCompact .level > div {
+    width: 100%;
+    min-width: 0;
+    justify-items: center;
+  }
+
+  .levels .level strong,
+  .levelsCompact .level strong {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .levels .level small,
+  .levelsCompact .level small,
+  .levels .level em,
+  .levelsCompact .level em {
+    max-width: 100%;
+    font-size: 8px;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .levels .level em,
+  .levelsCompact .level em {
     grid-column: auto;
-    text-align: right;
+  }
+
+  .levels .perStoreDay,
+  .levelsCompact .perStoreDay {
+    width: 100%;
   }
 
   .kpiGrid {
