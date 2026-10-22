@@ -518,7 +518,6 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                     <div className={styles.storeOverview}>
                       <div><span>Vendido</span><strong>{dinheiro.format(loja.vendido)}</strong></div>
                       <div><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.projecao === null ? "—" : dinheiro.format(loja.projecao)}</strong></div>
-                      <div><span>{dados.mesPassado ? "Fechamento" : "Próximo nível"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.jornada.alvo.nome}</strong></div>
                     </div>
                     <Niveis vendido={loja.vendido} jornada={loja.jornada} encerrado={dados.mesPassado} diasRestantes={loja.diasRestantes} />
                     <div className={styles.periodGrid}>{loja.periodos.map((periodo) => <PeriodoDetalhe periodo={periodo} encerrado={dados.mesPassado} key={periodo.nome} />)}</div>
