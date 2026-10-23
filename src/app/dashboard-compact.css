@@ -23,6 +23,16 @@
     font-size: 10px !important;
   }
 
+  /* Na projeção, o nível ganha destaque; os reais ficam menores. */
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="storeOverview"] [class*="forecastLevel"] {
+    font-size: 14px !important;
+    line-height: 1.15 !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="storeOverview"] [class*="forecastAmount"] {
+    font-size: 10px !important;
+  }
+
   /* Geral da loja e períodos: Meta, Super e Mega sempre lado a lado. */
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="levels"],
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="levelsCompact"] {
@@ -143,9 +153,14 @@
     text-align: left !important;
   }
 
-  /* A Meta já aparece nos três níveis; deixa somente a projeção no resumo. */
-  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSummary"] span:first-child {
-    display: none !important;
+  /* Projeção por período: situação em destaque, valor secundário. */
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSummary"] [class*="forecastLevel"] {
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSummary"] [class*="forecastAmount"] {
+    font-size: 9px !important;
   }
 
 
