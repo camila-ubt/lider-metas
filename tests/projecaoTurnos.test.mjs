@@ -58,14 +58,14 @@ test("lançamento parcial de hoje não entra na média antes do fechamento", () 
   assert.equal(somarProjecoes(lojaUm.valor, lojaDois.valor), resultado.valor);
 });
 
-test("projeção geral soma as lojas mesmo quando uma ainda não tem lançamento", () => {
+test("loja sem histórico não recebe projeção artificial, mas o total com base é preservado", () => {
   const vendas = [venda(1, 1, "manha", 250)];
   const periodo = contexto("andamento", 1);
   const geral = projetar(vendas, "manha", periodo, 800, 720).valor;
   const uma = projetar(vendas, "manha", periodo, 800, 720, 1).valor;
   const duas = projetar(vendas, "manha", periodo, 800, 720, 2).valor;
-  assert.equal(duas, 0);
-  assert.equal(geral, uma + duas);
+  assert.equal(duas, null);
+  assert.equal(geral, uma);
 });
 
 test("antes e depois das 16h usa o fechamento configurado, não o lançamento", () => {
