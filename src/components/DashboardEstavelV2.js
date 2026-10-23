@@ -209,12 +209,13 @@ function ProjecaoDestaque({ valor, meta, encerrado = false }) {
 function PeriodoDetalhe({ periodo, encerrado }) {
   return (
     <article className={styles.periodCard}>
+      <div className={styles.periodNameLine}>
+        <span>{periodo.nome}</span>
+        <b>{textoPercentual(periodo.percentual)} da Meta</b>
+      </div>
       <div className={styles.periodTop}>
         <div className={styles.periodSales}>
-          <div className={styles.periodNameLine}>
-            <span>{periodo.nome}</span>
-            <b>{textoPercentual(periodo.percentual)}</b>
-          </div>
+          <span className={styles.periodMetricCaption}>Vendido</span>
           <strong>{dinheiro.format(periodo.vendido)}</strong>
         </div>
         <div className={styles.periodSummary}>
