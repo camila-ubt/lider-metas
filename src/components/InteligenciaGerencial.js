@@ -388,13 +388,19 @@ export default function InteligenciaGerencial() {
       nomesSemana,
     );
 
+    const diaCorteGeral = contexto.tipo !== "encerrado" &&
+      contexto.tipo !== "futuro" &&
+      minutosAgora < minutosDoHorario(horarios.noiteFim)
+        ? Math.max(0, contexto.diaCorte - 1)
+        : contexto.diaCorte;
+
     const historicoDoMes = analisarHistoricoMes({
       historicos,
       vendasAtuais: vendasConsideradas,
       lojas,
       ano: contexto.ano,
       numeroMes: contexto.numeroMes,
-      diaCorte: contexto.diaCorte,
+      diaCorte: diaCorteGeral,
       tipo: contexto.tipo,
     });
 
@@ -402,18 +408,21 @@ export default function InteligenciaGerencial() {
       (anoSerie) => {
         const lista =
           anoSerie === contexto.ano
-            ? vendasConsideradas
+            ? vendasConsideradas.filter(
+                (venda) => diaDaData(venda.data) <= diaCorteGeral,
+              )
             : historicos.filter(
                 (venda) =>
                   anoDaData(venda.data) === anoSerie &&
-                  diaDaData(venda.data) <= contexto.diaCorte,
+                  diaDaData(venda.data) <= diaCorteGeral,
               );
         return { ano: anoSerie, total: somar(lista), vendas: lista };
       },
     );
     const anterior =
       serieGeral.find((item) => item.ano === contexto.ano - 1)?.total || 0;
-    const mudancaHistorica = variacao(totalVendido, anterior);
+    const vendidoComparavel = serieGeral.find((item) => item.ano === contexto.ano)?.total || 0;
+    const mudancaHistorica = variacao(vendidoComparavel, anterior);
     const ordenada = [...serieGeral].sort((a, b) => b.total - a.total);
     const posicaoHistorica =
       ordenada.findIndex((item) => item.ano === contexto.ano) + 1;
@@ -637,7 +646,7 @@ export default function InteligenciaGerencial() {
                     <select
                       value={filtroLoja}
                       onChange={(evento) => setFiltroLoja(evento.target.value)}
-                      aria-label="Filtrar loja no histórico"
+                      aria-label="Filtrar loja no gráfico e nos indicadores gerenciais"
                     >
                       <option value="geral">Todas as lojas</option>
                       {lojas.map((loja) => (
@@ -649,7 +658,7 @@ export default function InteligenciaGerencial() {
                     <select
                       value={filtroPeriodo}
                       onChange={(evento) => setFiltroPeriodo(evento.target.value)}
-                      aria-label="Filtrar período no histórico"
+                      aria-label="Filtrar período no gráfico e nos indicadores gerenciais"
                     >
                       <option value="todos">Todos os períodos</option>
                       <option value="manha">Manhã</option>
@@ -678,24 +687,28 @@ export default function InteligenciaGerencial() {
                 <p className={styles.infoText}>
                   {fraseSemBase(
                     analise.contexto.tipo,
-                    analise.temMeta,
-                    analise.temVendas,
+                    analiseSelecionada.temMeta,
+                    analiseSelecionada.temVendas,
                   )}
                 </p>
               ) : encerrado ? (
                 <div className={styles.projectionExplain}>
                   <article>
                     <span>Resultado final</span>
-                    <strong>{dinheiro.format(analise.totalVendido)}</strong>
+                    <strong>{dinheiro.format(analiseSelecionada.totalVendido)}</strong>
                     <p>
-                      {percentual.format(analise.percentualGeral || 0)}% da Meta · {analise.nivelGeral}.
+                      {percentual.format(
+                        analiseSelecionada.totalMeta > 0
+                          ? (analiseSelecionada.totalVendido / analiseSelecionada.totalMeta) * 100
+                          : 0,
+                      )}% da Meta do escopo selecionado.
                     </p>
                   </article>
                   <article>
                     <span>Leitura da variação diária</span>
-                    <strong>{analise.diasObservados} dias com lançamentos</strong>
+                    <strong>{analiseSelecionada.diasObservados.length} dias com lançamentos</strong>
                     <p>
-                      Desvio diário observado de {dinheiro.format(analise.desvioDiario)}. Como o mês encerrou, não há mais projeção nem probabilidade futura.
+                      Desvio diário de dias completos: {dinheiro.format(analiseSelecionada.desvioDiario)}. Como o mês encerrou, não há mais projeção nem probabilidade futura.
                     </p>
                   </article>
                 </div>
