@@ -10,6 +10,7 @@ import {
 import { contextoDoMes } from "@/lib/contextoMes";
 import { classificarProjecao } from "@/lib/classificarProjecao.mjs";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
+import { calcularMetaPorLojaDia } from "@/lib/metaPorLojaDia.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
 import { descreverSituacaoNivel } from "@/lib/situacaoNiveis.mjs";
@@ -328,6 +329,10 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const media = somarProjecoes(previsaoManha.media, previsaoNoite.media);
     const mediaProjetada = media;
     const necessarioDia = diasRestantesGeral > 0 ? jornada.falta / diasRestantesGeral : 0;
+    const metaPorLojaDia = calcularMetaPorLojaDia({
+      meta, vendido: totalVendido, diasRestantes: diasRestantesGeral,
+      quantidadeLojas: lojas.length,
+    });
 
     let acumulado = 0;
     const acumuladoGeral = dias.map((valor, indice) => {
@@ -380,7 +385,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       ano, numeroMes, totalDias, diaCorte, mesAtual, mesPassado, mesFuturo,
       diasRestantes: diasRestantesGeral, diasRestantesManha, diasRestantesNoite,
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
-      meta, supermeta, megameta, jornada, media, projecao, necessarioDia,
+      meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
@@ -454,7 +459,27 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       <div className={styles.kpiGrid}>
         <article className={styles.kpi}><span>Total vendido</span><strong>{dinheiro.format(dados.totalVendido)}</strong><small>{textoPercentual(porcentagem(dados.totalVendido, dados.meta))} da Meta</small></article>
         <article className={styles.kpi}><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong><small>{dados.mesPassado ? dinheiro.format(dados.totalVendido) : dados.projecao === null ? "Aguardando vendas lançadas" : `Fechamento projetado: ${dados.nivelProjetado}`}</small></article>
-        <article className={styles.kpi}><span>{dados.mesPassado ? "Fechamento" : dados.jornada.completa ? "Megameta conquistada" : `Necessário para ${dados.jornada.alvo.nome}`}</span><strong>{dados.mesPassado ? dados.nivelFechado : dinheiro.format(dados.necessarioDia)}</strong><small>{dados.mesPassado ? "Mês encerrado" : dados.diasRestantes > 1 ? `${dados.diasRestantes} dias restantes` : "Valor necessário no dia"}</small></article>
+        {dados.mesPassado ? (
+          <article className={styles.kpi}>
+            <span>Fechamento</span>
+            <strong>{dados.nivelFechado}</strong>
+            <small>Mês encerrado</small>
+          </article>
+        ) : (
+          <article className={styles.kpi}>
+            <span>Meta por loja/dia</span>
+            <div className={styles.storeDailyRow}>
+              <strong className={styles.storeDailyValue}>
+                {dados.metaPorLojaDia === null
+                  ? "—"
+                  : dinheiro.format(dados.metaPorLojaDia)}
+              </strong>
+              <small className={styles.storeDailyDays}>
+                {dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
+              </small>
+            </div>
+          </article>
+        )}
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
 
