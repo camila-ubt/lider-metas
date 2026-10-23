@@ -475,6 +475,14 @@
   overflow-wrap: anywhere;
 }
 
+/* O vendido total da loja deve prevalecer visualmente sobre cada turno. */
+.storeOverview .storeSoldAmount {
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Valor previsto em segundo plano; nível de fechamento é a leitura principal. */
 .forecast {
   min-width: 0;
