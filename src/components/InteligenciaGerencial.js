@@ -536,10 +536,26 @@ export default function InteligenciaGerencial() {
     filtroPeriodo === "todos" ? "manhã e noite" : filtroPeriodo === "manha" ? "manhã" : "noite",
   ].join(" · ");
 
+  // Compara somente períodos encerrados: hoje aberto não é comparável
+  // ao mesmo dia completo dos anos anteriores.
+  const diaCorteComparavel = analise
+    ? Math.max(0, analise.contexto.diaCorte - (
+        analise.contexto.tipo !== "encerrado" &&
+        analise.contexto.tipo !== "futuro" &&
+        (
+          (filtroPeriodo !== "noite" &&
+            minutosAgora < minutosDoHorario(horarios.manhaFim)) ||
+          (filtroPeriodo !== "manha" &&
+            minutosAgora < minutosDoHorario(horarios.noiteFim))
+        ) ? 1 : 0
+      ))
+    : 0;
+
   const historicoFiltrado = useMemo(() => {
     if (!analise) return [];
     return analise.serieGeral.map((serie) => {
       const lista = serie.vendas.filter((venda) => {
+        if (diaDaData(venda.data) > diaCorteComparavel) return false;
         if (
           filtroLoja !== "geral" &&
           Number(venda.loja_id) !== Number(filtroLoja)
@@ -556,12 +572,12 @@ export default function InteligenciaGerencial() {
         total: somar(lista),
         valores: acumuladoPorDia(
           lista,
-          analise.contexto.diaCorte,
-          analise.contexto.diaCorte,
+          diaCorteComparavel,
+          diaCorteComparavel,
         ),
       };
     });
-  }, [analise, filtroLoja, filtroPeriodo]);
+  }, [analise, filtroLoja, filtroPeriodo, diaCorteComparavel]);
 
   if (!autenticado || !visivel) return null;
 
@@ -642,7 +658,7 @@ export default function InteligenciaGerencial() {
                   </div>
                   <GraficoHistorico
                     series={historicoFiltrado}
-                    diaCorte={analise.contexto.diaCorte}
+                    diaCorte={diaCorteComparavel}
                   />
                 </>
               ) : null}
@@ -734,7 +750,7 @@ export default function InteligenciaGerencial() {
             <section className="inteligencia-gerencial-secao">
               <h3>{encerrado ? "📉 Tendências observadas no mês" : "📉 Tendências"}</h3>
 
-              {futuro || !analise.temVendas ? (
+              {futuro || !analiseSelecionada?.temVendas ? (
                 <p className={styles.infoText}>
                   {futuro
                     ? "As tendências começarão a ser calculadas após a abertura e os primeiros lançamentos do mês."
@@ -744,37 +760,37 @@ export default function InteligenciaGerencial() {
                 <div className={styles.trendGrid}>
                   <article>
                     <span>{encerrado ? "Tendência do período" : "Tendência recente"}</span>
-                    <strong>{analiseSelecionada.tendencia.nome === undefined ? "base em formação" : analiseSelecionada.nomeTendencia}</strong>
+                    <strong>{analiseSelecionada.nomeTendencia}</strong>
                     <p>
                       Variação linear de {dinheiro.format(
                         Math.abs(analiseSelecionada.tendencia.inclinacao),
-                      )} por dia nos últimos {analiseSelecionada.ultimosValores.length} dias observados.
+                      )} por dia nos últimos {analiseSelecionada.ultimosValores.length} dias completos.
                     </p>
                   </article>
                   <article>
                     <span>Dia mais forte · mês atual</span>
-                    <strong>{analise.diaForte?.nome || (analise.situacaoDiasSemana === "empate" ? "Médias iguais" : "Base em formação")}</strong>
+                    <strong>{analiseSelecionada.diaForte?.nome || (analiseSelecionada.situacao === "empate" ? "Médias iguais" : "Base em formação")}</strong>
                     <p>
-                      {analise.diaForte
-                        ? `Média de ${dinheiro.format(analise.diaForte.media)} em ${analise.diaForte.quantidade} dias completos.`
-                        : analise.situacaoDiasSemana === "empate"
+                      {analiseSelecionada.diaForte
+                        ? `Média de ${dinheiro.format(analiseSelecionada.diaForte.media)} em ${analiseSelecionada.diaForte.quantidade} dias completos.`
+                        : analiseSelecionada.situacao === "empate"
                           ? "Os dias comparáveis têm a mesma média."
                           : "São necessários dois dias da semana com pelo menos duas datas completas cada."}
                     </p>
                   </article>
                   <article>
                     <span>Dia mais fraco · mês atual</span>
-                    <strong>{analise.diaFraco?.nome || (analise.situacaoDiasSemana === "empate" ? "Médias iguais" : "Base em formação")}</strong>
+                    <strong>{analiseSelecionada.diaFraco?.nome || (analiseSelecionada.situacao === "empate" ? "Médias iguais" : "Base em formação")}</strong>
                     <p>
-                      {analise.diaFraco
-                        ? `Média de ${dinheiro.format(analise.diaFraco.media)} em ${analise.diaFraco.quantidade} dias completos.`
-                        : analise.situacaoDiasSemana === "empate"
+                      {analiseSelecionada.diaFraco
+                        ? `Média de ${dinheiro.format(analiseSelecionada.diaFraco.media)} em ${analiseSelecionada.diaFraco.quantidade} dias completos.`
+                        : analiseSelecionada.situacao === "empate"
                           ? "Os dias comparáveis têm a mesma média."
                           : "São necessários dois dias da semana com pelo menos duas datas completas cada."}
                     </p>
                   </article>
                   <article>
-                    <span>Regularidade</span>
+                    <span>Regularidade geral · todas as lojas</span>
                     <strong>
                       {analise.maisConsistente?.codigo || "Base em formação"}
                     </strong>
@@ -793,7 +809,7 @@ export default function InteligenciaGerencial() {
             </section>
 
             <section className="inteligencia-gerencial-secao">
-              <h3>📅 Padrão histórico de {nomesMeses[analise.contexto.numeroMes - 1]}</h3>
+              <h3>📅 Padrão histórico geral de {nomesMeses[analise.contexto.numeroMes - 1]}</h3>
               {analise.historicoDoMes.referencias.length ? (
                 <>
                   <p className={styles.explanation}>
@@ -876,7 +892,7 @@ export default function InteligenciaGerencial() {
             </section>
 
             <section className="inteligencia-gerencial-secao">
-              <h3>💡 Insights automáticos</h3>
+              <h3>💡 Insights gerais · todas as lojas</h3>
               <div className="inteligencia-gerencial-insights">
                 {(analise.insights.length
                   ? analise.insights
