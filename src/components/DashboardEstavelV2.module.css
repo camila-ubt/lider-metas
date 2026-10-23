@@ -480,14 +480,24 @@
   min-width: 0;
   display: grid;
   justify-items: start;
+  align-content: start;
   gap: 3px;
 }
 
+.forecastHeadline {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 5px;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
 .forecastLevel {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
-  line-height: 1.2;
-  overflow-wrap: anywhere;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
 .forecastAmount {
@@ -502,6 +512,7 @@
 .forecastCaption {
   color: var(--muted);
   font-size: 10px;
+  white-space: nowrap;
 }
 
 .forecastAbaixo { color: #a3324c; }
@@ -515,7 +526,7 @@
 }
 
 .storeOverview .forecastLevel {
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .periodGrid {
@@ -572,13 +583,12 @@
 .periodSummary {
   min-width: 0;
   display: grid;
-  gap: 3px;
   justify-items: start;
   align-content: start;
 }
 
 .periodSummary .forecastLevel {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .levelsCompact {
