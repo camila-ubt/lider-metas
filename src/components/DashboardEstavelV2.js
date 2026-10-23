@@ -205,17 +205,22 @@ function ProjecaoDestaque({ valor, meta, encerrado = false }) {
 function PeriodoDetalhe({ periodo, encerrado }) {
   return (
     <article className={styles.periodCard}>
-      <div className={styles.periodHeader}>
-        <div><span>{periodo.nome}</span><strong>{dinheiro.format(periodo.vendido)}</strong></div>
-        <b>{textoPercentual(periodo.percentual)}</b>
-      </div>
-      <div className={styles.periodSummary}>
-        <span className={styles.forecastCaption}>{encerrado ? "Resultado final" : "Projeção"}</span>
-        <ProjecaoDestaque
-          valor={encerrado ? periodo.vendido : periodo.projecao}
-          meta={periodo.meta}
-          encerrado={encerrado}
-        />
+      <div className={styles.periodTop}>
+        <div className={styles.periodSales}>
+          <div className={styles.periodNameLine}>
+            <span>{periodo.nome}</span>
+            <b>{textoPercentual(periodo.percentual)}</b>
+          </div>
+          <strong>{dinheiro.format(periodo.vendido)}</strong>
+        </div>
+        <div className={styles.periodSummary}>
+          <span className={styles.forecastCaption}>{encerrado ? "Resultado final" : "Projeção"}</span>
+          <ProjecaoDestaque
+            valor={encerrado ? periodo.vendido : periodo.projecao}
+            meta={periodo.meta}
+            encerrado={encerrado}
+          />
+        </div>
       </div>
       <Niveis vendido={periodo.vendido} jornada={periodo.jornada} encerrado={encerrado} diasRestantes={periodo.diasRestantes} compacto />
     </article>
