@@ -544,7 +544,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                 {aberta && (
                   <div className={styles.rankDetails}>
                     <div className={styles.storeOverview}>
-                      <div><span>Vendido</span><strong>{dinheiro.format(loja.vendido)}</strong></div>
+                      <div className={styles.storeSold}><span>Vendido</span><strong className={styles.storeSoldAmount}>{dinheiro.format(loja.vendido)}</strong></div>
                       <div className={styles.storeProjection}>
                         <ProjecaoDestaque
                           valor={dados.mesPassado ? loja.vendido : loja.projecao}
