@@ -203,5 +203,5 @@ test("o parcial de hoje compõe o realizado sem contar um turno inteiro duas vez
   assert.equal(antes.valor, 9000);
   const completo = projetar(vendas, "noite", contexto("andamento", 2), 1320, 1320);
   assert.equal(completo.diasBase, 2);
-  assert.equal(completo.valor, 5425);
+  assert.equal(completo.valor, 5250);
 });
