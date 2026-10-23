@@ -23,9 +23,19 @@
     font-size: 10px !important;
   }
 
-  /* Na projeção, o nível ganha destaque; os reais ficam menores. */
+  /* Projeção em duas linhas, com o rótulo e o nível lado a lado. */
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="forecastHeadline"] {
+    gap: 4px !important;
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="forecastCaption"] {
+    font-size: 8px !important;
+  }
+
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="storeOverview"] [class*="forecastLevel"] {
-    font-size: 12px !important;
+    font-size: 11px !important;
     line-height: 1.15 !important;
   }
 
@@ -162,7 +172,7 @@
   }
 
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSummary"] [class*="forecastLevel"] {
-    font-size: 11px !important;
+    font-size: 10px !important;
     line-height: 1.15 !important;
   }
 
