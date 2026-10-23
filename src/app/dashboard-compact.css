@@ -25,7 +25,7 @@
 
   /* Na projeção, o nível ganha destaque; os reais ficam menores. */
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="storeOverview"] [class*="forecastLevel"] {
-    font-size: 14px !important;
+    font-size: 12px !important;
     line-height: 1.15 !important;
   }
 
@@ -126,36 +126,43 @@
     border-radius: 13px !important;
   }
 
-  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodHeader"] {
-    gap: 4px !important;
+  /* Vendido e projeção lado a lado dentro de cada turno. */
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodTop"] {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
   }
 
-  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodHeader"] > div {
-    gap: 2px !important;
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSales"] {
+    gap: 3px !important;
   }
 
-  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodHeader"] span {
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodNameLine"] {
+    gap: 2px 5px !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodNameLine"] span {
     font-size: 11px !important;
   }
 
-  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodHeader"] strong {
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodNameLine"] b {
+    font-size: 9px !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSales"] > strong {
     font-size: 13px !important;
   }
 
-  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodHeader"] b {
-    font-size: 10px !important;
-  }
-
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSummary"] {
-    display: block !important;
-    margin-top: 5px !important;
+    display: grid !important;
+    gap: 3px !important;
+    margin-top: 0 !important;
     font-size: 8px !important;
     text-align: left !important;
   }
 
-  /* Projeção por período: situação em destaque, valor secundário. */
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSummary"] [class*="forecastLevel"] {
-    font-size: 13px !important;
+    font-size: 11px !important;
     line-height: 1.15 !important;
   }
 
