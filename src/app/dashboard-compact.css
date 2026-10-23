@@ -154,15 +154,30 @@
   }
 
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodNameLine"] {
-    gap: 2px 5px !important;
+    gap: 4px !important;
+    justify-content: space-between !important;
   }
 
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodNameLine"] span {
-    font-size: 11px !important;
+    font-size: 13px !important;
   }
 
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodNameLine"] b {
     font-size: 9px !important;
+    padding: 3px 6px !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodTop"] {
+    margin-top: 7px !important;
+    padding-top: 8px !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodMetricCaption"] {
+    font-size: 9px !important;
+  }
+
+  [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSummary"] {
+    padding-left: 8px !important;
   }
 
   [class*="DashboardEstavelV2"][class*="dashboard"] [class*="periodSales"] > strong {
