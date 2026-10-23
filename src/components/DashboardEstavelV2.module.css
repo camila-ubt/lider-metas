@@ -484,8 +484,8 @@
 }
 
 .forecastLevel {
-  font-size: 16px;
-  font-weight: 850;
+  font-size: 13px;
+  font-weight: 800;
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -515,7 +515,7 @@
 }
 
 .storeOverview .forecastLevel {
-  font-size: 18px;
+  font-size: 14px;
 }
 
 .periodGrid {
@@ -533,34 +533,52 @@
   background: #fbf9fc;
 }
 
-.periodHeader > div {
+.periodTop {
   display: grid;
-  gap: 5px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
 }
 
-.periodHeader span {
+.periodSales {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.periodNameLine {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 3px 9px;
+}
+
+.periodNameLine span {
   font-size: 13px;
   font-weight: 800;
 }
 
-.periodHeader strong {
-  font-size: 18px;
+.periodNameLine b {
+  color: var(--primary-dark);
+  font-size: 11px;
 }
 
-.periodHeader b {
-  color: var(--primary-dark);
-  font-size: 13px;
+.periodSales > strong {
+  font-size: 17px;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
 }
 
 .periodSummary {
+  min-width: 0;
   display: grid;
   gap: 3px;
   justify-items: start;
-  margin-top: 9px;
+  align-content: start;
 }
 
 .periodSummary .forecastLevel {
-  font-size: 15px;
+  font-size: 12px;
 }
 
 .levelsCompact {
