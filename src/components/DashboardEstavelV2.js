@@ -468,16 +468,14 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         ) : (
           <article className={styles.kpi}>
             <span>Meta por loja/dia</span>
-            <div className={styles.storeDailyRow}>
-              <strong className={styles.storeDailyValue}>
-                {dados.metaPorLojaDia === null
-                  ? "—"
-                  : dinheiro.format(dados.metaPorLojaDia)}
-              </strong>
-              <small className={styles.storeDailyDays}>
-                {dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
-              </small>
-            </div>
+            <strong>
+              {dados.metaPorLojaDia === null
+                ? "—"
+                : dinheiro.format(dados.metaPorLojaDia)}
+            </strong>
+            <small>
+              {dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
+            </small>
           </article>
         )}
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
