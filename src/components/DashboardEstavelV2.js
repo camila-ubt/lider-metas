@@ -8,7 +8,9 @@ import {
   useMinutosAtuais,
 } from "@/lib/horariosPeriodos";
 import { contextoDoMes } from "@/lib/contextoMes";
+import { classificarProjecao } from "@/lib/classificarProjecao.mjs";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
+import { calcularMetaPorLojaDia } from "@/lib/metaPorLojaDia.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
 import { descreverSituacaoNivel } from "@/lib/situacaoNiveis.mjs";
@@ -181,20 +183,47 @@ function Niveis({ vendido, jornada, encerrado = false, diasRestantes = 0, quanti
   );
 }
 
+function ProjecaoDestaque({ valor, meta, encerrado = false }) {
+  const { rotulo, tom } = classificarProjecao(valor, meta);
+  const cores = {
+    abaixo: styles.forecastAbaixo,
+    meta: styles.forecastMeta,
+    super: styles.forecastSuper,
+    mega: styles.forecastMega,
+    neutro: styles.forecastNeutro,
+  };
+
+  return (
+    <div className={styles.forecast}>
+      <div className={styles.forecastHeadline}>
+        <span className={styles.forecastCaption}>{encerrado ? "Resultado final" : "Projeção"}</span>
+        <strong className={`${styles.forecastLevel} ${cores[tom]}`}>{rotulo}</strong>
+      </div>
+      {!encerrado && valor !== null && valor !== undefined && Number.isFinite(Number(valor)) && (
+        <small className={styles.forecastAmount}>{dinheiro.format(valor)}</small>
+      )}
+    </div>
+  );
+}
+
 function PeriodoDetalhe({ periodo, encerrado }) {
   return (
     <article className={styles.periodCard}>
-      <div className={styles.periodHeader}>
-        <div><span>{periodo.nome}</span><strong>{dinheiro.format(periodo.vendido)}</strong></div>
-        <b>{textoPercentual(periodo.percentual)}</b>
-      </div>
-      <div className={styles.periodSummary}>
-        <span>Meta: {dinheiro.format(periodo.meta)}</span>
-        <span>{encerrado
-          ? `Fechou em ${nivelFechado(periodo.vendido, periodo.meta)}`
-          : periodo.projecao === null
-            ? "Projeção indisponível"
-            : `Projeção: ${dinheiro.format(periodo.projecao)}`}</span>
+      <div className={styles.periodTop}>
+        <div className={styles.periodSales}>
+          <div className={styles.periodNameLine}>
+            <span>{periodo.nome}</span>
+            <b>{textoPercentual(periodo.percentual)}</b>
+          </div>
+          <strong>{dinheiro.format(periodo.vendido)}</strong>
+        </div>
+        <div className={styles.periodSummary}>
+          <ProjecaoDestaque
+            valor={encerrado ? periodo.vendido : periodo.projecao}
+            meta={periodo.meta}
+            encerrado={encerrado}
+          />
+        </div>
       </div>
       <Niveis vendido={periodo.vendido} jornada={periodo.jornada} encerrado={encerrado} diasRestantes={periodo.diasRestantes} compacto />
     </article>
@@ -300,6 +329,10 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const media = somarProjecoes(previsaoManha.media, previsaoNoite.media);
     const mediaProjetada = media;
     const necessarioDia = diasRestantesGeral > 0 ? jornada.falta / diasRestantesGeral : 0;
+    const metaPorLojaDia = calcularMetaPorLojaDia({
+      meta, vendido: totalVendido, diasRestantes: diasRestantesGeral,
+      quantidadeLojas: lojas.length,
+    });
 
     let acumulado = 0;
     const acumuladoGeral = dias.map((valor, indice) => {
@@ -352,7 +385,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       ano, numeroMes, totalDias, diaCorte, mesAtual, mesPassado, mesFuturo,
       diasRestantes: diasRestantesGeral, diasRestantesManha, diasRestantesNoite,
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
-      meta, supermeta, megameta, jornada, media, projecao, necessarioDia,
+      meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
@@ -426,7 +459,25 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       <div className={styles.kpiGrid}>
         <article className={styles.kpi}><span>Total vendido</span><strong>{dinheiro.format(dados.totalVendido)}</strong><small>{textoPercentual(porcentagem(dados.totalVendido, dados.meta))} da Meta</small></article>
         <article className={styles.kpi}><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong><small>{dados.mesPassado ? dinheiro.format(dados.totalVendido) : dados.projecao === null ? "Aguardando vendas lançadas" : `Fechamento projetado: ${dados.nivelProjetado}`}</small></article>
-        <article className={styles.kpi}><span>{dados.mesPassado ? "Fechamento" : dados.jornada.completa ? "Megameta conquistada" : `Necessário para ${dados.jornada.alvo.nome}`}</span><strong>{dados.mesPassado ? dados.nivelFechado : dinheiro.format(dados.necessarioDia)}</strong><small>{dados.mesPassado ? "Mês encerrado" : dados.diasRestantes > 1 ? `${dados.diasRestantes} dias restantes` : "Valor necessário no dia"}</small></article>
+        {dados.mesPassado ? (
+          <article className={styles.kpi}>
+            <span>Fechamento</span>
+            <strong>{dados.nivelFechado}</strong>
+            <small>Mês encerrado</small>
+          </article>
+        ) : (
+          <article className={styles.kpi}>
+            <span>Meta por loja/dia</span>
+            <strong>
+              {dados.metaPorLojaDia === null
+                ? "—"
+                : dinheiro.format(dados.metaPorLojaDia)}
+            </strong>
+            <small>
+              {dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
+            </small>
+          </article>
+        )}
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
 
@@ -516,8 +567,14 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                 {aberta && (
                   <div className={styles.rankDetails}>
                     <div className={styles.storeOverview}>
-                      <div><span>Vendido</span><strong>{dinheiro.format(loja.vendido)}</strong></div>
-                      <div><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? resultadoLoja : loja.projecao === null ? "—" : dinheiro.format(loja.projecao)}</strong></div>
+                      <div className={styles.storeSold}><span>Vendido</span><strong className={styles.storeSoldAmount}>{dinheiro.format(loja.vendido)}</strong></div>
+                      <div className={styles.storeProjection}>
+                        <ProjecaoDestaque
+                          valor={dados.mesPassado ? loja.vendido : loja.projecao}
+                          meta={loja.meta}
+                          encerrado={dados.mesPassado}
+                        />
+                      </div>
                     </div>
                     <Niveis vendido={loja.vendido} jornada={loja.jornada} encerrado={dados.mesPassado} diasRestantes={loja.diasRestantes} />
                     <div className={styles.periodGrid}>{loja.periodos.map((periodo) => <PeriodoDetalhe periodo={periodo} encerrado={dados.mesPassado} key={periodo.nome} />)}</div>
