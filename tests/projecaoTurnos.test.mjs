@@ -29,7 +29,7 @@ const projetar = (vendas, periodo, contextoAtual, minutosAgora, fimTurno, lojaId
 
 test("projeção inicia no primeiro dia com vendas lançadas", () => {
   const vendas = [venda(1, 1, "manha", 100), venda(1, 2, "manha", 200)];
-  const resultado = projetar(vendas, "manha", contexto("andamento", 1), 600, 720);
+  const resultado = projetar(vendas, "manha", contexto("andamento", 1), 800, 720);
   assert.equal(resultado.media, 300);
   assert.equal(resultado.valor, 9000);
   assert.equal(resultado.diasBase, 1);
@@ -43,29 +43,29 @@ test("turno não lançado hoje mantém média dos dias anteriores", () => {
   assert.equal(resultado.diasBase, 1);
 });
 
-test("lançamento do turno de hoje atualiza a média e projeção imediatamente", () => {
+test("lançamento parcial de hoje não entra na média antes do fechamento", () => {
   const vendas = [
     venda(1, 1, "noite", 100),
     venda(1, 2, "noite", 200),
     venda(2, 1, "noite", 50),
   ];
   const resultado = projetar(vendas, "noite", contexto("andamento", 2), 900, 1320);
-  assert.equal(resultado.diasBase, 2);
-  assert.equal(resultado.media, 275);
-  assert.equal(resultado.valor, 8250);
+  assert.equal(resultado.diasBase, 1);
+  assert.equal(resultado.media, 300);
+  assert.equal(resultado.valor, 9000);
   const lojaUm = projetar(vendas, "noite", contexto("andamento", 2), 900, 1320, 1);
   const lojaDois = projetar(vendas, "noite", contexto("andamento", 2), 900, 1320, 2);
   assert.equal(somarProjecoes(lojaUm.valor, lojaDois.valor), resultado.valor);
 });
 
-test("projeção geral soma as lojas mesmo quando uma ainda não tem lançamento", () => {
+test("loja sem histórico não recebe projeção artificial, mas o total com base é preservado", () => {
   const vendas = [venda(1, 1, "manha", 250)];
   const periodo = contexto("andamento", 1);
-  const geral = projetar(vendas, "manha", periodo, 650, 720).valor;
-  const uma = projetar(vendas, "manha", periodo, 650, 720, 1).valor;
-  const duas = projetar(vendas, "manha", periodo, 650, 720, 2).valor;
-  assert.equal(duas, 0);
-  assert.equal(geral, uma + duas);
+  const geral = projetar(vendas, "manha", periodo, 800, 720).valor;
+  const uma = projetar(vendas, "manha", periodo, 800, 720, 1).valor;
+  const duas = projetar(vendas, "manha", periodo, 800, 720, 2).valor;
+  assert.equal(duas, null);
+  assert.equal(geral, uma);
 });
 
 test("antes e depois das 16h usa o fechamento configurado, não o lançamento", () => {
@@ -117,8 +117,8 @@ test("o lançamento de uma loja não reduz artificialmente a média das outras",
   const total = projetar(vendas, "noite", hoje, 960, 1320);
   const primeira = projetar(vendas, "noite", hoje, 960, 1320, 1);
   const segunda = projetar(vendas, "noite", hoje, 960, 1320, 2);
-  assert.equal(total.media, 275);
-  assert.equal(primeira.media, 75);
+  assert.equal(total.media, 300);
+  assert.equal(primeira.media, 100);
   assert.equal(segunda.media, 200);
   assert.equal(somarProjecoes(primeira.valor, segunda.valor), total.valor);
 });
@@ -181,4 +181,27 @@ test("metas sem lojas não tentam dividir por zero", () => {
   });
   assert.equal(niveis.length, 3);
   niveis.forEach((nivel) => assert.equal(nivel.porLojaTurno, null));
+});
+
+test("parcial sem histórico fechado não produz projeção artificial", () => {
+  const vendas = [venda(1, 1, "noite", 50)];
+  const resultado = projetar(vendas, "noite", contexto("andamento", 1), 1000, 1320);
+  assert.equal(resultado.diasBase, 0);
+  assert.equal(resultado.valor, null);
+  assert.equal(resultado.media, null);
+});
+
+test("o parcial de hoje compõe o realizado sem contar um turno inteiro duas vezes", () => {
+  const vendas = [
+    venda(1, 1, "noite", 100),
+    venda(1, 2, "noite", 200),
+    venda(2, 1, "noite", 20),
+    venda(2, 2, "noite", 30),
+  ];
+  const antes = projetar(vendas, "noite", contexto("andamento", 2), 1000, 1320);
+  assert.equal(antes.media, 300);
+  assert.equal(antes.valor, 9000);
+  const completo = projetar(vendas, "noite", contexto("andamento", 2), 1320, 1320);
+  assert.equal(completo.diasBase, 2);
+  assert.equal(completo.valor, 5250);
 });

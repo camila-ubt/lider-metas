@@ -8,15 +8,9 @@ import {
   anoDaData,
   caminhoGrafico,
   coeficienteVariacao,
-  desvioPadrao,
   diaDaData,
-  faixaEstimada,
   intervaloMes,
-  media,
-  probabilidadeAtingir,
-  regressaoLinear,
   somar,
-  textoTendencia,
 } from "@/lib/analiseGerencial";
 import {
   contextoDoMes,
@@ -25,6 +19,12 @@ import {
   percentualDoResultado,
 } from "@/lib/contextoMes";
 import { extremosDiasSemana } from "@/lib/extremosDiasSemana.mjs";
+import { analisarIndicadoresGerenciais } from "@/lib/indicadoresGerenciais.mjs";
+import {
+  minutosDoHorario,
+  useHorariosPeriodos,
+  useMinutosAtuais,
+} from "@/lib/horariosPeriodos";
 import { analisarHistoricoMes } from "@/lib/historicoMes.mjs";
 import styles from "./AnaliseGerencial.module.css";
 
@@ -186,6 +186,8 @@ function BarraProbabilidade({ nome, valor }) {
 
 export default function InteligenciaGerencial() {
   const supabase = useMemo(() => createClient(), []);
+  const horarios = useHorariosPeriodos();
+  const minutosAgora = useMinutosAtuais();
   const [autenticado, setAutenticado] = useState(false);
   const [visivel, setVisivel] = useState(false);
   const [mes, setMes] = useState("");
@@ -329,73 +331,23 @@ export default function InteligenciaGerencial() {
     if (!mes) return null;
 
     const contexto = contextoDoMes(mes);
+    const metricas = analisarIndicadoresGerenciais({
+      vendas, metas, lojas, contexto, minutosAgora,
+      fimManha: minutosDoHorario(horarios.manhaFim),
+      fimNoite: minutosDoHorario(horarios.noiteFim),
+    });
+    const {
+      totalVendido, totalMeta, diasObservados, diasCompletos,
+      baseEstatistica, desvioDiario, projecaoOperacional, faixa,
+      probabilidades, tendencia, nomeTendencia, ultimosValores,
+    } = metricas;
     const vendasConsideradas = vendas.filter(
       (venda) => diaDaData(venda.data) <= contexto.diaCorte,
     );
-    const totalVendido = somar(vendasConsideradas);
-    const totalMeta = somar(metas, "valor_meta");
     const temMeta = totalMeta > 0;
     const temVendas = vendasConsideradas.length > 0;
     const percentualGeral = percentualDoResultado(totalVendido, totalMeta);
     const nivelGeral = nivelDoResultado(totalVendido, totalMeta);
-
-    const mapaDias = new Map();
-    vendasConsideradas.forEach((venda) => {
-      if (!mapaDias.has(venda.data)) {
-        mapaDias.set(venda.data, { total: 0, slots: new Set() });
-      }
-      const registro = mapaDias.get(venda.data);
-      registro.total += Number(venda.valor_vendido || 0);
-      registro.slots.add(`${Number(venda.loja_id)}|${venda.periodo}`);
-    });
-
-    const diasObservados = Array.from(mapaDias.entries()).sort(([a], [b]) =>
-      a.localeCompare(b),
-    );
-    const esperadoPorDia = lojas.length * 2;
-    const diasCompletos = diasObservados.filter(
-      ([, item]) => esperadoPorDia > 0 && item.slots.size >= esperadoPorDia,
-    );
-    const valoresObservados = diasObservados.map(([, item]) => item.total);
-    const valoresCompletos = diasCompletos.map(([, item]) => item.total);
-    const baseEstatistica =
-      valoresCompletos.length >= 3 ? valoresCompletos : valoresObservados;
-    const mediaDiaria = baseEstatistica.length ? media(baseEstatistica) : 0;
-    const desvioDiario = desvioPadrao(baseEstatistica);
-    const projecaoOperacional =
-      contexto.diaCorte > 0
-        ? (totalVendido / contexto.diaCorte) * contexto.ultimoDia
-        : 0;
-    const faixa = faixaEstimada({
-      atual: totalVendido,
-      mediaDiaria,
-      desvioDiario,
-      diasRestantes: contexto.diasRestantes,
-    });
-
-    function chance(alvo) {
-      if (
-        contexto.tipo === "futuro" ||
-        contexto.tipo === "encerrado" ||
-        !(alvo > 0) ||
-        baseEstatistica.length < 3
-      ) {
-        return null;
-      }
-      return probabilidadeAtingir({
-        atual: totalVendido,
-        alvo,
-        mediaDiaria,
-        desvioDiario,
-        diasRestantes: contexto.diasRestantes,
-      });
-    }
-
-    const probabilidades = {
-      meta: chance(totalMeta),
-      super: chance(totalMeta * 1.1),
-      mega: chance(totalMeta * 1.2),
-    };
 
     const lojasResumo = lojas.map((loja) => {
       const vendasLoja = vendasConsideradas.filter(
@@ -431,17 +383,16 @@ export default function InteligenciaGerencial() {
       (a, b) => (b.percentual ?? -1) - (a.percentual ?? -1),
     );
 
-    const ultimosValores = valoresObservados.slice(-10);
-    const tendencia = regressaoLinear(ultimosValores);
-    const nomeTendencia = textoTendencia(
-      tendencia.inclinacao,
-      media(ultimosValores),
-    );
-
     const { diaForte, diaFraco, situacao: situacaoDiasSemana } = extremosDiasSemana(
       diasCompletos,
       nomesSemana,
     );
+
+    const diaCorteGeral = contexto.tipo !== "encerrado" &&
+      contexto.tipo !== "futuro" &&
+      minutosAgora < minutosDoHorario(horarios.noiteFim)
+        ? Math.max(0, contexto.diaCorte - 1)
+        : contexto.diaCorte;
 
     const historicoDoMes = analisarHistoricoMes({
       historicos,
@@ -449,7 +400,7 @@ export default function InteligenciaGerencial() {
       lojas,
       ano: contexto.ano,
       numeroMes: contexto.numeroMes,
-      diaCorte: contexto.diaCorte,
+      diaCorte: diaCorteGeral,
       tipo: contexto.tipo,
     });
 
@@ -457,18 +408,21 @@ export default function InteligenciaGerencial() {
       (anoSerie) => {
         const lista =
           anoSerie === contexto.ano
-            ? vendasConsideradas
+            ? vendasConsideradas.filter(
+                (venda) => diaDaData(venda.data) <= diaCorteGeral,
+              )
             : historicos.filter(
                 (venda) =>
                   anoDaData(venda.data) === anoSerie &&
-                  diaDaData(venda.data) <= contexto.diaCorte,
+                  diaDaData(venda.data) <= diaCorteGeral,
               );
         return { ano: anoSerie, total: somar(lista), vendas: lista };
       },
     );
     const anterior =
       serieGeral.find((item) => item.ano === contexto.ano - 1)?.total || 0;
-    const mudancaHistorica = variacao(totalVendido, anterior);
+    const vendidoComparavel = serieGeral.find((item) => item.ano === contexto.ano)?.total || 0;
+    const mudancaHistorica = variacao(vendidoComparavel, anterior);
     const ordenada = [...serieGeral].sort((a, b) => b.total - a.total);
     const posicaoHistorica =
       ordenada.findIndex((item) => item.ano === contexto.ano) + 1;
@@ -572,12 +526,45 @@ export default function InteligenciaGerencial() {
       mudancaHistorica,
       insights: insights.slice(0, 4),
     };
-  }, [mes, vendas, metas, lojas, historicos]);
+  }, [mes, vendas, metas, lojas, historicos, minutosAgora, horarios]);
+
+  const analiseSelecionada = useMemo(() => {
+    if (!mes) return null;
+    return analisarIndicadoresGerenciais({
+      vendas, metas, lojas, contexto: contextoDoMes(mes), minutosAgora,
+      fimManha: minutosDoHorario(horarios.manhaFim),
+      fimNoite: minutosDoHorario(horarios.noiteFim),
+      filtroLoja, filtroPeriodo,
+    });
+  }, [mes, vendas, metas, lojas, minutosAgora, horarios, filtroLoja, filtroPeriodo]);
+
+  const escopoSelecionado = [
+    filtroLoja === "geral"
+      ? "todas as lojas"
+      : lojas.find((loja) => String(loja.id) === String(filtroLoja))?.codigo || "loja selecionada",
+    filtroPeriodo === "todos" ? "manhã e noite" : filtroPeriodo === "manha" ? "manhã" : "noite",
+  ].join(" · ");
+
+  // Compara somente períodos encerrados: hoje aberto não é comparável
+  // ao mesmo dia completo dos anos anteriores.
+  const diaCorteComparavel = analise
+    ? Math.max(0, analise.contexto.diaCorte - (
+        analise.contexto.tipo !== "encerrado" &&
+        analise.contexto.tipo !== "futuro" &&
+        (
+          (filtroPeriodo !== "noite" &&
+            minutosAgora < minutosDoHorario(horarios.manhaFim)) ||
+          (filtroPeriodo !== "manha" &&
+            minutosAgora < minutosDoHorario(horarios.noiteFim))
+        ) ? 1 : 0
+      ))
+    : 0;
 
   const historicoFiltrado = useMemo(() => {
     if (!analise) return [];
     return analise.serieGeral.map((serie) => {
       const lista = serie.vendas.filter((venda) => {
+        if (diaDaData(venda.data) > diaCorteComparavel) return false;
         if (
           filtroLoja !== "geral" &&
           Number(venda.loja_id) !== Number(filtroLoja)
@@ -594,12 +581,12 @@ export default function InteligenciaGerencial() {
         total: somar(lista),
         valores: acumuladoPorDia(
           lista,
-          analise.contexto.diaCorte,
-          analise.contexto.diaCorte,
+          diaCorteComparavel,
+          diaCorteComparavel,
         ),
       };
     });
-  }, [analise, filtroLoja, filtroPeriodo]);
+  }, [analise, filtroLoja, filtroPeriodo, diaCorteComparavel]);
 
   if (!autenticado || !visivel) return null;
 
@@ -659,7 +646,7 @@ export default function InteligenciaGerencial() {
                     <select
                       value={filtroLoja}
                       onChange={(evento) => setFiltroLoja(evento.target.value)}
-                      aria-label="Filtrar loja no histórico"
+                      aria-label="Filtrar loja no gráfico e nos indicadores gerenciais"
                     >
                       <option value="geral">Todas as lojas</option>
                       {lojas.map((loja) => (
@@ -671,7 +658,7 @@ export default function InteligenciaGerencial() {
                     <select
                       value={filtroPeriodo}
                       onChange={(evento) => setFiltroPeriodo(evento.target.value)}
-                      aria-label="Filtrar período no histórico"
+                      aria-label="Filtrar período no gráfico e nos indicadores gerenciais"
                     >
                       <option value="todos">Todos os períodos</option>
                       <option value="manha">Manhã</option>
@@ -680,7 +667,7 @@ export default function InteligenciaGerencial() {
                   </div>
                   <GraficoHistorico
                     series={historicoFiltrado}
-                    diaCorte={analise.contexto.diaCorte}
+                    diaCorte={diaCorteComparavel}
                   />
                 </>
               ) : null}
@@ -696,80 +683,78 @@ export default function InteligenciaGerencial() {
                     : "📈 Projeção estatística"}
               </h3>
 
-              {futuro || !analise.temMeta || !analise.temVendas ? (
+              {futuro || !analiseSelecionada?.temMeta || !analiseSelecionada?.temVendas ? (
                 <p className={styles.infoText}>
                   {fraseSemBase(
                     analise.contexto.tipo,
-                    analise.temMeta,
-                    analise.temVendas,
+                    analiseSelecionada.temMeta,
+                    analiseSelecionada.temVendas,
                   )}
                 </p>
               ) : encerrado ? (
                 <div className={styles.projectionExplain}>
                   <article>
                     <span>Resultado final</span>
-                    <strong>{dinheiro.format(analise.totalVendido)}</strong>
+                    <strong>{dinheiro.format(analiseSelecionada.totalVendido)}</strong>
                     <p>
-                      {percentual.format(analise.percentualGeral || 0)}% da Meta · {analise.nivelGeral}.
+                      {percentual.format(
+                        analiseSelecionada.totalMeta > 0
+                          ? (analiseSelecionada.totalVendido / analiseSelecionada.totalMeta) * 100
+                          : 0,
+                      )}% da Meta do escopo selecionado.
                     </p>
                   </article>
                   <article>
                     <span>Leitura da variação diária</span>
-                    <strong>{analise.diasObservados} dias com lançamentos</strong>
+                    <strong>{analiseSelecionada.diasObservados.length} dias com lançamentos</strong>
                     <p>
-                      Desvio diário observado de {dinheiro.format(analise.desvioDiario)}. Como o mês encerrou, não há mais projeção nem probabilidade futura.
+                      Desvio diário de dias completos: {dinheiro.format(analiseSelecionada.desvioDiario)}. Como o mês encerrou, não há mais projeção nem probabilidade futura.
                     </p>
                   </article>
                 </div>
               ) : (
                 <>
+                  <p className={styles.explanation}>
+                    Escopo: {escopoSelecionado}. Fechamento projetado usa a mesma
+                    média dos turnos do painel; as chances abaixo são estimativas estatísticas.
+                  </p>
                   <div className={styles.projectionExplain}>
                     <article>
-                      <span>Resultado atual</span>
-                      <strong>{dinheiro.format(analise.totalVendido)}</strong>
-                      <p>
-                        Projeção pelo ritmo médio: {dinheiro.format(
-                          analise.projecaoOperacional,
-                        )}.
-                      </p>
-                    </article>
-                    <article>
-                      <span>Faixa estatística aproximada</span>
+                      <span>Fechamento projetado · ritmo dos turnos</span>
                       <strong>
-                        {dinheiro.format(analise.faixa.minimo)} a {" "}
-                        {dinheiro.format(analise.faixa.maximo)}
+                        {analiseSelecionada.projecaoOperacional === null
+                          ? "Aguardando turnos encerrados"
+                          : dinheiro.format(analiseSelecionada.projecaoOperacional)}
                       </strong>
                       <p>
-                        Faixa de referência, não garantia. O resultado ainda pode mudar com clima, turismo, campanhas e comportamento da equipe.
+                        Faixa estatística aproximada:{" "}
+                        {analiseSelecionada.faixa
+                          ? `${dinheiro.format(analiseSelecionada.faixa.minimo)} a ${dinheiro.format(analiseSelecionada.faixa.maximo)}`
+                          : "aguardando ao menos 3 dias completos"}.
+                        O fechamento projetado não é uma garantia.
                       </p>
                     </article>
                   </div>
 
+                  <p className={styles.explanation}>Chance estimada de atingir cada nível</p>
                   <div className={styles.probabilityList}>
-                    <BarraProbabilidade
-                      nome="Meta"
-                      valor={analise.probabilidades.meta}
-                    />
-                    <BarraProbabilidade
-                      nome="Supermeta"
-                      valor={analise.probabilidades.super}
-                    />
-                    <BarraProbabilidade
-                      nome="Megameta"
-                      valor={analise.probabilidades.mega}
-                    />
+                    <BarraProbabilidade nome="Meta" valor={analiseSelecionada.probabilidades.meta} />
+                    <BarraProbabilidade nome="Supermeta" valor={analiseSelecionada.probabilidades.super} />
+                    <BarraProbabilidade nome="Megameta" valor={analiseSelecionada.probabilidades.mega} />
                   </div>
 
-                  <p
-                    className={
-                      analise.baseEstatistica >= 3
-                        ? styles.infoText
-                        : styles.warningText
-                    }
-                  >
-                    {analise.baseEstatistica >= 3
-                      ? `Estimativa calculada com ${analise.baseEstatistica} dias na base estatística. Continue mantendo os lançamentos atualizados para acompanhar a evolução.`
-                      : `A base ainda está sendo formada: há ${analise.diasObservados} dias com lançamentos. Continue preenchendo o mês para aumentar a confiabilidade das probabilidades.`}
+                  <p className={
+                    analiseSelecionada.baseEstatistica.length >= 3
+                      ? styles.infoText
+                      : styles.warningText
+                  }>
+                    {analiseSelecionada.baseEstatistica.length >= 3
+                      ? `Base: ${analiseSelecionada.baseEstatistica.length} dias completos.
+                          A chance é uma aproximação pela variação diária deste mês,
+                          não inclui a tendência recente nem os anos anteriores.`
+                      : `Base insuficiente: ${analiseSelecionada.diasCompletos.length} dias
+                          completos; são necessários ao menos 3 para estimar chances.
+                          Dias e turnos ainda abertos não reduzem a média.`}
                   </p>
                 </>
               )}
@@ -778,7 +763,7 @@ export default function InteligenciaGerencial() {
             <section className="inteligencia-gerencial-secao">
               <h3>{encerrado ? "📉 Tendências observadas no mês" : "📉 Tendências"}</h3>
 
-              {futuro || !analise.temVendas ? (
+              {futuro || !analiseSelecionada?.temVendas ? (
                 <p className={styles.infoText}>
                   {futuro
                     ? "As tendências começarão a ser calculadas após a abertura e os primeiros lançamentos do mês."
@@ -788,37 +773,37 @@ export default function InteligenciaGerencial() {
                 <div className={styles.trendGrid}>
                   <article>
                     <span>{encerrado ? "Tendência do período" : "Tendência recente"}</span>
-                    <strong>{analise.tendencia.nome}</strong>
+                    <strong>{analiseSelecionada.nomeTendencia}</strong>
                     <p>
                       Variação linear de {dinheiro.format(
-                        Math.abs(analise.tendencia.inclinacao),
-                      )} por dia nos últimos {analise.tendencia.quantidade} dias observados.
+                        Math.abs(analiseSelecionada.tendencia.inclinacao),
+                      )} por dia nos últimos {analiseSelecionada.ultimosValores.length} dias completos.
                     </p>
                   </article>
                   <article>
                     <span>Dia mais forte · mês atual</span>
-                    <strong>{analise.diaForte?.nome || (analise.situacaoDiasSemana === "empate" ? "Médias iguais" : "Base em formação")}</strong>
+                    <strong>{analiseSelecionada.diaForte?.nome || (analiseSelecionada.situacao === "empate" ? "Médias iguais" : "Base em formação")}</strong>
                     <p>
-                      {analise.diaForte
-                        ? `Média de ${dinheiro.format(analise.diaForte.media)} em ${analise.diaForte.quantidade} dias completos.`
-                        : analise.situacaoDiasSemana === "empate"
+                      {analiseSelecionada.diaForte
+                        ? `Média de ${dinheiro.format(analiseSelecionada.diaForte.media)} em ${analiseSelecionada.diaForte.quantidade} dias completos.`
+                        : analiseSelecionada.situacao === "empate"
                           ? "Os dias comparáveis têm a mesma média."
                           : "São necessários dois dias da semana com pelo menos duas datas completas cada."}
                     </p>
                   </article>
                   <article>
                     <span>Dia mais fraco · mês atual</span>
-                    <strong>{analise.diaFraco?.nome || (analise.situacaoDiasSemana === "empate" ? "Médias iguais" : "Base em formação")}</strong>
+                    <strong>{analiseSelecionada.diaFraco?.nome || (analiseSelecionada.situacao === "empate" ? "Médias iguais" : "Base em formação")}</strong>
                     <p>
-                      {analise.diaFraco
-                        ? `Média de ${dinheiro.format(analise.diaFraco.media)} em ${analise.diaFraco.quantidade} dias completos.`
-                        : analise.situacaoDiasSemana === "empate"
+                      {analiseSelecionada.diaFraco
+                        ? `Média de ${dinheiro.format(analiseSelecionada.diaFraco.media)} em ${analiseSelecionada.diaFraco.quantidade} dias completos.`
+                        : analiseSelecionada.situacao === "empate"
                           ? "Os dias comparáveis têm a mesma média."
                           : "São necessários dois dias da semana com pelo menos duas datas completas cada."}
                     </p>
                   </article>
                   <article>
-                    <span>Regularidade</span>
+                    <span>Regularidade geral · todas as lojas</span>
                     <strong>
                       {analise.maisConsistente?.codigo || "Base em formação"}
                     </strong>
@@ -837,7 +822,7 @@ export default function InteligenciaGerencial() {
             </section>
 
             <section className="inteligencia-gerencial-secao">
-              <h3>📅 Padrão histórico de {nomesMeses[analise.contexto.numeroMes - 1]}</h3>
+              <h3>📅 Padrão histórico geral de {nomesMeses[analise.contexto.numeroMes - 1]}</h3>
               {analise.historicoDoMes.referencias.length ? (
                 <>
                   <p className={styles.explanation}>
@@ -920,7 +905,7 @@ export default function InteligenciaGerencial() {
             </section>
 
             <section className="inteligencia-gerencial-secao">
-              <h3>💡 Insights automáticos</h3>
+              <h3>💡 Insights gerais · todas as lojas</h3>
               <div className="inteligencia-gerencial-insights">
                 {(analise.insights.length
                   ? analise.insights
