@@ -48,9 +48,10 @@ export function calcularProjecaoTurno({
 
   const diaAtual = `${prefixo}${String(contexto.diaCorte).padStart(2, "0")}`;
   const diasFuturos = Math.max(contexto.ultimoDia - contexto.diaCorte, 0);
+  const turnoAberto = contexto.tipo !== "encerrado" && minutosAgora < fimTurno;
   let mediaTotal = 0;
   let projecaoTotal = 0;
-  const diasBase = new Set(registros.map((venda) => venda.data)).size;
+  const diasBase = new Set();
 
   for (const id of ids) {
     const registrosLoja = registros.filter(
@@ -59,33 +60,48 @@ export function calcularProjecaoTurno({
     const vendidoLoja = registrosLoja.reduce(
       (total, venda) => total + Number(venda.valor_vendido || 0), 0,
     );
-    const diasLancados = new Set(registrosLoja.map((venda) => venda.data)).size;
-    const mediaLoja = diasLancados > 0 ? vendidoLoja / diasLancados : 0;
-    const lancadoHoje = registrosLoja.some((venda) => venda.data === diaAtual);
+    const vendasBase = turnoAberto
+      ? registrosLoja.filter((venda) => venda.data !== diaAtual)
+      : registrosLoja;
+    const diasDaLoja = new Set(vendasBase.map((venda) => venda.data));
+    diasDaLoja.forEach((data) => diasBase.add(data));
+
+    // Um lançamento parcial de hoje entra no realizado, mas nunca reduz
+    // a média de turnos já encerrados.
+    const mediaLoja = diasDaLoja.size
+      ? vendasBase.reduce(
+          (total, venda) => total + Number(venda.valor_vendido || 0), 0,
+        ) / diasDaLoja.size
+      : 0;
+    const vendidoHoje = registrosLoja
+      .filter((venda) => venda.data === diaAtual)
+      .reduce((total, venda) => total + Number(venda.valor_vendido || 0), 0);
 
     mediaTotal += mediaLoja;
-    projecaoTotal += vendidoLoja +
-      (contexto.tipo === "encerrado" ? 0 :
-        mediaLoja * (diasFuturos + (minutosAgora < fimTurno && !lancadoHoje ? 1 : 0)));
+    projecaoTotal += vendidoLoja + (
+      contexto.tipo === "encerrado" ? 0 :
+        mediaLoja * diasFuturos +
+        (turnoAberto ? Math.max(0, mediaLoja - vendidoHoje) : 0)
+    );
   }
 
   if (contexto.tipo === "encerrado") {
     return {
       valor: totalVendido,
-      media: diasBase > 0 ? mediaTotal : null,
-      diasBase,
+      media: diasBase.size > 0 ? mediaTotal : null,
+      diasBase: diasBase.size,
     };
   }
 
-  // Sem nenhum lançamento não há base para estimar uma projeção.
-  if (!diasBase && lojaId === null) {
+  // Sem nenhum turno encerrado, o parcial não basta para projetar o mês.
+  if (!diasBase.size) {
     return { valor: null, media: null, diasBase: 0 };
   }
 
   return {
     valor: projecaoTotal,
-    media: diasBase > 0 ? mediaTotal : null,
-    diasBase,
+    media: mediaTotal,
+    diasBase: diasBase.size,
   };
 }
 
