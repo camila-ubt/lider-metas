@@ -194,7 +194,10 @@ function ProjecaoDestaque({ valor, meta, encerrado = false }) {
 
   return (
     <div className={styles.forecast}>
-      <strong className={`${styles.forecastLevel} ${cores[tom]}`}>{rotulo}</strong>
+      <div className={styles.forecastHeadline}>
+        <span className={styles.forecastCaption}>{encerrado ? "Resultado final" : "Projeção"}</span>
+        <strong className={`${styles.forecastLevel} ${cores[tom]}`}>{rotulo}</strong>
+      </div>
       {!encerrado && valor !== null && valor !== undefined && Number.isFinite(Number(valor)) && (
         <small className={styles.forecastAmount}>{dinheiro.format(valor)}</small>
       )}
@@ -214,7 +217,6 @@ function PeriodoDetalhe({ periodo, encerrado }) {
           <strong>{dinheiro.format(periodo.vendido)}</strong>
         </div>
         <div className={styles.periodSummary}>
-          <span className={styles.forecastCaption}>{encerrado ? "Resultado final" : "Projeção"}</span>
           <ProjecaoDestaque
             valor={encerrado ? periodo.vendido : periodo.projecao}
             meta={periodo.meta}
@@ -544,7 +546,6 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                     <div className={styles.storeOverview}>
                       <div><span>Vendido</span><strong>{dinheiro.format(loja.vendido)}</strong></div>
                       <div className={styles.storeProjection}>
-                        <span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span>
                         <ProjecaoDestaque
                           valor={dados.mesPassado ? loja.vendido : loja.projecao}
                           meta={loja.meta}
