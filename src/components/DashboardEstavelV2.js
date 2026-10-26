@@ -331,7 +331,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const mediaProjetada = media;
     const necessarioDia = diasRestantesGeral > 0 ? jornada.falta / diasRestantesGeral : 0;
     const metaPorLojaDia = calcularMetaPorLojaDia({
-      meta, vendido: totalVendido, diasRestantes: diasRestantesGeral,
+      jornada, vendido: totalVendido, diasRestantes: diasRestantesGeral,
       quantidadeLojas: lojas.length,
     });
 
@@ -468,14 +468,22 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
           </article>
         ) : (
           <article className={styles.kpi}>
-            <span>Meta por loja/dia</span>
+            <span>{dados.jornada.completa ? "Jornada concluída" : `${dados.jornada.alvo.nome} por loja/dia`}</span>
             <strong>
-              {dados.metaPorLojaDia === null
-                ? "—"
-                : dinheiro.format(dados.metaPorLojaDia)}
+              {dados.jornada.completa
+                ? "Megameta batida"
+                : dados.metaPorLojaDia === null
+                  ? "—"
+                  : dinheiro.format(dados.metaPorLojaDia)}
             </strong>
             <small>
-              {dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
+              {dados.jornada.completa
+                ? "Todas as metas conquistadas"
+                : dados.jornada.semMeta
+                  ? "Sem meta cadastrada"
+                  : dados.diasRestantes === 0
+                    ? "Sem dias restantes"
+                    : dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
             </small>
           </article>
         )}
