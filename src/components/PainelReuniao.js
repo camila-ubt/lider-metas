@@ -711,7 +711,18 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
             <article key={turno.periodo}>
               <header>
                 <strong>{nomeTurno(turno.periodo)}</strong>
-                <span>{statusHistorico(turno, contexto.tipo)}</span>
+                {futuro ? (
+                  <span>{statusHistorico(turno, contexto.tipo)}</span>
+                ) : (
+                  <div className={styles.turnoIndicadores}>
+                    <span className={styles.turnoTotalVendido}>
+                      Vendido: <b>{dinheiro.format(turno.totalAtual)}</b>
+                    </span>
+                    <span className={styles.turnoHistoricoStatus}>
+                      {statusHistorico(turno, contexto.tipo)}
+                    </span>
+                  </div>
+                )}
               </header>
 
               {futuro ? (
