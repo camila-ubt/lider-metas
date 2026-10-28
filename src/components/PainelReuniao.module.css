@@ -7,6 +7,38 @@
 @media(max-width:760px){.wrap{margin:18px 12px;padding:16px;border-radius:20px}.header{align-items:flex-start}.header h2{font-size:20px}.score{min-width:96px;padding:10px 12px}.score strong{font-size:24px}.grid,.turnosGrid{grid-template-columns:1fr}.turnoLojas{grid-template-columns:1fr 1fr}}
 @media(max-width:430px){.turnoLojas{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.turnoLojas p{min-width:0;padding:9px 8px}.turnoLojas span{line-height:1.35}.header{gap:10px}.score{min-width:86px}.score span{font-size:10px}}
 
+/* Total vendido e comparação histórica na mesma linha, sem acrescentar um bloco. */
+.turnosGrid .turnoIndicadores {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.turnosGrid .turnoTotalVendido {
+  color: #382b43;
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.turnosGrid .turnoTotalVendido b {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.turnosGrid .turnoHistoricoStatus {
+  min-width: 0;
+  color: #6f6377;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: right;
+}
+@media (max-width: 430px) {
+  .turnosGrid .turnoIndicadores { gap: 5px; }
+  .turnosGrid .turnoTotalVendido { font-size: 11px; }
+  .turnosGrid .turnoTotalVendido b { font-size: 12px; }
+  .turnosGrid .turnoHistoricoStatus { font-size: 10px; }
+}
+
 .turnoMetaRestante{display:grid;gap:8px;margin-top:12px;padding:11px 12px;border-radius:12px;background:#fbf7fd;border:1px solid #eee4f3}.turnoMetaRestante p{display:grid;gap:2px;margin:0!important;font-size:12px!important;line-height:1.4}.turnoMetaRestante span{color:#746a79}.turnoMetaRestante b{color:#4a3657;font-size:13px}
 
 .turnosWrap{margin:0;width:100%;box-sizing:border-box;padding:0;overflow:hidden}
