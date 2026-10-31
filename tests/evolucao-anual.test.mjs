@@ -136,3 +136,20 @@ test("não divide por zero quando o ano anterior teve faturamento zero", () => {
   assert.equal(resultado.vendidoAnterior, 0);
   assert.equal(resultado.variacaoAnterior, null);
 });
+
+test("destaca como parcial somente o mês atual do ano em andamento", () => {
+  const atual = resumirSerieAnual({ ano: 2026, lojasIds: [1], vendas, metas, hoje });
+  assert.equal(atual.filter((item) => item.parcial).length, 1);
+  assert.equal(atual[9].parcial, true);
+  assert.equal(atual[8].parcial, false);
+  assert.equal(atual[10].parcial, false);
+
+  const historico = resumirSerieAnual({
+    ano: 2025, lojasIds: [1],
+    vendas: [{ data: "2025-10-10", loja_id: 1, periodo: "manha", valor_vendido: 200 }],
+    metas: [], hoje,
+  });
+  assert.equal(historico[9].temDados, true);
+  assert.equal(historico[9].parcial, false);
+  assert.equal(historico.some((item) => item.parcial), false);
+});
