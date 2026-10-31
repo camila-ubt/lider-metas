@@ -364,11 +364,11 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
 
   return (
     <>
-      <section className={styles.previa} aria-label="Gráfico de evolução anual">
+      <section className={styles.previa} aria-label="Gráfico de vendas por mês">
         <div className={styles.previaTopo}>
           <div>
-            <h3>Evolução do ano</h3>
-            <p>{ano} · vendas mensais das três lojas</p>
+            <h3>Vendas por mês</h3>
+            <p>{ano} · três lojas · manhã + noite</p>
           </div>
           <button type="button" ref={botaoExpandirRef} className={styles.botaoExpandir}
             onClick={() => {
