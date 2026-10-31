@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import DashboardEstavel from "@/components/DashboardEstavel";
+import RankingAnual from "@/components/RankingAnual";
 import ManualUsuario from "@/components/ManualUsuario";
 import PAVendedoras from "@/components/PAVendedoras";
 import MetasImpressao from "@/components/MetasImpressao";
@@ -756,6 +757,16 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         {podeVerPA && (
           <button
             type="button"
+            className={abaAtiva("ranking") ? "active" : ""}
+            aria-pressed={abaAtiva("ranking")}
+            onClick={() => setTela("ranking")}
+          >
+            Ranking anual
+          </button>
+        )}
+        {podeVerPA && (
+          <button
+            type="button"
             data-pa-botao
             className={abaAtiva("pa") ? "active" : ""}
             aria-pressed={abaAtiva("pa")}
@@ -788,6 +799,8 @@ export default function LiderMetas({ telaInicial = "painel" }) {
       {tela === "pa" && (
         <PAVendedoras mes={mes} sessao={sessao} perfil={perfil} />
       )}
+
+      {tela === "ranking" && podeVerPA && <RankingAnual />}
 
       {tela === "painel" && (
         <DashboardEstavel mes={mes} vendas={vendas} metas={metas} lojas={lojas} />
