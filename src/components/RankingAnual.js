@@ -50,7 +50,7 @@ function StatusCelula({ resultado, titulo, aoAbrir }) {
 }
 
 
-function SaldoMeta({ resultado, compacto = false }) {
+function SaldoMeta({ resultado, compacto = false, inline = false }) {
   const comparacao = compararVendidoComMeta(resultado.vendido, resultado.meta, resultado.configurada);
   if (comparacao.situacao === "semMeta") {
     return <span className={styles.saldoSemMeta}>{descreverSituacaoMeta("semMeta", resultado.nivel === "parcial")}</span>;
@@ -63,8 +63,10 @@ function SaldoMeta({ resultado, compacto = false }) {
   const parcial = resultado.nivel === "parcial";
   const descricao = descreverSituacaoMeta(comparacao.situacao, parcial);
 
+  const Tag = inline ? "span" : "div";
+
   return (
-    <div className={[
+    <Tag className={[
       styles.saldoMeta,
       styles[acima ? "saldoPositivo" : abaixo ? "saldoNegativo" : "saldoAtingido"],
       compacto ? styles.saldoCompacto : "",
@@ -72,7 +74,7 @@ function SaldoMeta({ resultado, compacto = false }) {
       <span className={styles.saldoSimbolo} aria-hidden="true">{simbolo}</span>
       <strong>{valor}</strong>
       <span>{descricao}</span>
-    </div>
+    </Tag>
   );
 }
 
@@ -115,7 +117,7 @@ function CartaoDetalheMensal({ identificador, titulo, resultado, manha, noite, a
           </span>
         </span>
         <span className={styles.acordeaoSegundaLinha}>
-          <SaldoMeta resultado={resultado} compacto />
+          <SaldoMeta resultado={resultado} compacto inline />
           <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
         </span>
       </button>
