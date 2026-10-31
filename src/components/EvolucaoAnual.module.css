@@ -1,0 +1,196 @@
+.previa {
+  min-width:0; display:grid; gap:8px; padding:14px 15px 8px;
+  background:var(--surface,white); border:1px solid var(--border);
+  border-radius:16px; box-shadow:0 8px 24px rgba(70,46,92,.04);
+}
+.previaTopo { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.previaTopo h3 { font-size:17px; margin:0 0 3px; }
+.previaTopo p { font-size:12px; margin:0; color:var(--muted); }
+.botaoExpandir {
+  border:1px solid #d9c9e9; border-radius:10px;
+  background:#f2ebf9; color:var(--primary-dark);
+  font-weight:800; font-size:12px; padding:10px 12px; cursor:pointer;
+}
+.botaoExpandir:hover { background:#eae0f4; }
+.botaoExpandir:focus-visible, .fechar:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
+.miniSvg { display:block; width:100%; height:116px; }
+.miniGrupoAcionavel { cursor:pointer; }
+.miniGrupoAcionavel:hover > rect:not(.miniAlvoToque) { opacity:.82; }
+.miniGrupoAcionavel:focus-visible { outline:none; }
+.miniGrupoAcionavel:focus-visible .miniAlvoToque {
+  stroke:var(--primary); stroke-width:2; fill:rgba(118,80,167,.09);
+}
+.instrucaoMini { color:var(--muted); font-size:11px; margin:0 0 2px; }
+.nota { margin:0; color:var(--muted); font-size:11px; line-height:1.5; }
+.legendaParcial {
+  display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+  margin:2px 0 7px; color:#795718; font-size:11px; font-weight:700;
+  line-height:1.45;
+}
+.marcadorParcial {
+  display:inline-block; flex:none; width:10px; height:10px; border-radius:3px;
+  background:#bf8423;
+}
+.semDados { padding:14px 6px; font-size:13px; color:var(--muted); margin:0; }
+.fundo {
+  position:fixed; inset:0; z-index:4500;
+  display:flex; justify-content:center; align-items:center;
+  padding:12px; background:rgba(27,17,40,.65); backdrop-filter:blur(3px);
+}
+.janela {
+  display:flex; flex-direction:column; width:min(940px,100%); min-width:0;
+  max-height:calc(100dvh - 24px); overflow:hidden;
+  background:var(--surface,white); color:var(--foreground);
+  border-radius:18px; box-shadow:0 25px 75px rgba(17,8,27,.3);
+}
+.janelaMes { width:min(560px,100%); }
+.janelaMes .conteudo { padding:14px 16px 17px; }
+.cabecalho {
+  flex:none; display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:14px 18px; border-bottom:1px solid var(--border);
+}
+.cabecalho span { font-size:11px; color:var(--muted); font-weight:800; text-transform:uppercase; letter-spacing:.03em; }
+.cabecalho h2 { font-size:22px; margin:3px 0 0; }
+.fechar {
+  flex:none; padding:9px 13px; border:1px solid var(--border);
+  border-radius:10px; background:#fff; color:var(--primary); font-weight:800; cursor:pointer;
+}
+.conteudo { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; padding:16px 18px 20px; }
+.filtros { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:14px; }
+.filtros label { display:grid; gap:5px; min-width:0; font-size:12px; font-weight:750; }
+.filtros select { width:100%; min-width:0; padding:10px; font-size:13px; }
+.filtrosMes { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.filtroComparativoMes {
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 12px;
+  color:var(--muted); font-size:12px; font-weight:750;
+}
+.filtroComparativoMes select { min-height:38px; padding:7px 10px; font-size:12px; }
+.detalheMesFocado { margin:0; padding:15px; }
+.detalheMesFocado .detalheMesValores {
+  grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;
+}
+.detalheMesFocado .valorVendidoMes {
+  grid-column:1/-1; padding-bottom:12px; border-bottom:1px solid #e6dced;
+}
+.detalheMesFocado .detalheMesValores strong { font-size:18px; }
+.detalheMesFocado .valorVendidoMes strong {
+  color:var(--primary-dark); font-size:25px; letter-spacing:-.02em;
+}
+.ultimaDataVenda {
+  display:block; margin-top:6px; color:var(--muted);
+  font-size:11px; font-weight:500; line-height:1.45;
+}
+.detalheMesFocado .detalheMesValores > div:last-child { grid-column:auto; }
+.detalheMesFocado .balancoMes { gap:11px; }
+.detalheMesFocado .linhaBalanco { display:grid; gap:3px; font-size:13px; }
+.detalheMesFocado .linhaBalanco strong {
+  font-size:11px; color:var(--muted); font-weight:700;
+}
+.detalheMesFocado .linhaBalanco > span {
+  font-variant-numeric:tabular-nums; overflow-wrap:anywhere;
+}
+
+.anosComparar {
+  min-width:0; margin:0 0 13px; padding:8px 12px 10px;
+  border:1px solid var(--border); border-radius:12px;
+}
+.anosComparar legend {
+  padding:0 6px; font-size:12px; font-weight:800; color:var(--foreground);
+}
+.anosComparar legend span { color:var(--muted); font-weight:500; }
+.anosOpcoes { display:flex; align-items:center; flex-wrap:wrap; gap:7px; }
+.anosOpcoes small { color:var(--muted); font-size:11px; }
+.anoOpcao {
+  display:inline-flex; align-items:center; gap:7px; padding:7px 10px;
+  border:1px solid #ded5ea; border-radius:9px;
+  background:#fff; color:var(--foreground); font-size:12px; font-weight:750;
+  cursor:pointer; user-select:none;
+}
+.anoOpcao input { margin:0; width:15px; height:15px; accent-color:#7650a7; }
+.anoOpcao:has(input:checked) { border-color:#bea5da; background:#f2ebf9; }
+.anoOpcao:has(input:disabled) { opacity:.48; cursor:not-allowed; }
+.anoOpcao:focus-within { outline:2px solid var(--primary); outline-offset:2px; }
+.kpis { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; margin-bottom:16px; }
+.kpis > div { min-width:0; padding:12px; background:#f8f5fc; border:1px solid #ede6f4; border-radius:12px; }
+.kpis span, .kpis small { display:block; color:var(--muted); font-size:11px; }
+.kpis strong { display:block; margin:4px 0; color:var(--foreground); font-size:20px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.tituloGrafico { display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.tituloGrafico h3 { font-size:16px; margin:0 0 4px; }
+.tituloGrafico span { color:var(--muted); font-size:11px; }
+.grafico { width:100%; height:310px; min-width:0; margin:5px 0 8px; }
+.aviso { padding:8px 10px; border-radius:10px; background:#fbf5e5; color:#7f6217; font-size:12px; margin:8px 0; }
+
+.selecaoMes {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  gap:8px 12px; margin:8px 0 10px;
+}
+.selecaoMes > span { color:var(--muted); font-size:12px; }
+.selecaoMes label { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; font-weight:700; }
+.selecaoMes select { min-height:36px; padding:6px 10px; font-size:12px; }
+.detalheMes {
+  border:1px solid #e1d5ed; border-radius:13px; padding:13px 15px;
+  background:#fbf9fe; margin:9px 0 12px; min-width:0;
+}
+.detalheMesTopo { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:11px; }
+.detalheMesTopo > div { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.detalheMesTopo h4 { margin:0; font-size:15px; }
+.detalheMesTopo button {
+  border:1px solid var(--border); border-radius:8px; background:#fff;
+  color:var(--primary-dark); font-size:11px; font-weight:800; padding:7px 9px; cursor:pointer;
+}
+.detalheMesTopo button:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
+.mesParcial { background:#fff0c8; color:#7f6217; border-radius:7px; padding:3px 7px; font-size:10px; font-weight:750; }
+.detalheMesValores { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.detalheMesValores > div { min-width:0; }
+.detalheMesValores span { display:block; font-size:11px; color:var(--muted); }
+.detalheMesValores strong {
+  display:block; margin-top:4px; color:var(--foreground);
+  font-size:16px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere;
+}
+.balancoMes { display:grid; gap:5px; margin-top:11px; border-top:1px solid #ebe3f2; padding-top:10px; }
+.balancoMes p { margin:0; color:var(--foreground); font-size:12px; line-height:1.55; }
+.balancoMes small { display:block; font-size:11px; color:var(--muted); }
+.variacaoPositiva { color:#16644a; font-weight:750; }
+.variacaoNegativa { color:#a6354a; font-weight:750; }
+.tabelaDetalhada { border:1px solid var(--border); border-radius:12px; margin-top:15px; overflow:hidden; }
+.tabelaDetalhada summary { padding:11px 13px; color:var(--primary-dark); font-size:13px; font-weight:800; cursor:pointer; }
+.tabelaDetalhada[open] summary { border-bottom:1px solid var(--border); }
+.rolagem { max-width:100%; overflow-x:auto; }
+.rolagem table { width:100%; border-collapse:collapse; min-width:320px; font-variant-numeric:tabular-nums; }
+.rolagem th, .rolagem td { padding:8px 9px; border-bottom:1px solid #f0edf3; text-align:right; font-size:12px; }
+.rolagem th:first-child { text-align:left; }
+.rolagem thead { background:#faf8fd; color:var(--muted); }
+.rolagem tr:last-child td { border-bottom:0; }
+@media(max-width:680px) {
+  .previa { padding:12px 11px 7px; }
+  .previaTopo h3 { font-size:15px; }
+  .botaoExpandir { padding:9px 11px; }
+  .miniSvg { height:100px; }
+  .fundo { padding:7px; }
+  .janela { max-height:calc(100dvh - 14px); border-radius:15px; }
+  .cabecalho { padding:12px; }
+  .cabecalho h2 { font-size:17px; }
+  .fechar { padding:9px 10px; font-size:12px; }
+  .conteudo { padding:12px 9px 15px; }
+  .janelaMes .conteudo { padding:12px; }
+  .filtros { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+  .filtros label:last-child { grid-column:1/-1; }
+  .filtrosMes label:last-child { grid-column:auto; }
+  .detalheMesFocado { padding:12px; }
+  .detalheMesFocado .detalheMesValores strong { font-size:16px; }
+  .detalheMesFocado .valorVendidoMes strong { font-size:23px; }
+  .filtros select { font-size:12px; padding:9px 8px; }
+  .anosComparar { margin-bottom:10px; padding:7px 9px 9px; }
+  .anoOpcao { padding:7px 9px; }
+  .kpis > div { padding:9px; }
+  .kpis strong { font-size:15px; }
+  .kpis small { font-size:10px; }
+  .grafico { height:270px; }
+  .selecaoMes { align-items:flex-start; }
+  .selecaoMes label { margin-left:auto; }
+  .detalheMes { padding:11px 10px; }
+  .detalheMesValores { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .detalheMesValores strong { font-size:14px; }
+  .detalheMesValores > div:last-child { grid-column:1/-1; }
+  .balancoMes p { font-size:11px; }
+}

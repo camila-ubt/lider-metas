@@ -19,6 +19,26 @@
 .resumo small { display:block; font-size:11px; color:var(--muted); margin:3px 0 10px; }
 .resumo p { margin:4px 0 0; color:var(--muted); font-size:12px; }
 .painel h3 { margin:0 0 12px; font-size:18px; }
+.mesesRecolhiveis { padding:0; overflow:hidden; }
+.resumoRecolhivel {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:15px 17px; cursor:pointer;
+  font-weight:800; font-size:17px; list-style:none;
+}
+.resumoRecolhivel::-webkit-details-marker { display:none; }
+.resumoRecolhivel::marker { content:""; }
+.resumoRecolhivel:hover { background:#faf8fd; }
+.resumoRecolhivel:focus-visible { outline:3px solid var(--primary); outline-offset:-3px; }
+.iconeRecolhivel {
+  display:grid; flex:none; place-items:center; width:28px; height:28px;
+  border-radius:9px; background:#f0e8f8; color:var(--primary-dark);
+  font-size:20px; font-weight:800; line-height:1;
+}
+.iconeRecolhivel::before { content:"+"; }
+.mesesRecolhiveis[open] .iconeRecolhivel::before { content:"−"; }
+.conteudoRecolhivel { padding:0 16px 16px; }
+.conteudoRecolhivel .cabecalho { margin:3px 0 12px; }
+
 .scroll { overflow-x:auto; max-width:100%; }
 .scroll table { width:100%; min-width:300px; border-collapse:collapse; table-layout:fixed; text-align:center; }
 .scroll th { color:var(--muted); font-size:12px; font-weight:700; background:#faf8fd; }
@@ -160,6 +180,10 @@
   .resumo strong { font-size:20px; }
   .resumo p { font-size:10px; }
   .painel { padding:10px 7px; }
+  .mesesRecolhiveis { padding:0; }
+  .resumoRecolhivel { padding:11px 12px; font-size:15px; }
+  .conteudoRecolhivel { padding:0 8px 12px; }
+
   .scroll th,.scroll td { padding:4px 2px; }
   .celula b { font-size:12px; }
   .celula small { font-size:9px; }
