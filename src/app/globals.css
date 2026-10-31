@@ -833,3 +833,72 @@ textarea:focus {
     order: -1;
   }
 }
+
+/* Atalho de consulta do turno dentro da tela de lançamentos. */
+.turn-access-panel {
+  width: min(790px, 100%);
+  margin: 16px auto 0;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.turn-access-copy {
+  flex: 1 1 290px;
+  min-width: 0;
+}
+
+.turn-access-copy .eyebrow {
+  margin-bottom: 4px;
+}
+
+.turn-access-copy p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.turn-access-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid var(--primary);
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.turn-access-button:hover {
+  background: var(--primary-dark);
+}
+
+.turn-access-button:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* Evita um botão de Configurações isolado após retirar a aba do turno. */
+.tabs > .config-navigation:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 560px) {
+  .turn-access-panel {
+    padding: 16px;
+  }
+
+  .turn-access-button {
+    width: 100%;
+  }
+}

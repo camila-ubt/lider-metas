@@ -78,7 +78,11 @@ export default function PersistenciaNavegacao() {
         setMesSelecionado(mesSalvo);
       }
 
-      if (TELAS_VALIDAS.includes(telaSalva || "")) {
+      if (telaSalva === "acompanhamento") {
+        // O acesso fica dentro de Lançar vendas, sem botão na navegação principal.
+        // Reabre a consulta diretamente, sem sobrescrever a tela salva.
+        window.dispatchEvent(new Event("lider-metas:restaurar-acompanhamento"));
+      } else if (TELAS_VALIDAS.includes(telaSalva || "")) {
         const botao = botoes.find((item) => telaDoBotao(item) === telaSalva);
 
         // Vendedoras é inserida depois que o perfil admin é confirmado.
@@ -107,7 +111,7 @@ export default function PersistenciaNavegacao() {
     }
 
     function aoClicar(evento) {
-      const botao = evento.target?.closest?.("nav.tabs button, [data-manual-botao]");
+      const botao = evento.target?.closest?.("nav.tabs button, [data-manual-botao], [data-acompanhamento-botao]");
       if (botao) salvarTela(botao);
     }
 

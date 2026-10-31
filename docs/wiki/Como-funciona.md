@@ -18,9 +18,9 @@ Os horários de manhã e noite são compartilhados com a Calculadora de Metas pa
 
 ## Acompanhar turno
 
-A aba acompanha manhã ou noite nas faixas Meta, Supermeta e Megameta. A meta ajustada usa o saldo mensal após as vendas oficiais anteriores e os turnos restantes. A meta fixa aparece como referência.
+Em **Lançar vendas**, o botão **Acompanhar turno** abre a consulta do turno de hoje, sem fazer lançamentos oficiais. A consulta acompanha manhã ou noite nas faixas Meta, Supermeta e Megameta. A meta ajustada usa o saldo mensal após as vendas oficiais anteriores e os turnos restantes. A meta fixa aparece como referência.
 
-As vendas informadas durante o turno atualizam o valor restante por loja e no geral, com compensação entre lojas, e permitem prever as metas de amanhã. Os valores ficam salvos no aparelho até serem limpos, sem alterar lançamentos oficiais.
+As vendas informadas durante o turno atualizam o valor restante por loja e no geral, com compensação entre lojas, e permitem prever as metas de amanhã. Os valores ficam salvos apenas no aparelho até serem limpos: não preenchem os caixas do calendário nem alteram lançamentos oficiais.
 
 ## Painel e Roteiro da Reunião
 

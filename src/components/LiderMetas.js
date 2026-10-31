@@ -94,6 +94,16 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   const abaAtiva = (nome) => !vendedorasAberta && tela === nome;
 
   useEffect(() => {
+    function restaurarAcompanhamento() {
+      setMes(hojeLocal().slice(0, 7));
+      setTela("acompanhamento");
+    }
+
+    window.addEventListener("lider-metas:restaurar-acompanhamento", restaurarAcompanhamento);
+    return () => window.removeEventListener("lider-metas:restaurar-acompanhamento", restaurarAcompanhamento);
+  }, []);
+
+  useEffect(() => {
     function localizarRodape() {
       setAlvoAjuda(document.querySelector("[data-app-help-target]"));
     }
@@ -742,18 +752,6 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         >
           Lançar vendas
         </button>
-        <button
-          type="button"
-          data-acompanhamento-botao
-          className={abaAtiva("acompanhamento") ? "active" : ""}
-          aria-pressed={abaAtiva("acompanhamento")}
-          onClick={() => {
-            setMes(hojeLocal().slice(0, 7));
-            setTela("acompanhamento");
-          }}
-        >
-          Acompanhar turno
-        </button>
         {podeVerPA && (
           <button
             type="button"
@@ -887,6 +885,26 @@ export default function LiderMetas({ telaInicial = "painel" }) {
               M e N ficam verdes quando todas as lojas daquele período foram preenchidas. Valores zerados também contam como preenchidos.
             </p>
           </div>
+          <aside className="panel turn-access-panel" aria-labelledby="turn-access-title">
+            <div className="turn-access-copy">
+              <p className="eyebrow" id="turn-access-title">Consulta do turno</p>
+              <p id="turn-access-description">
+                Simule as vendas e acompanhe o desempenho do turno de hoje. Os valores não preenchem os caixas nem registram vendas.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="turn-access-button"
+              data-acompanhamento-botao
+              aria-describedby="turn-access-description"
+              onClick={() => {
+                setMes(hojeLocal().slice(0, 7));
+                setTela("acompanhamento");
+              }}
+            >
+              Acompanhar turno <span aria-hidden="true">›</span>
+            </button>
+          </aside>
         </section>
       )}
 
