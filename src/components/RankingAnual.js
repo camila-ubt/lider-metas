@@ -126,7 +126,10 @@ function CartaoDetalheMensal({ identificador, titulo, resultado, manha, noite, a
           </span>
         </span>
         <span className={styles.acordeaoSegundaLinha}>
-          <SaldoMeta resultado={resultado} compacto inline />
+          <span className={styles.resumoVendido}>
+            <span>Vendido</span>
+            <strong>{moeda.format(resultado.vendido)}</strong>
+          </span>
           <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
         </span>
       </button>
@@ -134,12 +137,12 @@ function CartaoDetalheMensal({ identificador, titulo, resultado, manha, noite, a
       <div id={idConteudo} className={styles.conteudoCartao} hidden={!aberto}>
         <div className={styles.detalheValores}>
           <div>
-            <span>Vendido</span>
-            <strong className={styles.valorVendido}>{moeda.format(resultado.vendido)}</strong>
+            <span>Meta do mês</span>
+            <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
           </div>
           <div>
-            <span>Meta</span>
-            <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
+            <span>Diferença para a meta</span>
+            <SaldoMeta resultado={resultado} compacto />
           </div>
         </div>
         <div className={styles.turnosDetalhe}>
@@ -172,19 +175,22 @@ function CartaoDetalheTurno({ identificador, titulo, resultado, lojas, aberto, a
           </span>
         </span>
         <span className={styles.acordeaoSegundaLinha}>
-          <SaldoMeta resultado={resultado} compacto inline />
+          <span className={styles.resumoVendido}>
+            <span>Vendido</span>
+            <strong>{moeda.format(resultado.vendido)}</strong>
+          </span>
           <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
         </span>
       </button>
       <div id={idConteudo} className={styles.conteudoCartao} hidden={!aberto}>
         <div className={styles.detalheValores}>
           <div>
-            <span>Vendido</span>
-            <strong className={styles.valorVendido}>{moeda.format(resultado.vendido)}</strong>
+            <span>Meta do mês</span>
+            <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
           </div>
           <div>
-            <span>Meta</span>
-            <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
+            <span>Diferença para a meta</span>
+            <SaldoMeta resultado={resultado} compacto />
           </div>
         </div>
         {lojas.length > 0 && (
