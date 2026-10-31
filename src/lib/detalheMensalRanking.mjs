@@ -12,3 +12,10 @@ export function compararVendidoComMeta(vendido, meta, configurada = true) {
 
   return { situacao, diferenca, percentual: realizado / previsto * 100 };
 }
+
+export function descreverSituacaoMeta(situacao, parcial = false) {
+  if (situacao === "acima") return parcial ? "está acima da meta" : "superou a meta";
+  if (situacao === "abaixo") return parcial ? "faltam para atingir a meta" : "ficou abaixo da meta";
+  if (situacao === "atingida") return parcial ? "está na meta" : "atingiu a meta";
+  return parcial ? "Meta ainda não configurada" : "Meta não foi configurada";
+}
