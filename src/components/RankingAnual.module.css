@@ -59,6 +59,20 @@
 .acordeaoSeta { flex:none; font-size:22px; line-height:1; font-weight:800; color:var(--primary); }
 .conteudoCartao { padding:0 13px 13px; border-top:1px solid var(--border); }
 .conteudoCartao[hidden] { display:none; }
+.lojasNoTurno {
+  display:grid; gap:0; margin-top:11px; border-top:1px solid var(--border);
+}
+.linhaLojaTurno {
+  padding:10px 0; border-bottom:1px solid var(--border);
+}
+.linhaLojaTurno:last-child { border-bottom:0; padding-bottom:0; }
+.linhaLojaCabecalho {
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+  gap:6px; color:var(--foreground); font-size:12px;
+}
+.linhaLojaCabecalho span { color:var(--muted); font-variant-numeric:tabular-nums; }
+.linhaLojaTurno p { margin:4px 0; font-size:11px; line-height:1.45; color:var(--muted); }
+.linhaLojaTurno .saldoMeta { margin-top:3px; }
 .detalhemega { border-left-color:#268b65; }
 .detalhesuper { border-left-color:#7650a7; }
 .detalhemeta { border-left-color:#3a7da9; }
