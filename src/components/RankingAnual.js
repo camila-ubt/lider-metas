@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { resumirResultadosMensais } from "@/lib/rankingAnual.mjs";
 import { compararVendidoComMeta } from "@/lib/detalheMensalRanking.mjs";
@@ -131,6 +132,35 @@ export default function RankingAnual() {
   const [tipo, setTipo] = useState("lojas");
   const [lojaFiltro, setLojaFiltro] = useState("geral");
   const [detalhe, setDetalhe] = useState(null);
+  const fecharModalRef = useRef(null);
+
+  useEffect(() => {
+    if (detalhe === null) return undefined;
+
+    const origem = document.activeElement;
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    fecharModalRef.current?.focus();
+
+    function aoPressionarTecla(evento) {
+      if (evento.key === "Escape") {
+        evento.preventDefault();
+        setDetalhe(null);
+      }
+      // O modal tem um único controle de ação. O Tab permanece nele.
+      if (evento.key === "Tab") {
+        evento.preventDefault();
+        fecharModalRef.current?.focus();
+      }
+    }
+
+    document.addEventListener("keydown", aoPressionarTecla);
+    return () => {
+      document.removeEventListener("keydown", aoPressionarTecla);
+      document.body.style.overflow = overflowAnterior;
+      if (origem instanceof HTMLElement && origem.isConnected) origem.focus();
+    };
+  }, [detalhe]);
   const [lojas, setLojas] = useState([]);
   const [metas, setMetas] = useState([]);
   const [vendas, setVendas] = useState([]);
@@ -320,32 +350,56 @@ export default function RankingAnual() {
             </table></div>
             </div>
           </>}
-          {detalhe && (
-            <section className={styles.painel} aria-label={"Detalhes de " + MESES[detalhe - 1]}>
-              <div className={styles.cabecalho}>
-                <h3>{MESES[detalhe - 1]} de {ano}</h3>
-                <button type="button" className={styles.fechar} onClick={() => setDetalhe(null)}>Fechar</button>
-              </div>
-              <div className={styles.detalhes}>
-                {tipo === "turnos" && lojaFiltro === "geral" && (
-                  <CartaoDetalheMensal
-                    titulo="Geral das 3 lojas"
-                    resultado={resultadoGeral(detalhe)}
-                    manha={resultadoGeral(detalhe, "manha")}
-                    noite={resultadoGeral(detalhe, "noite")}
-                  />
-                )}
-                {(tipo === "turnos" && lojaFiltro !== "geral" ? [lojaSelecionada] : lojasOrdenadas).map((loja) => (
-                  <CartaoDetalheMensal
-                    key={loja.id}
-                    titulo={loja.codigo + " · " + loja.nome}
-                    resultado={resultado(loja, detalhe)}
-                    manha={resultado(loja, detalhe, "manha")}
-                    noite={resultado(loja, detalhe, "noite")}
-                  />
-                ))}
-              </div>
-            </section>
+          {detalhe !== null && createPortal(
+            <div
+              className={styles.modalFundo}
+              onMouseDown={(evento) => {
+                if (evento.target === evento.currentTarget) setDetalhe(null);
+              }}
+            >
+              <section
+                className={styles.modalJanela}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="ranking-anual-modal-titulo"
+              >
+                <header className={styles.modalCabecalho}>
+                  <div>
+                    <p className={styles.modalSubtitulo}>Detalhes do mês</p>
+                    <h3 id="ranking-anual-modal-titulo">{MESES[detalhe - 1]} de {ano}</h3>
+                  </div>
+                  <button
+                    ref={fecharModalRef}
+                    type="button"
+                    className={styles.fechar}
+                    aria-label="Fechar detalhes do mês"
+                    onClick={() => setDetalhe(null)}
+                  >Fechar ×</button>
+                </header>
+                <div className={styles.modalConteudo}>
+                  <div className={styles.detalhes}>
+                    {tipo === "turnos" && lojaFiltro === "geral" && (
+                      <CartaoDetalheMensal
+                        titulo="Geral das 3 lojas"
+                        resultado={resultadoGeral(detalhe)}
+                        manha={resultadoGeral(detalhe, "manha")}
+                        noite={resultadoGeral(detalhe, "noite")}
+                      />
+                    )}
+                    {(tipo === "turnos" && lojaFiltro !== "geral" ? [lojaSelecionada] : lojasOrdenadas).map((loja) => (
+                      <CartaoDetalheMensal
+                        key={loja.id}
+                        titulo={loja.codigo + " · " + loja.nome}
+                        resultado={resultado(loja, detalhe)}
+                        manha={resultado(loja, detalhe, "manha")}
+                        noite={resultado(loja, detalhe, "noite")}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </div>,
+            document.body
           )}
         </>}
     </section>
