@@ -17,11 +17,11 @@ const numero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 const CORES = ["#7650a7", "#248676", "#c88d4f"];
 const COR_MES_PARCIAL = "#bf8423";
 
-function PontoAnual({ cx, cy, index, value, cor, mesParcial, anoAtual }) {
+function PontoAnual({ cx, cy, index, value, cor, mesParcial, anoAtual, ativo = false }) {
   if (!Number.isFinite(cx) || !Number.isFinite(cy) || value == null) return null;
   const parcial = anoAtual && mesParcial === index + 1;
   return (
-    <circle cx={cx} cy={cy} r={parcial ? 5.5 : 3}
+    <circle cx={cx} cy={cy} r={parcial ? (ativo ? 7 : 5.5) : (ativo ? 5 : 3)}
       fill={parcial ? COR_MES_PARCIAL : cor}
       stroke={parcial ? "#fff" : "none"} strokeWidth={parcial ? 2 : 0} />
   );
@@ -60,7 +60,7 @@ function MiniGrafico({ linhas, ano }) {
           <g key={item.mes}>
             {item.temDados && (
               <rect x={x + 10} y={88 - altura} width="25" height={altura}
-                rx="5" fill={item.parcial ? "#d0a744" : "#7650a7"}>
+                rx="5" fill={item.parcial ? COR_MES_PARCIAL : CORES[0]}>
                 <title>{item.nome + ": " + dinheiro.format(item.vendido) + (item.parcial ? " (parcial)" : "")}</title>
               </rect>
             )}
@@ -357,7 +357,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                           type="monotone" stroke={CORES[i]} strokeWidth={i === 0 ? 3 : 2}
                           dot={(props) => <PontoAnual {...props} cor={CORES[i]}
                             mesParcial={mesParcial} anoAtual={i === 0} />}
-                          activeDot={{ r: 6 }}
+                          activeDot={(props) => <PontoAnual {...props} cor={CORES[i]}
+                            mesParcial={mesParcial} anoAtual={i === 0} ativo />}
                           connectNulls={false} isAnimationActive={false} />
                       ))}
                     </TipoGrafico>
