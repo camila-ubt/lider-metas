@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   alternarAnoHistorico, anosHistoricosDisponiveis, compararAnosEquivalentes,
   detalharMesEvolucao, MESES_CURTOS, montarComparativo, resumirSerieAnual,
+  situacaoMetaMensal,
 } from "@/lib/evolucaoAnual.mjs";
 import styles from "./EvolucaoAnual.module.css";
 
@@ -294,6 +295,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     if (Number.isInteger(indice) && indice >= 0 && indice < 12) setMesSelecionado(indice + 1);
   }
 
+  const situacaoMeta = situacaoMetaMensal(detalheMes);
+
   const painelDetalheMes = detalheMes ? (
                 <section className={styles.detalheMes + (visao === "mes" ? " " + styles.detalheMesFocado : "")}
                   aria-label={"Detalhes de " + detalheMes.nome + " de " + ano} aria-live="polite">
@@ -327,11 +330,13 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                   </div>
                   <div className={styles.balancoMes}>
                     <p className={styles.linhaBalanco}>
-                      <strong>Diferença para a meta</strong>
-                      <span className={detalheMes.diferencaMeta === null ? "" :
-                        detalheMes.diferencaMeta >= 0 ? styles.variacaoPositiva : styles.variacaoNegativa}>
-                        {detalheMes.diferencaMeta === null ? "Sem comparação disponível" :
-                          (detalheMes.diferencaMeta > 0 ? "+" : "") + dinheiro.format(detalheMes.diferencaMeta)}
+                      <strong>Situação da meta</strong>
+                      <span className={situacaoMeta.tom === "positivo" ? styles.variacaoPositiva :
+                        situacaoMeta.tom === "negativo" ? styles.variacaoNegativa : ""}>
+                        {situacaoMeta.titulo}
+                        {situacaoMeta.valor !== null &&
+                          " " + dinheiro.format(situacaoMeta.valor) +
+                          (situacaoMeta.complemento ? " " + situacaoMeta.complemento : "")}
                       </span>
                     </p>
                     <p className={styles.linhaBalanco}>
