@@ -84,7 +84,7 @@ test("compara apenas meses fechados presentes nos dois anos", () => {
   assert.equal(r.meses, 1);
   assert.equal(r.atual, 120);
   assert.equal(r.anterior, 100);
-  assert.equal(r.percentual, 20);
+  assert.ok(Math.abs(r.percentual - 20) < 1e-9);
 });
 
 test("sem período anterior comparável, percentual fica ausente", () => {
