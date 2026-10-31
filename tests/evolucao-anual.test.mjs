@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   alternarAnoHistorico, anosHistoricosDisponiveis,
   resumirSerieAnual, montarComparativo, compararAnosEquivalentes, detalharMesEvolucao,
+  situacaoMetaMensal,
 } from "../src/lib/evolucaoAnual.mjs";
 
 const hoje = new Date(2026, 9, 31);
@@ -179,4 +180,62 @@ test("tabela e gráfico usam somente os anos escolhidos", () => {
   assert.equal(pontos[0]["2026"], 240);
   assert.equal(pontos[0]["2024"], 100);
   assert.equal(Object.hasOwn(pontos[0], "2025"), false);
+});
+
+
+test("meta abaixo no mês aberto usa presente, sem valor negativo", () => {
+  const r = situacaoMetaMensal({ temDados: true, vendido: 250, meta: 500, parcial: true });
+  assert.deepEqual(r, {
+    titulo: "Ainda falta", valor: 250, complemento: "para atingir a meta", tom: "negativo",
+  });
+});
+
+test("meta abaixo no mês encerrado usa passado e valor absoluto", () => {
+  const r = situacaoMetaMensal({ temDados: true, vendido: 250, meta: 500, parcial: false });
+  assert.deepEqual(r, {
+    titulo: "Faltou", valor: 250, complemento: "para atingir a meta", tom: "negativo",
+  });
+});
+
+test("meta exatamente atingida distingue mês em andamento de mês fechado", () => {
+  assert.equal(situacaoMetaMensal({
+    temDados: true, vendido: 500, meta: 500, parcial: true,
+  }).titulo, "Meta já atingida");
+  assert.equal(situacaoMetaMensal({
+    temDados: true, vendido: 500, meta: 500, parcial: false,
+  }).titulo, "Meta atingida");
+});
+
+test("meta superada distingue mês atual do encerrado e mostra somente excedente", () => {
+  const aberto = situacaoMetaMensal({ temDados: true, vendido: 645.5, meta: 500, parcial: true });
+  const fechado = situacaoMetaMensal({ temDados: true, vendido: 645.5, meta: 500, parcial: false });
+  assert.equal(aberto.titulo, "Meta já superada em");
+  assert.equal(fechado.titulo, "Meta superada em");
+  assert.equal(aberto.valor, 145.5);
+  assert.equal(fechado.valor, 145.5);
+  assert.equal(fechado.tom, "positivo");
+});
+
+test("meta ou lançamentos ausentes não sugerem atraso nem meta atingida", () => {
+  assert.deepEqual(situacaoMetaMensal(null), {
+    titulo: "Sem vendas registradas", valor: null, complemento: "", tom: "neutro",
+  });
+  assert.equal(situacaoMetaMensal({
+    temDados: false, vendido: null, meta: 400, parcial: false,
+  }).titulo, "Sem vendas registradas");
+  assert.equal(situacaoMetaMensal({
+    temDados: true, vendido: 250, meta: null, parcial: true,
+  }).titulo, "Meta indisponível");
+  assert.equal(situacaoMetaMensal({
+    temDados: true, vendido: 250, meta: 0, parcial: false,
+  }).titulo, "Meta indisponível");
+});
+
+test("centavos determinam se meta foi atingida ou se ainda falta", () => {
+  assert.equal(situacaoMetaMensal({
+    temDados: true, vendido: 99.99, meta: 100, parcial: false,
+  }).valor, 0.01);
+  assert.equal(situacaoMetaMensal({
+    temDados: true, vendido: 100, meta: 100, parcial: false,
+  }).valor, null);
 });
