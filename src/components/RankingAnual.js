@@ -51,7 +51,7 @@ export default function RankingAnual() {
   const hoje = useMemo(() => new Date(), []);
   const [ano, setAno] = useState(hoje.getFullYear());
   const [tipo, setTipo] = useState("lojas");
-  const [lojaFiltro, setLojaFiltro] = useState("");
+  const [lojaFiltro, setLojaFiltro] = useState("geral");
   const [detalhe, setDetalhe] = useState(null);
   const [lojas, setLojas] = useState([]);
   const [metas, setMetas] = useState([]);
@@ -110,17 +110,30 @@ export default function RankingAnual() {
   );
   const lojaSelecionada = lojasOrdenadas.find((item) => String(item.id) === lojaFiltro) || lojasOrdenadas[0];
 
-  function resultado(loja, mes, periodo) {
-    const registros = (periodo ? [periodo] : PERIODOS).map((p) => dados.get(chave(loja.id, mes, p)));
+  function consolidar(registros, mes) {
     const vendido = registros.reduce((s, r) => s + (r?.vendido || 0), 0);
     const meta = registros.reduce((s, r) => s + (r?.meta || 0), 0);
-    const configurada = registros.every((r) => Boolean(r?.configurada));
+    // O geral só recebe classificação se todas as três lojas tiverem meta para o turno.
+    const configurada = registros.length > 0 && registros.every((r) => Boolean(r?.configurada));
     const percentual = configurada && meta > 0 ? vendido / meta * 100 : null;
-    const futuro = ano > hoje.getFullYear() || ano === hoje.getFullYear() && mes > hoje.getMonth() + 1;
+    const futuro = ano > hoje.getFullYear() || (ano === hoje.getFullYear() && mes > hoje.getMonth() + 1);
     const atual = ano === hoje.getFullYear() && mes === hoje.getMonth() + 1;
     const nivel = futuro ? "futuro" : percentual === null ? "semMeta" : atual ? "parcial" :
       percentual >= 130 ? "mega" : percentual >= 120 ? "super" : percentual >= 100 ? "meta" : "abaixo";
     return { vendido, meta, configurada, percentual, nivel };
+  }
+
+  function resultado(loja, mes, periodo) {
+    const registros = (periodo ? [periodo] : PERIODOS).map((p) => dados.get(chave(loja.id, mes, p)));
+    return consolidar(registros, mes);
+  }
+
+  function resultadoGeral(mes, periodo) {
+    const registros = lojasOrdenadas.flatMap((loja) =>
+      (periodo ? [periodo] : PERIODOS).map((p) => dados.get(chave(loja.id, mes, p)))
+    );
+    // Somar valores e metas antes do percentual; não tirar média de % das lojas.
+    return consolidar(registros, mes);
   }
 
   const ranking = lojasOrdenadas.map((loja) => {
@@ -181,11 +194,15 @@ export default function RankingAnual() {
               </table></div>
             </div>
           </> : <div className={styles.painel}>
-            <div className={styles.cabecalho}><h3>Manhã × Noite</h3>
-              <label>Loja
-                <select value={String(lojaSelecionada.id)} onChange={(e) => setLojaFiltro(e.target.value)}>
+            <div className={styles.cabecalho}><div><h3>Manhã × Noite</h3>
+              <p className="muted">{lojaFiltro === "geral"
+                ? "Todas as lojas: vendas e metas somadas por turno."
+                : "Resultado mensal da loja selecionada."}</p></div>
+              <label>Comparar
+                <select value={lojaFiltro} onChange={(e) => setLojaFiltro(e.target.value)}>
+                  <option value="geral">Geral das 3 lojas</option>
                   {lojasOrdenadas.map((l) =>
-                    <option key={l.id} value={l.id}>{l.codigo} · {l.nome}</option>)}
+                    <option key={l.id} value={String(l.id)}>{l.codigo} · {l.nome}</option>)}
                 </select>
               </label>
             </div>
@@ -194,8 +211,11 @@ export default function RankingAnual() {
               <tbody>{MESES.map((nome, i) => <tr key={nome}>
                 <th scope="row">{nome.slice(0, 3)}</th>
                 {PERIODOS.map((p) => <td key={p}>
-                  <StatusCelula resultado={resultado(lojaSelecionada, i + 1, p)}
-                    titulo={nome + " " + lojaSelecionada.nome + " " + p} aoAbrir={() => setDetalhe(i + 1)} />
+                  <StatusCelula
+                    resultado={lojaFiltro === "geral" ? resultadoGeral(i + 1, p) : resultado(lojaSelecionada, i + 1, p)}
+                    titulo={nome + " " + (lojaFiltro === "geral" ? "Geral das lojas" : lojaSelecionada.nome) + " " + p}
+                    aoAbrir={() => setDetalhe(i + 1)}
+                  />
                 </td>)}
               </tr>)}</tbody>
             </table></div>
@@ -205,7 +225,19 @@ export default function RankingAnual() {
               <button type="button" className={styles.fechar} onClick={() => setDetalhe(null)}>Fechar</button>
             </div>
             <div className={styles.detalhes}>
-              {lojasOrdenadas.map((l) => {
+              {tipo === "turnos" && lojaFiltro === "geral" && (() => {
+                const geral = resultadoGeral(detalhe);
+                return <article>
+                  <h4>Geral das 3 lojas</h4>
+                  <p>Vendido: <b>{moeda.format(geral.vendido)}</b></p>
+                  <p>Meta: {geral.configurada ? moeda.format(geral.meta) : "Sem meta completa"}</p>
+                  {PERIODOS.map((p) => {
+                    const turno = resultadoGeral(detalhe, p);
+                    return <p key={p}>{p === "manha" ? "Manhã" : "Noite"}: {moeda.format(turno.vendido)} / {turno.configurada ? moeda.format(turno.meta) : "Sem meta"}</p>;
+                  })}
+                </article>;
+              })()}
+              {(tipo === "turnos" && lojaFiltro !== "geral" ? [lojaSelecionada] : lojasOrdenadas).map((l) => {
                 const r = resultado(l, detalhe);
                 return <article key={l.id}>
                   <h4>{l.codigo} · {l.nome}</h4>
@@ -219,7 +251,7 @@ export default function RankingAnual() {
               })}
             </div>
           </div>}
-          <p className={styles.nota}>Meta 100% · Supermeta 120% · Megameta 130%. Mês atual aparece como parcial e não entra na classificação; sem meta completa, o mês fica sem classificação.</p>
+          <p className={styles.nota}>Meta 100% · Supermeta 120% · Megameta 130%. No geral, valores vendidos e metas são somados antes de calcular o percentual; é necessário ter meta em todas as lojas do turno. O mês atual aparece como parcial e não entra na classificação.</p>
         </>}
     </section>
   );
