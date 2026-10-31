@@ -15,6 +15,15 @@
 .botaoExpandir:focus-visible, .fechar:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
 .miniSvg { display:block; width:100%; height:116px; }
 .nota { margin:0; color:var(--muted); font-size:11px; line-height:1.5; }
+.legendaParcial {
+  display:flex; align-items:center; gap:7px; flex-wrap:wrap;
+  margin:2px 0 7px; color:#795718; font-size:11px; font-weight:700;
+  line-height:1.45;
+}
+.marcadorParcial {
+  display:inline-block; flex:none; width:10px; height:10px; border-radius:3px;
+  background:#bf8423;
+}
 .semDados { padding:14px 6px; font-size:13px; color:var(--muted); margin:0; }
 .fundo {
   position:fixed; inset:0; z-index:4500;
