@@ -128,3 +128,42 @@ export function alternarAnoHistorico(anosAtuais, anoAlternado, anoPrincipal, lim
   if (atuais.length >= limite) return atuais;
   return disponiveis.filter((ano) => atuais.includes(ano) || ano === anoAlternado);
 }
+
+
+/**
+ * Mensagem gerencial da meta do mês.
+ * Enquanto o mês está em andamento, usa o presente; após o encerramento, passado.
+ * Não presume vendas nem metas para períodos sem registros.
+ */
+export function situacaoMetaMensal(detalhe) {
+  if (!detalhe?.temDados || !Number.isFinite(detalhe.vendido)) {
+    return { titulo: "Sem vendas registradas", valor: null, complemento: "", tom: "neutro" };
+  }
+  if (!Number.isFinite(detalhe.meta) || detalhe.meta <= 0) {
+    return { titulo: "Meta indisponível", valor: null, complemento: "", tom: "neutro" };
+  }
+
+  const diferenca = Math.round((detalhe.vendido - detalhe.meta) * 100) / 100;
+  if (diferenca < 0) {
+    return {
+      titulo: detalhe.parcial ? "Ainda falta" : "Faltou",
+      valor: -diferenca,
+      complemento: "para atingir a meta",
+      tom: "negativo",
+    };
+  }
+  if (diferenca > 0) {
+    return {
+      titulo: detalhe.parcial ? "Meta já superada" : "Meta superada",
+      valor: diferenca,
+      complemento: "acima da meta",
+      tom: "positivo",
+    };
+  }
+  return {
+    titulo: detalhe.parcial ? "Meta já atingida" : "Meta atingida",
+    valor: null,
+    complemento: "",
+    tom: "positivo",
+  };
+}
