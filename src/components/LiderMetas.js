@@ -757,6 +757,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         {podeVerPA && (
           <button
             type="button"
+            data-ranking-anual-botao
             className={abaAtiva("ranking") ? "active" : ""}
             aria-pressed={abaAtiva("ranking")}
             onClick={() => setTela("ranking")}
