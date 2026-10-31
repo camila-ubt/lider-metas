@@ -95,31 +95,46 @@ function DetalheTurno({ nome, resultado }) {
   );
 }
 
-function CartaoDetalheMensal({ titulo, resultado, manha, noite }) {
+function CartaoDetalheMensal({ identificador, titulo, resultado, manha, noite, aberto, aoAlternar }) {
   const situacao = STATUS[resultado.nivel] || "Sem meta";
+  const idConteudo = "ranking-detalhe-" + identificador;
+
   return (
     <article className={styles.cartaoDetalhe + " " + (styles["detalhe" + resultado.nivel] || "")}>
-      <header className={styles.detalheTopo}>
-        <h4>{titulo}</h4>
-        <span className={styles.seloNivel + " " + (styles[resultado.nivel] || "")}>
-          {situacao}
-          {resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
+      <button
+        type="button"
+        className={styles.acordeaoBotao}
+        aria-expanded={aberto}
+        aria-controls={idConteudo}
+        onClick={aoAlternar}
+      >
+        <span className={styles.acordeaoPrimeiraLinha}>
+          <strong className={styles.nomeLojaDetalhe}>{titulo}</strong>
+          <span className={styles.seloNivel + " " + (styles[resultado.nivel] || "")}>
+            {situacao}{resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
+          </span>
         </span>
-      </header>
-      <div className={styles.detalheValores}>
-        <div>
-          <span>Vendido</span>
-          <strong className={styles.valorVendido}>{moeda.format(resultado.vendido)}</strong>
+        <span className={styles.acordeaoSegundaLinha}>
+          <SaldoMeta resultado={resultado} compacto />
+          <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
+        </span>
+      </button>
+
+      <div id={idConteudo} className={styles.conteudoCartao} hidden={!aberto}>
+        <div className={styles.detalheValores}>
+          <div>
+            <span>Vendido</span>
+            <strong className={styles.valorVendido}>{moeda.format(resultado.vendido)}</strong>
+          </div>
+          <div>
+            <span>Meta</span>
+            <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
+          </div>
         </div>
-        <div>
-          <span>Meta</span>
-          <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
+        <div className={styles.turnosDetalhe}>
+          <DetalheTurno nome="Manhã" resultado={manha} />
+          <DetalheTurno nome="Noite" resultado={noite} />
         </div>
-      </div>
-      <SaldoMeta resultado={resultado} />
-      <div className={styles.turnosDetalhe}>
-        <DetalheTurno nome="Manhã" resultado={manha} />
-        <DetalheTurno nome="Noite" resultado={noite} />
       </div>
     </article>
   );
@@ -132,7 +147,9 @@ export default function RankingAnual() {
   const [tipo, setTipo] = useState("lojas");
   const [lojaFiltro, setLojaFiltro] = useState("geral");
   const [detalhe, setDetalhe] = useState(null);
+  const [cartaoExpandido, setCartaoExpandido] = useState(null);
   const fecharModalRef = useRef(null);
+  const modalRef = useRef(null);
 
   useEffect(() => {
     if (detalhe === null) return undefined;
@@ -147,10 +164,24 @@ export default function RankingAnual() {
         evento.preventDefault();
         setDetalhe(null);
       }
-      // O modal tem um único controle de ação. O Tab permanece nele.
       if (evento.key === "Tab") {
-        evento.preventDefault();
-        fecharModalRef.current?.focus();
+        const focaveis = Array.from(modalRef.current?.querySelectorAll(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) || []);
+        if (!focaveis.length) return;
+        const primeiro = focaveis[0];
+        const ultimo = focaveis[focaveis.length - 1];
+
+        if (evento.shiftKey && document.activeElement === primeiro) {
+          evento.preventDefault();
+          ultimo.focus();
+        } else if (!evento.shiftKey && document.activeElement === ultimo) {
+          evento.preventDefault();
+          primeiro.focus();
+        } else if (!modalRef.current?.contains(document.activeElement)) {
+          evento.preventDefault();
+          primeiro.focus();
+        }
       }
     }
 
@@ -161,6 +192,11 @@ export default function RankingAnual() {
       if (origem instanceof HTMLElement && origem.isConnected) origem.focus();
     };
   }, [detalhe]);
+  function abrirDetalhesDoMes(mes) {
+    setCartaoExpandido(null);
+    setDetalhe(mes);
+  }
+
   const [lojas, setLojas] = useState([]);
   const [metas, setMetas] = useState([]);
   const [vendas, setVendas] = useState([]);
@@ -305,7 +341,7 @@ export default function RankingAnual() {
                   <th scope="row">{nome.slice(0, 3)}</th>
                   {lojasOrdenadas.map((l) => <td key={l.id}>
                     <StatusCelula resultado={resultado(l, i + 1)} titulo={nome + " " + l.nome}
-                      aoAbrir={() => setDetalhe(i + 1)} />
+                      aoAbrir={() => abrirDetalhesDoMes(i + 1)} />
                   </td>)}
                 </tr>)}</tbody>
               </table></div>
@@ -343,7 +379,7 @@ export default function RankingAnual() {
                   <StatusCelula
                     resultado={lojaFiltro === "geral" ? resultadoGeral(i + 1, p) : resultado(lojaSelecionada, i + 1, p)}
                     titulo={nome + " " + (lojaFiltro === "geral" ? "Geral das lojas" : lojaSelecionada.nome) + " " + p}
-                    aoAbrir={() => setDetalhe(i + 1)}
+                    aoAbrir={() => abrirDetalhesDoMes(i + 1)}
                   />
                 </td>)}
               </tr>)}</tbody>
@@ -358,6 +394,7 @@ export default function RankingAnual() {
               }}
             >
               <section
+                ref={modalRef}
                 className={styles.modalJanela}
                 role="dialog"
                 aria-modal="true"
@@ -380,19 +417,25 @@ export default function RankingAnual() {
                   <div className={styles.detalhes}>
                     {tipo === "turnos" && lojaFiltro === "geral" && (
                       <CartaoDetalheMensal
+                        identificador="geral"
                         titulo="Geral das 3 lojas"
                         resultado={resultadoGeral(detalhe)}
                         manha={resultadoGeral(detalhe, "manha")}
                         noite={resultadoGeral(detalhe, "noite")}
+                        aberto={cartaoExpandido === "geral"}
+                        aoAlternar={() => setCartaoExpandido((atual) => atual === "geral" ? null : "geral")}
                       />
                     )}
                     {(tipo === "turnos" && lojaFiltro !== "geral" ? [lojaSelecionada] : lojasOrdenadas).map((loja) => (
                       <CartaoDetalheMensal
                         key={loja.id}
+                        identificador={String(loja.id)}
                         titulo={loja.codigo + " · " + loja.nome}
                         resultado={resultado(loja, detalhe)}
                         manha={resultado(loja, detalhe, "manha")}
                         noite={resultado(loja, detalhe, "noite")}
+                        aberto={cartaoExpandido === String(loja.id)}
+                        aoAlternar={() => setCartaoExpandido((atual) => atual === String(loja.id) ? null : String(loja.id))}
                       />
                     ))}
                   </div>
