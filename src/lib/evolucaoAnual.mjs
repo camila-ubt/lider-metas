@@ -1,0 +1,90 @@
+export const MESES_CURTOS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const PERIODOS = ["manha", "noite"];
+
+function chave(lojaId, mes, periodo) {
+  return String(lojaId) + ":" + String(mes) + ":" + periodo;
+}
+
+// Consolida vendas e metas usando exatamente as lojas e os períodos filtrados.
+// Um mês sem lançamento é uma lacuna, não faturamento zero presumido.
+export function resumirSerieAnual({ ano, lojasIds, periodo = "todos", vendas = [], metas = [], hoje = new Date() }) {
+  const lojas = (lojasIds || []).map(String);
+  const ids = new Set(lojas);
+  const periodos = periodo === "todos" ? PERIODOS : PERIODOS.filter((p) => p === periodo);
+  const vendasPorMes = new Map();
+  const metasPorSlot = new Map();
+
+  for (const venda of vendas) {
+    const mes = Number(String(venda.data).slice(5, 7));
+    if (!ids.has(String(venda.loja_id)) || !periodos.includes(venda.periodo) || mes < 1 || mes > 12) continue;
+    const atual = vendasPorMes.get(mes) || { vendido: 0, registros: 0 };
+    atual.vendido += Number(venda.valor_vendido || 0);
+    atual.registros += 1;
+    vendasPorMes.set(mes, atual);
+  }
+
+  for (const registro of metas) {
+    const mes = Number(String(registro.mes).slice(5, 7));
+    const valor = Number(registro.valor_meta);
+    if (!ids.has(String(registro.loja_id)) || !periodos.includes(registro.periodo) ||
+        mes < 1 || mes > 12 || !Number.isFinite(valor) || valor <= 0) continue;
+    metasPorSlot.set(chave(registro.loja_id, mes, registro.periodo), valor);
+  }
+
+  return MESES_CURTOS.map((nome, indice) => {
+    const mes = indice + 1;
+    const futuro = ano > hoje.getFullYear() || (ano === hoje.getFullYear() && mes > hoje.getMonth() + 1);
+    const parcial = ano === hoje.getFullYear() && mes === hoje.getMonth() + 1;
+    const observacao = vendasPorMes.get(mes);
+    const temDados = !futuro && Boolean(observacao?.registros);
+    const chavesEsperadas = lojas.flatMap((id) => periodos.map((p) => chave(id, mes, p)));
+    const temMeta = !futuro && chavesEsperadas.length > 0 && chavesEsperadas.every((id) => metasPorSlot.has(id));
+    const meta = temMeta ? chavesEsperadas.reduce((acc, id) => acc + metasPorSlot.get(id), 0) : null;
+    const vendido = temDados ? observacao.vendido : null;
+
+    return {
+      mes,
+      nome,
+      parcial,
+      temDados,
+      vendido,
+      meta,
+      percentual: temDados && meta > 0 ? (vendido / meta) * 100 : null,
+    };
+  });
+}
+
+export function montarComparativo(seriesPorAno, anos, modo = "acumulado") {
+  const series = {};
+  for (const ano of anos) {
+    const valores = seriesPorAno[ano] || [];
+    let acumulado = 0;
+    series[ano] = valores.map((item) => {
+      if (!item?.temDados) return null;
+      acumulado += item.vendido;
+      if (modo === "meta") return item.percentual;
+      if (modo === "mensal") return item.vendido;
+      return acumulado;
+    });
+  }
+  return MESES_CURTOS.map((nome, i) => {
+    const linha = { mes: nome };
+    for (const ano of anos) linha[String(ano)] = series[ano][i] ?? null;
+    return linha;
+  });
+}
+
+// Compara somente os mesmos meses fechados, registrados em ambos os anos.
+export function compararAnosEquivalentes(anoAtual, anoAnterior) {
+  const meses = (anoAtual || []).filter((registro, i) =>
+    registro.temDados && !registro.parcial && anoAnterior?.[i]?.temDados
+  );
+  const anterior = meses.reduce((soma, item) => soma + (anoAnterior[item.mes - 1]?.vendido || 0), 0);
+  const atual = meses.reduce((soma, item) => soma + (item.vendido || 0), 0);
+  return {
+    meses: meses.length,
+    atual,
+    anterior,
+    percentual: anterior > 0 && meses.length ? ((atual / anterior) - 1) * 100 : null,
+  };
+}
