@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const CHAVE_MES = "lider-metas:mes-selecionado";
 const CHAVE_TELA = "lider-metas:tela-selecionada";
 const CHAVE_SCROLL = "lider-metas:posicao-scroll";
-const TELAS_VALIDAS = ["painel", "lancamentos", "acompanhamento", "ranking", "metas", "manual", "pa", "vendedoras"];
+const TELAS_VALIDAS = ["painel", "lancamentos", "ranking", "metas", "manual", "pa", "vendedoras"];
 
 function mesAtual() {
   const data = new Date();
@@ -20,7 +20,6 @@ function telaDoBotao(botao) {
   if (botao?.hasAttribute?.("data-manual-botao")) return "manual";
   if (botao?.hasAttribute?.("data-pa-botao")) return "pa";
   if (botao?.hasAttribute?.("data-ranking-anual-botao")) return "ranking";
-  if (botao?.hasAttribute?.("data-acompanhamento-botao")) return "acompanhamento";
   if (botao?.hasAttribute?.("data-config-vendedoras-botao")) return "vendedoras";
 
   const texto = botao?.textContent?.trim().toLocaleLowerCase("pt-BR") || "";
@@ -70,7 +69,9 @@ export default function PersistenciaNavegacao() {
 
       const mesSalvo = localStorage.getItem(CHAVE_MES);
       const telaInicial = document.querySelector("nav.tabs")?.dataset.telaInicial;
-      const telaSalva = telaInicial === "pa" ? "pa" : localStorage.getItem(CHAVE_TELA);
+      const telaAnterior = telaInicial === "pa" ? "pa" : localStorage.getItem(CHAVE_TELA);
+      // Acompanhamento agora é uma consulta dentro de Lançar vendas.
+      const telaSalva = telaAnterior === "acompanhamento" ? "lancamentos" : telaAnterior;
       const scrollSalvo = Number(localStorage.getItem(CHAVE_SCROLL) || 0);
 
       if (/^\d{4}-\d{2}$/.test(mesSalvo || "") && campo.value !== mesSalvo) {
