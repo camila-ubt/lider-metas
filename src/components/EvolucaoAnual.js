@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine,
+  Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,17 @@ import styles from "./EvolucaoAnual.module.css";
 const dinheiro = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const numero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 const CORES = ["#7650a7", "#248676", "#c88d4f"];
+const COR_MES_PARCIAL = "#bf8423";
+
+function PontoAnual({ cx, cy, index, value, cor, mesParcial, anoAtual }) {
+  if (!Number.isFinite(cx) || !Number.isFinite(cy) || value == null) return null;
+  const parcial = anoAtual && mesParcial === index + 1;
+  return (
+    <circle cx={cx} cy={cy} r={parcial ? 5.5 : 3}
+      fill={parcial ? COR_MES_PARCIAL : cor}
+      stroke={parcial ? "#fff" : "none"} strokeWidth={parcial ? 2 : 0} />
+  );
+}
 
 function formatoEixo(valor) {
   const abs = Math.abs(valor);
@@ -205,7 +216,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   );
   const valorAno = series[ano].reduce((total, item) => total + (item.vendido || 0), 0);
   const mesesObservados = series[ano].filter((item) => item.temDados).length;
-  const parcial = ano === hoje.getFullYear() && mini.some((item) => item.parcial);
+  const mesParcial = series[ano].find((item) => item.parcial)?.mes ?? null;
+  const parcial = mesParcial !== null;
   const temGraficos = dadosGrafico.some((item) => anosComparados.some((y) => item[String(y)] !== null));
   const TipoGrafico = modo === "mensal" ? BarChart : LineChart;
   const detalheMes = useMemo(
@@ -235,7 +247,12 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
           </button>
         </div>
         <MiniGrafico linhas={mini} ano={ano} />
-        {parcial && <p className={styles.nota}>O mês atual ainda está em andamento.</p>}
+        {parcial && (
+          <p className={styles.legendaParcial}>
+            <span className={styles.marcadorParcial} aria-hidden="true" />
+            {MESES_CURTOS[mesParcial - 1]} de {ano} · resultado parcial
+          </p>
+        )}
       </section>
 
       {aberto && createPortal(
@@ -292,12 +309,18 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                 <h3>{modo === "acumulado" ? "Evolução acumulada" : "Vendas por mês"}</h3>
                 <span>{[ano, ...anosAnteriores].join(" × ")}</span>
               </div>
+              {parcial && (
+                <p className={styles.legendaParcial}>
+                  <span className={styles.marcadorParcial} aria-hidden="true" />
+                  {MESES_CURTOS[mesParcial - 1]} de {ano} · parcial, ainda em andamento
+                </p>
+              )}
               {erro && <p role="alert" className={styles.aviso}>{erro}</p>}
               {buscando && <p role="status" className={styles.aviso}>Carregando anos anteriores...</p>}
               {temGraficos ? (
                 <div className={styles.grafico}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <TipoGrafico data={dadosGrafico} margin={{ top: 14, right: 10, left: 0, bottom: 0 }}
+                    <TipoGrafico data={dadosGrafico} margin={{ top: 24, right: 10, left: 0, bottom: 0 }}
                       onClick={escolherMesNoGrafico} cursor="pointer">
                       <CartesianGrid stroke="#ebe5f1" strokeDasharray="4 4" />
                       <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#73697e" }} tickLine={false} />
@@ -305,22 +328,36 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                         tickFormatter={formatoEixo} />
                       <Tooltip
                         formatter={(valor, nome) => [formatarMedida(valor), nome]}
-                        labelFormatter={(nome) => "Mês: " + nome}
+                        labelFormatter={(nome) => "Mês: " + nome +
+                          (mesParcial === MESES_CURTOS.indexOf(String(nome)) + 1
+                            ? " · " + ano + " parcial" : "")}
                         contentStyle={{ borderRadius: 12, borderColor: "#e4ddec" }}
                       />
                       <Legend />
-                      {mesSelecionado !== null && (
+                      {mesParcial !== null && (
+                        <ReferenceLine x={MESES_CURTOS[mesParcial - 1]}
+                          stroke={COR_MES_PARCIAL} strokeDasharray="4 4"
+                          label={{ value: "Parcial", fill: COR_MES_PARCIAL, position: "top", fontSize: 11 }} />
+                      )}
+                      {mesSelecionado !== null && mesSelecionado !== mesParcial && (
                         <ReferenceLine x={MESES_CURTOS[mesSelecionado - 1]}
                           stroke="#8e82a0" strokeDasharray="4 4" />
                       )}
                       {anosComparados.map((y, i) => modo === "mensal" ? (
                         <Bar key={y} name={String(y)} dataKey={String(y)}
                           fill={CORES[i]} maxBarSize={16} radius={[3, 3, 0, 0]}
-                          isAnimationActive={false} />
+                          isAnimationActive={false}>
+                          {dadosGrafico.map((item, indice) => (
+                            <Cell key={item.mes}
+                              fill={i === 0 && mesParcial === indice + 1 ? COR_MES_PARCIAL : CORES[i]} />
+                          ))}
+                        </Bar>
                       ) : (
                         <Line key={y} name={String(y)} dataKey={String(y)}
                           type="monotone" stroke={CORES[i]} strokeWidth={i === 0 ? 3 : 2}
-                          dot={{ r: i === 0 ? 3 : 2 }} activeDot={{ r: 5 }}
+                          dot={(props) => <PontoAnual {...props} cor={CORES[i]}
+                            mesParcial={mesParcial} anoAtual={i === 0} />}
+                          activeDot={{ r: 6 }}
                           connectNulls={false} isAnimationActive={false} />
                       ))}
                     </TipoGrafico>
