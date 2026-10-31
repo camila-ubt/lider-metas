@@ -12,6 +12,7 @@
 .legenda span { display:inline-flex; gap:5px; align-items:center; }
 .legenda i { width:11px; height:11px; display:inline-block; border-radius:3px; }
 .resumos { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+.resumosTurnos { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
 .resumo, .painel, .aviso { background:#fff; border:1px solid var(--border); border-radius:16px; padding:16px; min-width:0; }
 .resumo h3 { margin:0 0 9px; font-size:15px; }
 .resumo strong { display:block; font-size:24px; line-height:1.2; }
@@ -48,6 +49,7 @@
 @media(max-width:680px) {
   .area { gap:12px; }
   .resumos { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+  .resumosTurnos { gap:8px; }
   .resumo { padding:10px 7px; }
   .resumo h3 { font-size:12px; }
   .resumo strong { font-size:20px; }
