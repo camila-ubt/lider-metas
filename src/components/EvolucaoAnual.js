@@ -340,7 +340,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                 <div><span>{anoReferencia === null ? "Comparativo histórico" : "Comparativo com " + anoReferencia}</span>
                   <strong>{variacao.percentual === null ? "—" :
                     (variacao.percentual > 0 ? "+" : "") + numero.format(variacao.percentual) + "%"}</strong>
-                  <small>{anoReferencia === null ? "Selecione um ano para comparar" :
+                  <small>{anoReferencia === null ? (anosDisponiveis.length ? "Selecione um ano para comparar" : "Histórico disponível desde 2024") :
                     buscando && !series[anoReferencia] ? "Carregando histórico..." :
                     variacao.meses ? variacao.meses + " mês(es) fechados equivalentes" : "Sem meses comparáveis"}</small>
                 </div>
@@ -452,7 +452,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                     </p>
                     <p>
                       <strong>{anoReferencia === null ? "Comparativo histórico: " : "Mesmo mês de " + anoReferencia + ": "}</strong>
-                      {anoReferencia === null ? "Selecione um ano acima" :
+                      {anoReferencia === null ? (anosDisponiveis.length ? "Selecione um ano acima" : "Histórico indisponível") :
                         detalheMes.vendidoAnterior === null
                           ? (buscando && !series[anoReferencia] ? "Carregando..." : "Sem registros")
                           : dinheiro.format(detalheMes.vendidoAnterior)}
