@@ -142,6 +142,64 @@ function CartaoDetalheMensal({ identificador, titulo, resultado, manha, noite, a
   );
 }
 
+
+function CartaoDetalheTurno({ identificador, titulo, resultado, lojas, aberto, aoAlternar }) {
+  const idConteudo = "ranking-turno-" + identificador;
+  const situacao = STATUS[resultado.nivel] || "Sem meta";
+
+  return (
+    <article className={styles.cartaoDetalhe + " " + (styles["detalhe" + resultado.nivel] || "")}>
+      <button
+        type="button"
+        className={styles.acordeaoBotao}
+        aria-expanded={aberto}
+        aria-controls={idConteudo}
+        onClick={aoAlternar}
+      >
+        <span className={styles.acordeaoPrimeiraLinha}>
+          <strong className={styles.nomeLojaDetalhe}>{titulo}</strong>
+          <span className={styles.seloNivel + " " + (styles[resultado.nivel] || "")}>
+            {situacao}{resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
+          </span>
+        </span>
+        <span className={styles.acordeaoSegundaLinha}>
+          <SaldoMeta resultado={resultado} compacto inline />
+          <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
+        </span>
+      </button>
+      <div id={idConteudo} className={styles.conteudoCartao} hidden={!aberto}>
+        <div className={styles.detalheValores}>
+          <div>
+            <span>Vendido</span>
+            <strong className={styles.valorVendido}>{moeda.format(resultado.vendido)}</strong>
+          </div>
+          <div>
+            <span>Meta</span>
+            <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
+          </div>
+        </div>
+        {lojas.length > 0 && (
+          <div className={styles.lojasNoTurno}>
+            {lojas.map((loja) => (
+              <div className={styles.linhaLojaTurno} key={loja.id}>
+                <div className={styles.linhaLojaCabecalho}>
+                  <strong>{loja.nome}</strong>
+                  <span>{loja.resultado.percentual !== null
+                    ? loja.resultado.percentual.toFixed(1) + "%"
+                    : "Sem meta"}</span>
+                </div>
+                <p>Vendido {moeda.format(loja.resultado.vendido)} · Meta {loja.resultado.configurada
+                  ? moeda.format(loja.resultado.meta) : "não configurada"}</p>
+                <SaldoMeta resultado={loja.resultado} compacto />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </article>
+  );
+}
+
 export default function RankingAnual() {
   const supabase = useMemo(() => createClient(), []);
   const hoje = useMemo(() => new Date(), []);
@@ -417,18 +475,31 @@ export default function RankingAnual() {
                 </header>
                 <div className={styles.modalConteudo}>
                   <div className={styles.detalhes}>
-                    {tipo === "turnos" && lojaFiltro === "geral" && (
-                      <CartaoDetalheMensal
-                        identificador="geral"
-                        titulo="Geral das 3 lojas"
-                        resultado={resultadoGeral(detalhe)}
-                        manha={resultadoGeral(detalhe, "manha")}
-                        noite={resultadoGeral(detalhe, "noite")}
-                        aberto={cartaoExpandido === "geral"}
-                        aoAlternar={() => setCartaoExpandido((atual) => atual === "geral" ? null : "geral")}
-                      />
-                    )}
-                    {(tipo === "turnos" && lojaFiltro !== "geral" ? [lojaSelecionada] : lojasOrdenadas).map((loja) => (
+                    {tipo === "turnos" ? PERIODOS.map((periodo) => {
+                      const identificador = "turno-" + periodo;
+                      const resultadoPeriodo = lojaFiltro === "geral"
+                        ? resultadoGeral(detalhe, periodo)
+                        : resultado(lojaSelecionada, detalhe, periodo);
+                      const lojasDoTurno = lojaFiltro === "geral"
+                        ? lojasOrdenadas.map((loja) => ({
+                          id: loja.id,
+                          nome: loja.codigo + " · " + loja.nome,
+                          resultado: resultado(loja, detalhe, periodo),
+                        }))
+                        : [];
+                      return (
+                        <CartaoDetalheTurno
+                          key={periodo}
+                          identificador={identificador}
+                          titulo={periodo === "manha" ? "Manhã" : "Noite"}
+                          resultado={resultadoPeriodo}
+                          lojas={lojasDoTurno}
+                          aberto={cartaoExpandido === identificador}
+                          aoAlternar={() => setCartaoExpandido((atual) =>
+                            atual === identificador ? null : identificador)}
+                        />
+                      );
+                    }) : lojasOrdenadas.map((loja) => (
                       <CartaoDetalheMensal
                         key={loja.id}
                         identificador={String(loja.id)}
@@ -437,7 +508,8 @@ export default function RankingAnual() {
                         manha={resultado(loja, detalhe, "manha")}
                         noite={resultado(loja, detalhe, "noite")}
                         aberto={cartaoExpandido === String(loja.id)}
-                        aoAlternar={() => setCartaoExpandido((atual) => atual === String(loja.id) ? null : String(loja.id))}
+                        aoAlternar={() => setCartaoExpandido((atual) =>
+                          atual === String(loja.id) ? null : String(loja.id))}
                       />
                     ))}
                   </div>
