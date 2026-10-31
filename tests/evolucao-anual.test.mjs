@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  alternarAnoHistorico, anosHistoricosDisponiveis,
   resumirSerieAnual, montarComparativo, compararAnosEquivalentes, detalharMesEvolucao,
 } from "../src/lib/evolucaoAnual.mjs";
 
@@ -152,4 +153,30 @@ test("destaca como parcial somente o mês atual do ano em andamento", () => {
   assert.equal(historico[9].temDados, true);
   assert.equal(historico[9].parcial, false);
   assert.equal(historico.some((item) => item.parcial), false);
+});
+
+test("lista apenas anos anteriores disponíveis e respeita o início do histórico", () => {
+  assert.deepEqual(anosHistoricosDisponiveis(2024), []);
+  assert.deepEqual(anosHistoricosDisponiveis(2025), [2024]);
+  assert.deepEqual(anosHistoricosDisponiveis(2027), [2026, 2025, 2024]);
+});
+
+test("permite escolher quais anos aparecem, mantendo no máximo duas comparações", () => {
+  assert.deepEqual(alternarAnoHistorico([2026, 2025], 2025, 2027), [2026]);
+  assert.deepEqual(alternarAnoHistorico([2026], 2024, 2027), [2026, 2024]);
+  assert.deepEqual(alternarAnoHistorico([2026, 2025], 2024, 2027), [2026, 2025]);
+  assert.deepEqual(alternarAnoHistorico([], 2024, 2027), [2024]);
+  assert.deepEqual(alternarAnoHistorico([2025], 2027, 2027), [2025]);
+  assert.deepEqual(alternarAnoHistorico([2026, 2025], 2024, 2025), [2024]);
+});
+
+test("tabela e gráfico usam somente os anos escolhidos", () => {
+  const pontos = montarComparativo({
+    2026: [{ vendido: 240, temDados: true }],
+    2025: [{ vendido: 180, temDados: true }],
+    2024: [{ vendido: 100, temDados: true }],
+  }, [2026, 2024], "mensal");
+  assert.equal(pontos[0]["2026"], 240);
+  assert.equal(pontos[0]["2024"], 100);
+  assert.equal(Object.hasOwn(pontos[0], "2025"), false);
 });
