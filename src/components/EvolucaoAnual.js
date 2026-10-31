@@ -8,7 +8,8 @@ import {
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import {
-  compararAnosEquivalentes, detalharMesEvolucao, MESES_CURTOS, montarComparativo, resumirSerieAnual,
+  alternarAnoHistorico, anosHistoricosDisponiveis, compararAnosEquivalentes,
+  detalharMesEvolucao, MESES_CURTOS, montarComparativo, resumirSerieAnual,
 } from "@/lib/evolucaoAnual.mjs";
 import styles from "./EvolucaoAnual.module.css";
 
@@ -103,6 +104,10 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const [periodo, setPeriodo] = useState("todos");
   const [modo, setModo] = useState("acumulado");
   const [mesSelecionado, setMesSelecionado] = useState(null);
+  const [anosMarcados, setAnosMarcados] = useState(() => ({
+    ano,
+    anos: anosHistoricosDisponiveis(ano).slice(0, 2),
+  }));
   const [historico, setHistorico] = useState({});
   const [buscando, setBuscando] = useState(false);
   const [erro, setErro] = useState("");
@@ -115,10 +120,21 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     ano, lojasIds: lojas.map((loja) => loja.id), periodo: "todos", vendas, metas, hoje,
   }), [ano, lojas, vendas, metas, hoje]);
 
-  const anosAnteriores = useMemo(
-    () => [ano - 1, ano - 2].filter((y) => y >= 2024),
-    [ano]
-  );
+  const anosDisponiveis = useMemo(() => anosHistoricosDisponiveis(ano), [ano]);
+  // Ao trocar o ano principal, os anos exibidos são redefinidos sem herdar escolhas antigas.
+  const anosAnteriores = useMemo(() => (
+    anosMarcados.ano === ano ? anosMarcados.anos : anosDisponiveis.slice(0, 2)
+  ), [ano, anosMarcados, anosDisponiveis]);
+
+  function alternarAno(anoEscolhido) {
+    setAnosMarcados((estado) => {
+      const atuais = estado.ano === ano ? estado.anos : anosDisponiveis.slice(0, 2);
+      return {
+        ano,
+        anos: alternarAnoHistorico(atuais, anoEscolhido, ano),
+      };
+    });
+  }
 
   useEffect(() => {
     if (!aberto) return undefined;
@@ -127,6 +143,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     if (!faltantes.length) {
       setHistorico({ ...cache.current });
       setBuscando(false);
+      setErro("");
       return undefined;
     }
     setBuscando(true);
@@ -210,9 +227,10 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     () => montarComparativo(series, anosComparados, modo),
     [series, anosComparados, modo]
   );
+  const anoReferencia = anosAnteriores[0] ?? null;
   const variacao = useMemo(
-    () => compararAnosEquivalentes(series[ano], series[ano - 1]),
-    [series, ano]
+    () => compararAnosEquivalentes(series[ano], anoReferencia === null ? undefined : series[anoReferencia]),
+    [series, ano, anoReferencia]
   );
   const valorAno = series[ano].reduce((total, item) => total + (item.vendido || 0), 0);
   const mesesObservados = series[ano].filter((item) => item.temDados).length;
@@ -221,8 +239,10 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const temGraficos = dadosGrafico.some((item) => anosComparados.some((y) => item[String(y)] !== null));
   const TipoGrafico = modo === "mensal" ? BarChart : LineChart;
   const detalheMes = useMemo(
-    () => mesSelecionado === null ? null : detalharMesEvolucao(series[ano], series[ano - 1], mesSelecionado),
-    [ano, mesSelecionado, series]
+    () => mesSelecionado === null ? null : detalharMesEvolucao(
+      series[ano], anoReferencia === null ? undefined : series[anoReferencia], mesSelecionado
+    ),
+    [ano, anoReferencia, mesSelecionado, series]
   );
 
   function escolherMesNoGrafico(estado) {
@@ -294,20 +314,41 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                 </label>
               </div>
 
+              {anosDisponiveis.length > 0 && (
+                <fieldset className={styles.anosComparar}>
+                  <legend>Comparar com <span>(até 2 anos)</span></legend>
+                  <div className={styles.anosOpcoes}>
+                    {anosDisponiveis.map((anoAnterior) => {
+                      const marcado = anosAnteriores.includes(anoAnterior);
+                      const bloqueado = !marcado && anosAnteriores.length >= 2;
+                      return (
+                        <label key={anoAnterior} className={styles.anoOpcao}>
+                          <input type="checkbox" checked={marcado} disabled={bloqueado}
+                            onChange={() => alternarAno(anoAnterior)} />
+                          <span>{anoAnterior}</span>
+                        </label>
+                      );
+                    })}
+                    {!anosAnteriores.length && <small>Exibindo apenas {ano}.</small>}
+                  </div>
+                </fieldset>
+              )}
+
               <div className={styles.kpis}>
                 <div><span>Vendido em {ano}</span><strong>{dinheiro.format(valorAno)}</strong>
                   <small>{mesesObservados} mês(es) com registros{parcial ? " · inclui o atual" : ""}</small></div>
-                <div><span>{anosAnteriores.length ? "Comparativo com " + (ano - 1) : "Comparativo histórico"}</span>
+                <div><span>{anoReferencia === null ? "Comparativo histórico" : "Comparativo com " + anoReferencia}</span>
                   <strong>{variacao.percentual === null ? "—" :
                     (variacao.percentual > 0 ? "+" : "") + numero.format(variacao.percentual) + "%"}</strong>
-                  <small>{variacao.meses ? variacao.meses + " mês(es) fechados equivalentes" :
-                    anosAnteriores.length ? "Sem meses comparáveis" : "Histórico a partir de 2024"}</small>
+                  <small>{anoReferencia === null ? "Selecione um ano para comparar" :
+                    buscando && !series[anoReferencia] ? "Carregando histórico..." :
+                    variacao.meses ? variacao.meses + " mês(es) fechados equivalentes" : "Sem meses comparáveis"}</small>
                 </div>
               </div>
 
               <div className={styles.tituloGrafico}>
                 <h3>{modo === "acumulado" ? "Evolução acumulada" : "Vendas por mês"}</h3>
-                <span>{[ano, ...anosAnteriores].join(" × ")}</span>
+                <span>{anosComparados.join(" × ")}</span>
               </div>
               {parcial && (
                 <p className={styles.legendaParcial}>
@@ -410,10 +451,11 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                         (detalheMes.diferencaMeta > 0 ? "+" : "") + dinheiro.format(detalheMes.diferencaMeta)}
                     </p>
                     <p>
-                      <strong>Mesmo mês de {ano - 1}: </strong>
-                      {ano <= 2024 ? "Histórico indisponível" :
-                        detalheMes.vendidoAnterior === null ? (buscando ? "Carregando..." : "Sem registros") :
-                          dinheiro.format(detalheMes.vendidoAnterior)}
+                      <strong>{anoReferencia === null ? "Comparativo histórico: " : "Mesmo mês de " + anoReferencia + ": "}</strong>
+                      {anoReferencia === null ? "Selecione um ano acima" :
+                        detalheMes.vendidoAnterior === null
+                          ? (buscando && !series[anoReferencia] ? "Carregando..." : "Sem registros")
+                          : dinheiro.format(detalheMes.vendidoAnterior)}
                       {detalheMes.variacaoAnterior !== null && (
                         <span className={detalheMes.variacaoAnterior >= 0 ? styles.variacaoPositiva : styles.variacaoNegativa}>
                           {" · " + (detalheMes.variacaoAnterior > 0 ? "+" : "") +
