@@ -318,6 +318,17 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                     <div className={styles.valorVendidoMes}>
                       <span>Vendido</span>
                       <strong>{detalheMes.temDados ? dinheiro.format(detalheMes.vendido) : "—"}</strong>
+                      {detalheMes.parcial && (
+                        <small className={styles.ultimaDataVenda}>
+                          {detalheMes.ultimaDataRegistro
+                            ? "Última data com vendas lançadas: " +
+                              detalheMes.ultimaDataRegistro.slice(8, 10) + "/" +
+                              detalheMes.ultimaDataRegistro.slice(5, 7)
+                            : detalheMes.temDados
+                              ? "Data do último registro indisponível"
+                              : "Ainda não há vendas lançadas neste mês para este filtro"}
+                        </small>
+                      )}
                     </div>
                     <div>
                       <span>Meta</span>
@@ -357,7 +368,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                       </span>
                     </p>
                     {detalheMes.parcial && <small>O mês atual é parcial. A variação anual só aparece após o fechamento.</small>}
-                    {!detalheMes.temDados && <small>Sem lançamentos registrados para este filtro no mês escolhido.</small>}
+                    {!detalheMes.temDados && !detalheMes.parcial &&
+                      <small>Sem lançamentos registrados para este filtro no mês escolhido.</small>}
                   </div>
                 </section>
   ) : null;
