@@ -39,11 +39,26 @@
 .futuro { color:#a8a0ad; }
 .scroll .semMeta { display:block; padding:10px 2px; border-radius:8px; font-size:10px; }
 .legenda .semMeta { display:inline-block; }
-.detalhes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px; }
+.detalhes { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; margin-top:0; }
 .cartaoDetalhe {
-  min-width:0; padding:13px; border:1px solid var(--border);
+  min-width:0; padding:0; border:1px solid var(--border);
   border-left:4px solid #d8d1e2; border-radius:13px; background:#fff;
+  overflow:hidden;
 }
+.acordeaoBotao {
+  display:block; width:100%; padding:11px 13px; border:0;
+  background:transparent; text-align:left; color:var(--foreground);
+}
+.acordeaoBotao:hover { background:#faf8fd; }
+.acordeaoBotao:focus-visible { outline:3px solid var(--primary); outline-offset:-3px; }
+.acordeaoPrimeiraLinha { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; }
+.nomeLojaDetalhe { font-size:14px; line-height:1.4; }
+.acordeaoSegundaLinha { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
+.acordeaoSegundaLinha .saldoMeta { margin:0; }
+.acordeaoSegundaLinha .saldoMeta > span:last-child { display:none; }
+.acordeaoSeta { flex:none; font-size:22px; line-height:1; font-weight:800; color:var(--primary); }
+.conteudoCartao { padding:0 13px 13px; border-top:1px solid var(--border); }
+.conteudoCartao[hidden] { display:none; }
 .detalhemega { border-left-color:#268b65; }
 .detalhesuper { border-left-color:#7650a7; }
 .detalhemeta { border-left-color:#3a7da9; }
@@ -71,7 +86,7 @@
 .saldoNegativo { color:#a6354a; }
 .saldoAtingido { color:#246a80; }
 .saldoSemMeta { display:block; color:var(--muted); margin-top:9px; font-size:12px; }
-.turnosDetalhe { display:grid; gap:7px; margin-top:14px; border-top:1px solid var(--border); padding-top:12px; }
+.turnosDetalhe { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:11px; border-top:1px solid var(--border); padding-top:10px; }
 .turnoDetalhe { background:#faf8fd; border:1px solid #ede7f3; border-radius:10px; padding:9px; min-width:0; }
 .turnoTopo { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; }
 .turnoPercentual { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
@@ -89,26 +104,23 @@
   backdrop-filter:blur(3px);
 }
 .modalJanela {
-  display:flex; flex-direction:column; width:min(1060px,100%);
+  display:flex; flex-direction:column; width:min(720px,100%);
   max-height:calc(100dvh - 32px); overflow:hidden;
   border-radius:20px; background:var(--surface,#fff);
   box-shadow:0 24px 70px rgba(16,8,29,.27);
 }
 .modalCabecalho {
   display:flex; align-items:center; justify-content:space-between;
-  gap:12px; flex:none; padding:17px 20px;
+  gap:12px; flex:none; padding:13px 16px;
   border-bottom:1px solid var(--border);
 }
 .modalCabecalho h3 { font-size:20px; margin:0; }
 .modalSubtitulo { margin:0 0 3px; color:var(--muted); font-size:11px; letter-spacing:.04em; text-transform:uppercase; font-weight:750; }
-.modalConteudo { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:18px 20px 22px; }
+.modalConteudo { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:12px 14px 16px; }
 .modalConteudo .detalhes { margin:0; }
 .fechar { border:1px solid var(--border); background:#fff; color:var(--primary); border-radius:9px; padding:8px 12px; font-weight:700; }
 .fechar:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
 .aviso { color:var(--muted); }
-@media (min-width:681px) and (max-width:1080px) {
-  .detalhes { grid-template-columns:repeat(2,minmax(0,1fr)); }
-}
 @media(max-width:680px) {
   .area { gap:12px; }
   .resumos { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
@@ -126,8 +138,11 @@
   .modalCabecalho { padding:13px 12px; }
   .modalCabecalho h3 { font-size:18px; }
   .modalConteudo { padding:12px 10px 16px; }
-  .detalhes { grid-template-columns:1fr; gap:9px; margin-top:10px; }
-  .cartaoDetalhe { padding:12px; }
+  .detalhes { grid-template-columns:1fr; gap:8px; margin-top:0; }
+  .acordeaoBotao { padding:11px 12px; }
+  .conteudoCartao { padding:0 12px 12px; }
+  .turnosDetalhe { grid-template-columns:1fr; gap:6px; }
+  .detalheValores { margin-top:10px; }
   .detalheValores .valorVendido { font-size:18px; }
   .cabecalho h2 { font-size:22px; }
 }
