@@ -239,3 +239,52 @@ test("centavos determinam se meta foi atingida ou se ainda falta", () => {
     temDados: true, vendido: 100, meta: 100, parcial: false,
   }).valor, null);
 });
+
+test("última data de vendas acompanha o mês e os filtros de loja e turno", () => {
+  const registros = [
+    { data: "2026-10-22", loja_id: 1, periodo: "manha", valor_vendido: 30 },
+    { data: "2026-10-30", loja_id: 1, periodo: "manha", valor_vendido: 50 },
+    { data: "2026-10-02", loja_id: 1, periodo: "manha", valor_vendido: 10 },
+    { data: "2026-10-29", loja_id: 1, periodo: "noite", valor_vendido: 20 },
+    { data: "2026-10-31", loja_id: 2, periodo: "noite", valor_vendido: 100 },
+    { data: "2026-09-30", loja_id: 1, periodo: "manha", valor_vendido: 50 },
+  ];
+  const params = { ano: 2026, vendas: registros, metas: [], hoje };
+  const geral = resumirSerieAnual({ ...params, lojasIds: [1, 2] });
+  const soManha = resumirSerieAnual({ ...params, lojasIds: [1, 2], periodo: "manha" });
+  const soLoja1 = resumirSerieAnual({ ...params, lojasIds: [1] });
+  const soNoiteLoja1 = resumirSerieAnual({ ...params, lojasIds: [1], periodo: "noite" });
+  assert.equal(geral[9].ultimaDataRegistro, "2026-10-31");
+  assert.equal(soManha[9].ultimaDataRegistro, "2026-10-30");
+  assert.equal(soLoja1[9].ultimaDataRegistro, "2026-10-30");
+  assert.equal(soNoiteLoja1[9].ultimaDataRegistro, "2026-10-29");
+  assert.equal(soManha[9].vendido, 90);
+  assert.equal(geral[8].ultimaDataRegistro, "2026-09-30");
+});
+
+test("sem vendas no filtro ou em mês futuro não inventa data de registro", () => {
+  const registros = [
+    { data: "2026-10-30", loja_id: 1, periodo: "manha", valor_vendido: 20 },
+    { data: "2026-11-01", loja_id: 1, periodo: "manha", valor_vendido: 50 },
+  ];
+  const lojaSemVendas = resumirSerieAnual({
+    ano: 2026, lojasIds: [2], vendas: registros, metas: [], hoje,
+  });
+  const lojaComVendas = resumirSerieAnual({
+    ano: 2026, lojasIds: [1], vendas: registros, metas: [], hoje,
+  });
+  assert.equal(lojaSemVendas[9].temDados, false);
+  assert.equal(lojaSemVendas[9].ultimaDataRegistro, null);
+  assert.equal(lojaComVendas[10].temDados, false);
+  assert.equal(lojaComVendas[10].ultimaDataRegistro, null);
+});
+
+test("detalhe mensal mantém a última data da venda para apresentação", () => {
+  const serie = resumirSerieAnual({
+    ano: 2026, lojasIds: [1], vendas, metas, periodo: "manha", hoje,
+  });
+  const r = detalharMesEvolucao(serie, undefined, 10);
+  assert.equal(r.parcial, true);
+  assert.equal(r.ultimaDataRegistro, "2026-10-30");
+  assert.equal(r.vendido, 20);
+});
