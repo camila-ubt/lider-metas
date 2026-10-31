@@ -39,7 +39,7 @@ function formatarMedida(valor) {
   return dinheiro.format(valor);
 }
 
-function MiniGrafico({ linhas, ano }) {
+function MiniGrafico({ linhas, ano, aoSelecionarMes }) {
   const maximo = Math.max(1, ...linhas.map((item) => item.vendido ?? 0));
   const comDados = linhas.some((item) => item.temDados);
 
@@ -50,15 +50,33 @@ function MiniGrafico({ linhas, ano }) {
       className={styles.miniSvg}
       viewBox="0 0 600 116"
       preserveAspectRatio="xMidYMid meet"
-      role="img"
-      aria-label={"Vendas mensais de " + ano + ", de janeiro a dezembro"}
+      role="group"
+      aria-label={"Vendas mensais de " + ano + ". Selecione uma barra para abrir os detalhes."}
     >
       <line x1="12" y1="88" x2="588" y2="88" stroke="#e9e3f0" />
       {linhas.map((item, i) => {
         const altura = item.temDados ? Math.max(3, (item.vendido / maximo) * 77) : 0;
         const x = 15 + i * 48;
         return (
-          <g key={item.mes}>
+          <g key={item.mes}
+            className={item.temDados ? styles.miniGrupoAcionavel : undefined}
+            role={item.temDados ? "button" : undefined}
+            tabIndex={item.temDados ? 0 : undefined}
+            aria-label={item.temDados
+              ? item.nome + " de " + ano + ": " + dinheiro.format(item.vendido) +
+                (item.parcial ? ", parcial" : "") + ". Ver detalhes."
+              : undefined}
+            onClick={item.temDados ? () => aoSelecionarMes(item.mes) : undefined}
+            onKeyDown={item.temDados ? (evento) => {
+              if (evento.key === "Enter" || evento.key === " ") {
+                evento.preventDefault();
+                aoSelecionarMes(item.mes);
+              }
+            } : undefined}>
+            {item.temDados && (
+              <rect className={styles.miniAlvoToque}
+                x={x} y="0" width="44" height="114" rx="6" fill="transparent" />
+            )}
             {item.temDados && (
               <rect x={x + 10} y={88 - altura} width="25" height={altura}
                 rx="5" fill={item.parcial ? COR_MES_PARCIAL : CORES[0]}>
@@ -245,6 +263,11 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     [ano, anoReferencia, mesSelecionado, series]
   );
 
+  function abrirMesPeloResumo(mes) {
+    setMesSelecionado(mes);
+    setAberto(true);
+  }
+
   function escolherMesNoGrafico(estado) {
     const indicePorNome = MESES_CURTOS.indexOf(String(estado?.activeLabel ?? ""));
     const indiceBruto = estado?.activeTooltipIndex;
@@ -266,7 +289,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
             Ver análise completa <span aria-hidden="true">↗</span>
           </button>
         </div>
-        <MiniGrafico linhas={mini} ano={ano} />
+        <MiniGrafico linhas={mini} ano={ano} aoSelecionarMes={abrirMesPeloResumo} />
+        <p className={styles.instrucaoMini}>Toque em uma barra para abrir os detalhes do mês.</p>
         {parcial && (
           <p className={styles.legendaParcial}>
             <span className={styles.marcadorParcial} aria-hidden="true" />
