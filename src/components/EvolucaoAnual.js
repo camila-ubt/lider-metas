@@ -273,6 +273,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
 
   function abrirMesPeloResumo(mes) {
     abrirPeloMiniRef.current = true;
+    setModo("mensal");
     setMesSelecionado(mes);
     setAberto(true);
   }
@@ -296,6 +297,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
           <button type="button" ref={botaoExpandirRef} className={styles.botaoExpandir}
             onClick={() => {
               abrirPeloMiniRef.current = false;
+              setModo("acumulado");
               setMesSelecionado(null);
               setAberto(true);
             }}>
