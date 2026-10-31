@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { resumirResultadosMensais } from "@/lib/rankingAnual.mjs";
+import { compararVendidoComMeta, descreverSituacaoMeta } from "@/lib/detalheMensalRanking.mjs";
 import styles from "./RankingAnual.module.css";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -38,12 +40,172 @@ function agregar(vendas, metas) {
 
 function StatusCelula({ resultado, titulo, aoAbrir }) {
   if (resultado.nivel === "futuro") return <span className={styles.futuro}>—</span>;
-  if (resultado.nivel === "semMeta") return <span className={styles.semMeta}>Sem meta</span>;
+  const semMeta = resultado.nivel === "semMeta";
+  const descricao = semMeta
+    ? "Sem meta configurada"
+    : resultado.percentual.toFixed(1) + "%, " + STATUS[resultado.nivel];
   return (
-    <button type="button" onClick={aoAbrir} className={styles.celula + " " + styles[resultado.nivel]}
-      aria-label={titulo + ": " + resultado.percentual.toFixed(1) + "%, " + STATUS[resultado.nivel] + ". Ver valores"}>
-      <b>{resultado.percentual.toFixed(1)}%</b><small>{STATUS[resultado.nivel]}</small>
+    <button
+      type="button"
+      onClick={aoAbrir}
+      className={styles.celula + " " + styles[resultado.nivel]}
+      aria-label={titulo + ": " + descricao + ". Ver detalhes do mês"}
+    >
+      {semMeta ? <small>Sem meta</small> : (
+        <><b>{resultado.percentual.toFixed(1)}%</b><small>{STATUS[resultado.nivel]}</small></>
+      )}
     </button>
+  );
+}
+
+
+function SaldoMeta({ resultado, compacto = false, inline = false }) {
+  const comparacao = compararVendidoComMeta(resultado.vendido, resultado.meta, resultado.configurada);
+  if (comparacao.situacao === "semMeta") {
+    return <span className={styles.saldoSemMeta}>{descreverSituacaoMeta("semMeta", resultado.nivel === "parcial")}</span>;
+  }
+
+  const acima = comparacao.situacao === "acima";
+  const abaixo = comparacao.situacao === "abaixo";
+  const simbolo = acima ? "↑" : abaixo ? "↓" : "✓";
+  const valor = (acima ? "+" : abaixo ? "−" : "") + moeda.format(Math.abs(comparacao.diferenca));
+  const parcial = resultado.nivel === "parcial";
+  const descricao = descreverSituacaoMeta(comparacao.situacao, parcial);
+
+  const Tag = inline ? "span" : "div";
+
+  return (
+    <Tag className={[
+      styles.saldoMeta,
+      styles[acima ? "saldoPositivo" : abaixo ? "saldoNegativo" : "saldoAtingido"],
+      compacto ? styles.saldoCompacto : "",
+    ].filter(Boolean).join(" ")}>
+      <span className={styles.saldoSimbolo} aria-hidden="true">{simbolo}</span>
+      <strong>{valor}</strong>
+      <span>{descricao}</span>
+    </Tag>
+  );
+}
+
+function DetalheTurno({ nome, resultado }) {
+  const comparacao = compararVendidoComMeta(resultado.vendido, resultado.meta, resultado.configurada);
+  return (
+    <div className={styles.turnoDetalhe}>
+      <div className={styles.turnoTopo}>
+        <strong>{nome}</strong>
+        {comparacao.percentual !== null && (
+          <span className={styles.turnoPercentual}>{comparacao.percentual.toFixed(1)}%</span>
+        )}
+      </div>
+      <p className={styles.turnoValores}>
+        <span>Vendido <b>{moeda.format(resultado.vendido)}</b></span>
+        <span>Meta <b>{resultado.configurada ? moeda.format(resultado.meta) : "—"}</b></span>
+      </p>
+      <SaldoMeta resultado={resultado} compacto />
+    </div>
+  );
+}
+
+function CartaoDetalheMensal({ identificador, titulo, resultado, manha, noite, aberto, aoAlternar }) {
+  const situacao = STATUS[resultado.nivel] || "Sem meta";
+  const idConteudo = "ranking-detalhe-" + identificador;
+
+  return (
+    <article className={styles.cartaoDetalhe + " " + (styles["detalhe" + resultado.nivel] || "")}>
+      <button
+        type="button"
+        className={styles.acordeaoBotao}
+        aria-expanded={aberto}
+        aria-controls={idConteudo}
+        onClick={aoAlternar}
+      >
+        <span className={styles.acordeaoPrimeiraLinha}>
+          <strong className={styles.nomeLojaDetalhe}>{titulo}</strong>
+          <span className={styles.seloNivel + " " + (styles[resultado.nivel] || "")}>
+            {situacao}{resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
+          </span>
+        </span>
+        <span className={styles.acordeaoSegundaLinha}>
+          <SaldoMeta resultado={resultado} compacto inline />
+          <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
+        </span>
+      </button>
+
+      <div id={idConteudo} className={styles.conteudoCartao} hidden={!aberto}>
+        <div className={styles.detalheValores}>
+          <div>
+            <span>Vendido</span>
+            <strong className={styles.valorVendido}>{moeda.format(resultado.vendido)}</strong>
+          </div>
+          <div>
+            <span>Meta</span>
+            <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
+          </div>
+        </div>
+        <div className={styles.turnosDetalhe}>
+          <DetalheTurno nome="Manhã" resultado={manha} />
+          <DetalheTurno nome="Noite" resultado={noite} />
+        </div>
+      </div>
+    </article>
+  );
+}
+
+
+function CartaoDetalheTurno({ identificador, titulo, resultado, lojas, aberto, aoAlternar }) {
+  const idConteudo = "ranking-turno-" + identificador;
+  const situacao = STATUS[resultado.nivel] || "Sem meta";
+
+  return (
+    <article className={styles.cartaoDetalhe + " " + (styles["detalhe" + resultado.nivel] || "")}>
+      <button
+        type="button"
+        className={styles.acordeaoBotao}
+        aria-expanded={aberto}
+        aria-controls={idConteudo}
+        onClick={aoAlternar}
+      >
+        <span className={styles.acordeaoPrimeiraLinha}>
+          <strong className={styles.nomeLojaDetalhe}>{titulo}</strong>
+          <span className={styles.seloNivel + " " + (styles[resultado.nivel] || "")}>
+            {situacao}{resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
+          </span>
+        </span>
+        <span className={styles.acordeaoSegundaLinha}>
+          <SaldoMeta resultado={resultado} compacto inline />
+          <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
+        </span>
+      </button>
+      <div id={idConteudo} className={styles.conteudoCartao} hidden={!aberto}>
+        <div className={styles.detalheValores}>
+          <div>
+            <span>Vendido</span>
+            <strong className={styles.valorVendido}>{moeda.format(resultado.vendido)}</strong>
+          </div>
+          <div>
+            <span>Meta</span>
+            <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
+          </div>
+        </div>
+        {lojas.length > 0 && (
+          <div className={styles.lojasNoTurno}>
+            {lojas.map((loja) => (
+              <div className={styles.linhaLojaTurno} key={loja.id}>
+                <div className={styles.linhaLojaCabecalho}>
+                  <strong>{loja.nome}</strong>
+                  <span>{loja.resultado.percentual !== null
+                    ? loja.resultado.percentual.toFixed(1) + "%"
+                    : "Sem meta"}</span>
+                </div>
+                <p>Vendido {moeda.format(loja.resultado.vendido)} · Meta {loja.resultado.configurada
+                  ? moeda.format(loja.resultado.meta) : "não configurada"}</p>
+                <SaldoMeta resultado={loja.resultado} compacto />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -54,6 +216,60 @@ export default function RankingAnual() {
   const [tipo, setTipo] = useState("lojas");
   const [lojaFiltro, setLojaFiltro] = useState("geral");
   const [detalhe, setDetalhe] = useState(null);
+  const [cartaoExpandido, setCartaoExpandido] = useState(null);
+  const fecharModalRef = useRef(null);
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (detalhe === null) return undefined;
+
+    const origem = document.activeElement;
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    fecharModalRef.current?.focus();
+
+    function aoPressionarTecla(evento) {
+      if (evento.key === "Escape") {
+        evento.preventDefault();
+        setDetalhe(null);
+      }
+      if (evento.key === "Tab") {
+        const focaveis = Array.from(modalRef.current?.querySelectorAll(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) || []);
+        if (!focaveis.length) return;
+        const primeiro = focaveis[0];
+        const ultimo = focaveis[focaveis.length - 1];
+
+        if (evento.shiftKey && document.activeElement === primeiro) {
+          evento.preventDefault();
+          ultimo.focus();
+        } else if (!evento.shiftKey && document.activeElement === ultimo) {
+          evento.preventDefault();
+          primeiro.focus();
+        } else if (!modalRef.current?.contains(document.activeElement)) {
+          evento.preventDefault();
+          primeiro.focus();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", aoPressionarTecla);
+    return () => {
+      document.removeEventListener("keydown", aoPressionarTecla);
+      document.body.style.overflow = overflowAnterior;
+      if (origem instanceof HTMLElement && origem.isConnected) origem.focus();
+    };
+  }, [detalhe]);
+  function abrirDetalhesDoMes(mes) {
+    setCartaoExpandido(null);
+    setDetalhe(mes);
+  }
+
+  function mesDisponivel(mes) {
+    return ano < hoje.getFullYear() || (ano === hoje.getFullYear() && mes <= hoje.getMonth() + 1);
+  }
+
   const [lojas, setLojas] = useState([]);
   const [metas, setMetas] = useState([]);
   const [vendas, setVendas] = useState([]);
@@ -156,6 +372,7 @@ export default function RankingAnual() {
   }) : [];
 
   return (
+    <>
     <section className={styles.area} aria-label="Ranking anual">
       <div className={styles.cabecalho}>
         <div><p className="eyebrow">Visão histórica</p><h2>Ranking anual</h2>
@@ -195,10 +412,18 @@ export default function RankingAnual() {
                 <thead><tr><th scope="col">Mês</th>{lojasOrdenadas.map((l) =>
                   <th scope="col" key={l.id}>{l.codigo || l.nome}</th>)}</tr></thead>
                 <tbody>{MESES.map((nome, i) => <tr key={nome}>
-                  <th scope="row">{nome.slice(0, 3)}</th>
+                  <th scope="row">
+                  {mesDisponivel(i + 1) ? (
+                    <button type="button" className={styles.mesBotao}
+                      onClick={() => abrirDetalhesDoMes(i + 1)}
+                      aria-label={"Ver detalhes de " + nome + " de " + ano}>
+                      {nome.slice(0, 3)}
+                    </button>
+                  ) : nome.slice(0, 3)}
+                </th>
                   {lojasOrdenadas.map((l) => <td key={l.id}>
                     <StatusCelula resultado={resultado(l, i + 1)} titulo={nome + " " + l.nome}
-                      aoAbrir={() => setDetalhe(i + 1)} />
+                      aoAbrir={() => abrirDetalhesDoMes(i + 1)} />
                   </td>)}
                 </tr>)}</tbody>
               </table></div>
@@ -231,50 +456,100 @@ export default function RankingAnual() {
             <div className={styles.scroll}><table>
               <thead><tr><th scope="col">Mês</th><th scope="col">Manhã</th><th scope="col">Noite</th></tr></thead>
               <tbody>{MESES.map((nome, i) => <tr key={nome}>
-                <th scope="row">{nome.slice(0, 3)}</th>
+                <th scope="row">
+                  {mesDisponivel(i + 1) ? (
+                    <button type="button" className={styles.mesBotao}
+                      onClick={() => abrirDetalhesDoMes(i + 1)}
+                      aria-label={"Ver detalhes de " + nome + " de " + ano}>
+                      {nome.slice(0, 3)}
+                    </button>
+                  ) : nome.slice(0, 3)}
+                </th>
                 {PERIODOS.map((p) => <td key={p}>
                   <StatusCelula
                     resultado={lojaFiltro === "geral" ? resultadoGeral(i + 1, p) : resultado(lojaSelecionada, i + 1, p)}
                     titulo={nome + " " + (lojaFiltro === "geral" ? "Geral das lojas" : lojaSelecionada.nome) + " " + p}
-                    aoAbrir={() => setDetalhe(i + 1)}
+                    aoAbrir={() => abrirDetalhesDoMes(i + 1)}
                   />
                 </td>)}
               </tr>)}</tbody>
             </table></div>
             </div>
           </>}
-          {detalhe && <div className={styles.painel}>
-            <div className={styles.cabecalho}><h3>{MESES[detalhe - 1]} de {ano}</h3>
-              <button type="button" className={styles.fechar} onClick={() => setDetalhe(null)}>Fechar</button>
-            </div>
-            <div className={styles.detalhes}>
-              {tipo === "turnos" && lojaFiltro === "geral" && (() => {
-                const geral = resultadoGeral(detalhe);
-                return <article>
-                  <h4>Geral das 3 lojas</h4>
-                  <p>Vendido: <b>{moeda.format(geral.vendido)}</b></p>
-                  <p>Meta: {geral.configurada ? moeda.format(geral.meta) : "Sem meta completa"}</p>
-                  {PERIODOS.map((p) => {
-                    const turno = resultadoGeral(detalhe, p);
-                    return <p key={p}>{p === "manha" ? "Manhã" : "Noite"}: {moeda.format(turno.vendido)} / {turno.configurada ? moeda.format(turno.meta) : "Sem meta"}</p>;
-                  })}
-                </article>;
-              })()}
-              {(tipo === "turnos" && lojaFiltro !== "geral" ? [lojaSelecionada] : lojasOrdenadas).map((l) => {
-                const r = resultado(l, detalhe);
-                return <article key={l.id}>
-                  <h4>{l.codigo} · {l.nome}</h4>
-                  <p>Vendido: <b>{moeda.format(r.vendido)}</b></p>
-                  <p>Meta: {r.configurada ? moeda.format(r.meta) : "Sem meta completa"}</p>
-                  {PERIODOS.map((p) => {
-                    const t = resultado(l, detalhe, p);
-                    return <p key={p}>{p === "manha" ? "Manhã" : "Noite"}: {moeda.format(t.vendido)} / {t.configurada ? moeda.format(t.meta) : "Sem meta"}</p>;
-                  })}
-                </article>;
-              })}
-            </div>
-          </div>}
         </>}
     </section>
+    {detalhe !== null && createPortal(
+            <div
+              className={styles.modalFundo}
+              onMouseDown={(evento) => {
+                if (evento.target === evento.currentTarget) setDetalhe(null);
+              }}
+            >
+              <section
+                ref={modalRef}
+                className={styles.modalJanela}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="ranking-anual-modal-titulo"
+              >
+                <header className={styles.modalCabecalho}>
+                  <div>
+                    <p className={styles.modalSubtitulo}>Detalhes do mês</p>
+                    <h3 id="ranking-anual-modal-titulo">{MESES[detalhe - 1]} de {ano}</h3>
+                  </div>
+                  <button
+                    ref={fecharModalRef}
+                    type="button"
+                    className={styles.fechar}
+                    aria-label="Fechar detalhes do mês"
+                    onClick={() => setDetalhe(null)}
+                  >Fechar ×</button>
+                </header>
+                <div className={styles.modalConteudo}>
+                  <div className={styles.detalhes}>
+                    {tipo === "turnos" ? PERIODOS.map((periodo) => {
+                      const identificador = "turno-" + periodo;
+                      const resultadoPeriodo = lojaFiltro === "geral"
+                        ? resultadoGeral(detalhe, periodo)
+                        : resultado(lojaSelecionada, detalhe, periodo);
+                      const lojasDoTurno = lojaFiltro === "geral"
+                        ? lojasOrdenadas.map((loja) => ({
+                          id: loja.id,
+                          nome: loja.codigo + " · " + loja.nome,
+                          resultado: resultado(loja, detalhe, periodo),
+                        }))
+                        : [];
+                      return (
+                        <CartaoDetalheTurno
+                          key={periodo}
+                          identificador={identificador}
+                          titulo={periodo === "manha" ? "Manhã" : "Noite"}
+                          resultado={resultadoPeriodo}
+                          lojas={lojasDoTurno}
+                          aberto={cartaoExpandido === identificador}
+                          aoAlternar={() => setCartaoExpandido((atual) =>
+                            atual === identificador ? null : identificador)}
+                        />
+                      );
+                    }) : lojasOrdenadas.map((loja) => (
+                      <CartaoDetalheMensal
+                        key={loja.id}
+                        identificador={String(loja.id)}
+                        titulo={loja.codigo + " · " + loja.nome}
+                        resultado={resultado(loja, detalhe)}
+                        manha={resultado(loja, detalhe, "manha")}
+                        noite={resultado(loja, detalhe, "noite")}
+                        aberto={cartaoExpandido === String(loja.id)}
+                        aoAlternar={() => setCartaoExpandido((atual) =>
+                          atual === String(loja.id) ? null : String(loja.id))}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </section>
+            </div>,
+            document.body
+          )}
+    </>
   );
 }
