@@ -43,6 +43,8 @@
   background:var(--surface,white); color:var(--foreground);
   border-radius:18px; box-shadow:0 25px 75px rgba(17,8,27,.3);
 }
+.janelaMes { width:min(560px,100%); }
+.janelaMes .conteudo { padding:14px 16px 17px; }
 .cabecalho {
   flex:none; display:flex; align-items:center; justify-content:space-between;
   gap:12px; padding:14px 18px; border-bottom:1px solid var(--border);
@@ -64,7 +66,25 @@
 }
 .filtroComparativoMes select { min-height:38px; padding:7px 10px; font-size:12px; }
 .detalheMesFocado { margin:0; padding:15px; }
+.detalheMesFocado .detalheMesValores {
+  grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;
+}
+.detalheMesFocado .valorVendidoMes {
+  grid-column:1/-1; padding-bottom:12px; border-bottom:1px solid #e6dced;
+}
 .detalheMesFocado .detalheMesValores strong { font-size:18px; }
+.detalheMesFocado .valorVendidoMes strong {
+  color:var(--primary-dark); font-size:25px; letter-spacing:-.02em;
+}
+.detalheMesFocado .detalheMesValores > div:last-child { grid-column:auto; }
+.detalheMesFocado .balancoMes { gap:11px; }
+.detalheMesFocado .linhaBalanco { display:grid; gap:3px; font-size:13px; }
+.detalheMesFocado .linhaBalanco strong {
+  font-size:11px; color:var(--muted); font-weight:700;
+}
+.detalheMesFocado .linhaBalanco > span {
+  font-variant-numeric:tabular-nums; overflow-wrap:anywhere;
+}
 
 .anosComparar {
   min-width:0; margin:0 0 13px; padding:8px 12px 10px;
@@ -148,11 +168,13 @@
   .cabecalho h2 { font-size:17px; }
   .fechar { padding:9px 10px; font-size:12px; }
   .conteudo { padding:12px 9px 15px; }
+  .janelaMes .conteudo { padding:12px; }
   .filtros { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
   .filtros label:last-child { grid-column:1/-1; }
   .filtrosMes label:last-child { grid-column:auto; }
   .detalheMesFocado { padding:12px; }
   .detalheMesFocado .detalheMesValores strong { font-size:16px; }
+  .detalheMesFocado .valorVendidoMes strong { font-size:23px; }
   .filtros select { font-size:12px; padding:9px 8px; }
   .anosComparar { margin-bottom:10px; padding:7px 9px 9px; }
   .anoOpcao { padding:7px 9px; }
