@@ -28,7 +28,7 @@ const secoes = [
         "Em Configurações → Metas, toque em “Imprimir metas”, confira o mês e envie para a impressora.",
       ]],
       ["Como acompanhar o turno?", [
-        "Abra “Acompanhar turno”, escolha manhã ou noite e o nível da meta. Informe as vendas para acompanhar o saldo por loja, a meta ajustada e a previsão das metas de amanhã. Os valores ficam salvos no aparelho até tocar em “Limpar valores”.",
+        "Em “Lançar vendas”, toque em “Acompanhar turno”. Escolha manhã ou noite e o nível da meta para simular as vendas e consultar o desempenho do dia. Os valores ficam apenas no aparelho e não preenchem caixas nem registram vendas oficiais. Use “Limpar valores” para zerar a simulação.",
       ]],
       ["Como consultar as projeções e prioridades do Painel?", [
         "No Painel, veja a projeção dos turnos, a média necessária por loja e o menor desempenho entre lojas e períodos. O Roteiro da Reunião compara manhã e noite.",
