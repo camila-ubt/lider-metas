@@ -40,11 +40,20 @@ function agregar(vendas, metas) {
 
 function StatusCelula({ resultado, titulo, aoAbrir }) {
   if (resultado.nivel === "futuro") return <span className={styles.futuro}>—</span>;
-  if (resultado.nivel === "semMeta") return <span className={styles.semMeta}>Sem meta</span>;
+  const semMeta = resultado.nivel === "semMeta";
+  const descricao = semMeta
+    ? "Sem meta configurada"
+    : resultado.percentual.toFixed(1) + "%, " + STATUS[resultado.nivel];
   return (
-    <button type="button" onClick={aoAbrir} className={styles.celula + " " + styles[resultado.nivel]}
-      aria-label={titulo + ": " + resultado.percentual.toFixed(1) + "%, " + STATUS[resultado.nivel] + ". Ver valores"}>
-      <b>{resultado.percentual.toFixed(1)}%</b><small>{STATUS[resultado.nivel]}</small>
+    <button
+      type="button"
+      onClick={aoAbrir}
+      className={styles.celula + " " + styles[resultado.nivel]}
+      aria-label={titulo + ": " + descricao + ". Ver detalhes do mês"}
+    >
+      {semMeta ? <small>Sem meta</small> : (
+        <><b>{resultado.percentual.toFixed(1)}%</b><small>{STATUS[resultado.nivel]}</small></>
+      )}
     </button>
   );
 }
@@ -257,6 +266,10 @@ export default function RankingAnual() {
     setDetalhe(mes);
   }
 
+  function mesDisponivel(mes) {
+    return ano < hoje.getFullYear() || (ano === hoje.getFullYear() && mes <= hoje.getMonth() + 1);
+  }
+
   const [lojas, setLojas] = useState([]);
   const [metas, setMetas] = useState([]);
   const [vendas, setVendas] = useState([]);
@@ -359,6 +372,7 @@ export default function RankingAnual() {
   }) : [];
 
   return (
+    <>
     <section className={styles.area} aria-label="Ranking anual">
       <div className={styles.cabecalho}>
         <div><p className="eyebrow">Visão histórica</p><h2>Ranking anual</h2>
@@ -398,7 +412,15 @@ export default function RankingAnual() {
                 <thead><tr><th scope="col">Mês</th>{lojasOrdenadas.map((l) =>
                   <th scope="col" key={l.id}>{l.codigo || l.nome}</th>)}</tr></thead>
                 <tbody>{MESES.map((nome, i) => <tr key={nome}>
-                  <th scope="row">{nome.slice(0, 3)}</th>
+                  <th scope="row">
+                  {mesDisponivel(i + 1) ? (
+                    <button type="button" className={styles.mesBotao}
+                      onClick={() => abrirDetalhesDoMes(i + 1)}
+                      aria-label={"Ver detalhes de " + nome + " de " + ano}>
+                      {nome.slice(0, 3)}
+                    </button>
+                  ) : nome.slice(0, 3)}
+                </th>
                   {lojasOrdenadas.map((l) => <td key={l.id}>
                     <StatusCelula resultado={resultado(l, i + 1)} titulo={nome + " " + l.nome}
                       aoAbrir={() => abrirDetalhesDoMes(i + 1)} />
@@ -434,7 +456,15 @@ export default function RankingAnual() {
             <div className={styles.scroll}><table>
               <thead><tr><th scope="col">Mês</th><th scope="col">Manhã</th><th scope="col">Noite</th></tr></thead>
               <tbody>{MESES.map((nome, i) => <tr key={nome}>
-                <th scope="row">{nome.slice(0, 3)}</th>
+                <th scope="row">
+                  {mesDisponivel(i + 1) ? (
+                    <button type="button" className={styles.mesBotao}
+                      onClick={() => abrirDetalhesDoMes(i + 1)}
+                      aria-label={"Ver detalhes de " + nome + " de " + ano}>
+                      {nome.slice(0, 3)}
+                    </button>
+                  ) : nome.slice(0, 3)}
+                </th>
                 {PERIODOS.map((p) => <td key={p}>
                   <StatusCelula
                     resultado={lojaFiltro === "geral" ? resultadoGeral(i + 1, p) : resultado(lojaSelecionada, i + 1, p)}
@@ -446,7 +476,9 @@ export default function RankingAnual() {
             </table></div>
             </div>
           </>}
-          {detalhe !== null && createPortal(
+        </>}
+    </section>
+    {detalhe !== null && createPortal(
             <div
               className={styles.modalFundo}
               onMouseDown={(evento) => {
@@ -518,7 +550,6 @@ export default function RankingAnual() {
             </div>,
             document.body
           )}
-        </>}
-    </section>
+    </>
   );
 }
