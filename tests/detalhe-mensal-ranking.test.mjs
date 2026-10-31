@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { compararVendidoComMeta } from "../src/lib/detalheMensalRanking.mjs";
+import { compararVendidoComMeta, descreverSituacaoMeta } from "../src/lib/detalheMensalRanking.mjs";
 
 test("indica excedente de meta em reais para o total da loja e para o turno", () => {
   assert.deepEqual(compararVendidoComMeta(55183.51, 49000), {
@@ -28,4 +28,18 @@ test("sem meta configurada não exibe falsa diferença", () => {
   assert.deepEqual(compararVendidoComMeta(2400, 0), { situacao: "semMeta", diferenca: null, percentual: null });
   assert.deepEqual(compararVendidoComMeta(2400, 2000, false), { situacao: "semMeta", diferenca: null, percentual: null });
   assert.equal(compararVendidoComMeta(2400, NaN).situacao, "semMeta");
+});
+
+test("meses encerrados descrevem resultados no passado", () => {
+  assert.equal(descreverSituacaoMeta("acima", false), "superou a meta");
+  assert.equal(descreverSituacaoMeta("abaixo", false), "ficou abaixo da meta");
+  assert.equal(descreverSituacaoMeta("atingida", false), "atingiu a meta");
+  assert.equal(descreverSituacaoMeta("semMeta", false), "Meta não foi configurada");
+});
+
+test("mês em andamento mantém linguagem presente", () => {
+  assert.equal(descreverSituacaoMeta("acima", true), "está acima da meta");
+  assert.equal(descreverSituacaoMeta("abaixo", true), "faltam para atingir a meta");
+  assert.equal(descreverSituacaoMeta("atingida", true), "está na meta");
+  assert.equal(descreverSituacaoMeta("semMeta", true), "Meta ainda não configurada");
 });
