@@ -88,3 +88,28 @@ export function compararAnosEquivalentes(anoAtual, anoAnterior) {
     percentual: anterior > 0 && meses.length ? ((atual / anterior) - 1) * 100 : null,
   };
 }
+
+// Resultado de um mês isolado: nunca compara mês parcial com um mês fechado.
+export function detalharMesEvolucao(serieAtual, serieAnterior, mes) {
+  if (!Number.isInteger(mes) || mes < 1 || mes > 12) return null;
+  const atual = serieAtual?.[mes - 1];
+  if (!atual) return null;
+
+  const temVendas = Boolean(atual.temDados && Number.isFinite(atual.vendido));
+  const metaValida = Number.isFinite(atual.meta) && atual.meta > 0;
+  const anterior = serieAnterior?.[mes - 1];
+  const temAnterior = Boolean(anterior?.temDados && Number.isFinite(anterior.vendido));
+  const comparavel = temVendas && !atual.parcial && temAnterior && anterior.vendido > 0;
+
+  return {
+    ...atual,
+    diferencaMeta: temVendas && metaValida
+      ? Math.round((atual.vendido - atual.meta) * 100) / 100
+      : null,
+    vendidoAnterior: temAnterior ? anterior.vendido : null,
+    diferencaAnterior: comparavel
+      ? Math.round((atual.vendido - anterior.vendido) * 100) / 100
+      : null,
+    variacaoAnterior: comparavel ? (atual.vendido / anterior.vendido - 1) * 100 : null,
+  };
+}
