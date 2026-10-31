@@ -274,7 +274,6 @@ export default function RankingAnual() {
               })}
             </div>
           </div>}
-          <p className={styles.nota}>Meta 100% · Supermeta 120% · Megameta 130%. No geral, valores vendidos e metas são somados antes de calcular o percentual; é necessário ter meta em todas as lojas do turno. O mês atual aparece como parcial e não entra na classificação.</p>
         </>}
     </section>
   );
