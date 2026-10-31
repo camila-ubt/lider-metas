@@ -273,6 +273,9 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   );
 
   function abrirMesPeloResumo(mes) {
+    // A prévia sempre representa as três lojas e os dois turnos.
+    setLojaId("geral");
+    setPeriodo("todos");
     setVisao("mes");
     setMesSelecionado(mes);
     setAberto(true);
