@@ -50,6 +50,39 @@
 .tituloGrafico span { color:var(--muted); font-size:11px; }
 .grafico { width:100%; height:310px; min-width:0; margin:5px 0 8px; }
 .aviso { padding:8px 10px; border-radius:10px; background:#fbf5e5; color:#7f6217; font-size:12px; margin:8px 0; }
+
+.selecaoMes {
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  gap:8px 12px; margin:8px 0 10px;
+}
+.selecaoMes > span { color:var(--muted); font-size:12px; }
+.selecaoMes label { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:12px; font-weight:700; }
+.selecaoMes select { min-height:36px; padding:6px 10px; font-size:12px; }
+.detalheMes {
+  border:1px solid #e1d5ed; border-radius:13px; padding:13px 15px;
+  background:#fbf9fe; margin:9px 0 12px; min-width:0;
+}
+.detalheMesTopo { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:11px; }
+.detalheMesTopo > div { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.detalheMesTopo h4 { margin:0; font-size:15px; }
+.detalheMesTopo button {
+  border:1px solid var(--border); border-radius:8px; background:#fff;
+  color:var(--primary-dark); font-size:11px; font-weight:800; padding:7px 9px; cursor:pointer;
+}
+.detalheMesTopo button:focus-visible { outline:3px solid var(--primary); outline-offset:2px; }
+.mesParcial { background:#fff0c8; color:#7f6217; border-radius:7px; padding:3px 7px; font-size:10px; font-weight:750; }
+.detalheMesValores { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.detalheMesValores > div { min-width:0; }
+.detalheMesValores span { display:block; font-size:11px; color:var(--muted); }
+.detalheMesValores strong {
+  display:block; margin-top:4px; color:var(--foreground);
+  font-size:16px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere;
+}
+.balancoMes { display:grid; gap:5px; margin-top:11px; border-top:1px solid #ebe3f2; padding-top:10px; }
+.balancoMes p { margin:0; color:var(--foreground); font-size:12px; line-height:1.55; }
+.balancoMes small { display:block; font-size:11px; color:var(--muted); }
+.variacaoPositiva { color:#16644a; font-weight:750; }
+.variacaoNegativa { color:#a6354a; font-weight:750; }
 .tabelaDetalhada { border:1px solid var(--border); border-radius:12px; margin-top:15px; overflow:hidden; }
 .tabelaDetalhada summary { padding:11px 13px; color:var(--primary-dark); font-size:13px; font-weight:800; cursor:pointer; }
 .tabelaDetalhada[open] summary { border-bottom:1px solid var(--border); }
@@ -77,4 +110,11 @@
   .kpis strong { font-size:15px; }
   .kpis small { font-size:10px; }
   .grafico { height:270px; }
+  .selecaoMes { align-items:flex-start; }
+  .selecaoMes label { margin-left:auto; }
+  .detalheMes { padding:11px 10px; }
+  .detalheMesValores { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .detalheMesValores strong { font-size:14px; }
+  .detalheMesValores > div:last-child { grid-column:1/-1; }
+  .balancoMes p { font-size:11px; }
 }
