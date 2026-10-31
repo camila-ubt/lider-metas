@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const CHAVE_MES = "lider-metas:mes-selecionado";
 const CHAVE_TELA = "lider-metas:tela-selecionada";
 const CHAVE_SCROLL = "lider-metas:posicao-scroll";
-const TELAS_VALIDAS = ["painel", "lancamentos", "ranking", "metas", "manual", "pa", "vendedoras"];
+const TELAS_VALIDAS = ["painel", "lancamentos", "acompanhamento", "ranking", "metas", "manual", "pa", "vendedoras"];
 
 function mesAtual() {
   const data = new Date();
@@ -20,6 +20,7 @@ function telaDoBotao(botao) {
   if (botao?.hasAttribute?.("data-manual-botao")) return "manual";
   if (botao?.hasAttribute?.("data-pa-botao")) return "pa";
   if (botao?.hasAttribute?.("data-ranking-anual-botao")) return "ranking";
+  if (botao?.hasAttribute?.("data-acompanhamento-botao")) return "acompanhamento";
   if (botao?.hasAttribute?.("data-config-vendedoras-botao")) return "vendedoras";
 
   const texto = botao?.textContent?.trim().toLocaleLowerCase("pt-BR") || "";
@@ -69,9 +70,7 @@ export default function PersistenciaNavegacao() {
 
       const mesSalvo = localStorage.getItem(CHAVE_MES);
       const telaInicial = document.querySelector("nav.tabs")?.dataset.telaInicial;
-      const telaAnterior = telaInicial === "pa" ? "pa" : localStorage.getItem(CHAVE_TELA);
-      // Acompanhamento agora é uma consulta dentro de Lançar vendas.
-      const telaSalva = telaAnterior === "acompanhamento" ? "lancamentos" : telaAnterior;
+      const telaSalva = telaInicial === "pa" ? "pa" : localStorage.getItem(CHAVE_TELA);
       const scrollSalvo = Number(localStorage.getItem(CHAVE_SCROLL) || 0);
 
       if (/^\d{4}-\d{2}$/.test(mesSalvo || "") && campo.value !== mesSalvo) {
@@ -79,7 +78,11 @@ export default function PersistenciaNavegacao() {
         setMesSelecionado(mesSalvo);
       }
 
-      if (TELAS_VALIDAS.includes(telaSalva || "")) {
+      if (telaSalva === "acompanhamento") {
+        // O acesso fica dentro de Lançar vendas, sem botão na navegação principal.
+        // Reabre a consulta diretamente, sem sobrescrever a tela salva.
+        window.dispatchEvent(new Event("lider-metas:restaurar-acompanhamento"));
+      } else if (TELAS_VALIDAS.includes(telaSalva || "")) {
         const botao = botoes.find((item) => telaDoBotao(item) === telaSalva);
 
         // Vendedoras é inserida depois que o perfil admin é confirmado.
@@ -108,7 +111,7 @@ export default function PersistenciaNavegacao() {
     }
 
     function aoClicar(evento) {
-      const botao = evento.target?.closest?.("nav.tabs button, [data-manual-botao]");
+      const botao = evento.target?.closest?.("nav.tabs button, [data-manual-botao], [data-acompanhamento-botao]");
       if (botao) salvarTela(botao);
     }
 
