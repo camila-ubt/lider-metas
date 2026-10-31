@@ -39,12 +39,53 @@
 .futuro { color:#a8a0ad; }
 .scroll .semMeta { display:block; padding:10px 2px; border-radius:8px; font-size:10px; }
 .legenda .semMeta { display:inline-block; }
-.detalhes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
-.detalhes article { border:1px solid var(--border); border-radius:12px; padding:12px; min-width:0; }
-.detalhes h4 { margin:0 0 9px; font-size:14px; }
-.detalhes p { font-size:12px; margin:4px 0; }
+.detalhes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px; }
+.cartaoDetalhe {
+  min-width:0; padding:13px; border:1px solid var(--border);
+  border-left:4px solid #d8d1e2; border-radius:13px; background:#fff;
+}
+.detalhemega { border-left-color:#268b65; }
+.detalhesuper { border-left-color:#7650a7; }
+.detalhemeta { border-left-color:#3a7da9; }
+.detalheabaixo { border-left-color:#d15a6b; }
+.detalheparcial { border-left-color:#cea33a; }
+.detalhesemMeta, .detalhefuturo { border-left-color:#b9b5c0; }
+.detalheTopo { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:7px; }
+.detalheTopo h4 { margin:0; font-size:14px; line-height:1.4; }
+.seloNivel {
+  display:inline-block; border-radius:999px; padding:4px 9px;
+  font-size:11px; font-weight:750; white-space:nowrap;
+}
+.detalheValores { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:10px; margin-top:13px; }
+.detalheValores > div { min-width:0; display:flex; flex-direction:column; gap:3px; }
+.detalheValores span { font-size:11px; color:var(--muted); }
+.detalheValores strong { font-size:13px; color:var(--foreground); overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+.detalheValores .valorVendido { font-size:19px; }
+.saldoMeta {
+  display:flex; align-items:center; flex-wrap:wrap; gap:4px 7px;
+  margin-top:9px; font-size:12px; line-height:1.45; font-variant-numeric:tabular-nums;
+}
+.saldoMeta strong { font-size:14px; white-space:nowrap; }
+.saldoSimbolo { font-size:17px; font-weight:900; line-height:1; }
+.saldoPositivo { color:#16644a; }
+.saldoNegativo { color:#a6354a; }
+.saldoAtingido { color:#246a80; }
+.saldoSemMeta { display:block; color:var(--muted); margin-top:9px; font-size:12px; }
+.turnosDetalhe { display:grid; gap:7px; margin-top:14px; border-top:1px solid var(--border); padding-top:12px; }
+.turnoDetalhe { background:#faf8fd; border:1px solid #ede7f3; border-radius:10px; padding:9px; min-width:0; }
+.turnoTopo { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; }
+.turnoPercentual { font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; }
+.turnoValores { display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 11px; margin:5px 0 0; font-size:11px; color:var(--muted); }
+.turnoValores span { display:flex; gap:4px; }
+.turnoValores b { color:var(--foreground); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.saldoCompacto { margin-top:7px; font-size:11px; }
+.saldoCompacto .saldoSimbolo { font-size:15px; }
+.saldoCompacto strong { font-size:12px; }
 .fechar { border:1px solid var(--border); background:#fff; color:var(--primary); border-radius:9px; padding:8px 12px; font-weight:700; }
 .aviso { color:var(--muted); }
+@media (min-width:681px) and (max-width:1080px) {
+  .detalhes { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
 @media(max-width:680px) {
   .area { gap:12px; }
   .resumos { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
@@ -57,6 +98,8 @@
   .scroll th,.scroll td { padding:4px 2px; }
   .celula b { font-size:12px; }
   .celula small { font-size:9px; }
-  .detalhes { grid-template-columns:1fr; }
+  .detalhes { grid-template-columns:1fr; gap:9px; margin-top:10px; }
+  .cartaoDetalhe { padding:12px; }
+  .detalheValores .valorVendido { font-size:18px; }
   .cabecalho h2 { font-size:22px; }
 }
