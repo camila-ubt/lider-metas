@@ -17,6 +17,10 @@ const dinheiro = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "
 const numero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 const CORES = ["#7650a7", "#248676", "#c88d4f"];
 const COR_MES_PARCIAL = "#bf8423";
+const MESES_COMPLETOS = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
 
 function PontoAnual({ cx, cy, index, value, cor, mesParcial, anoAtual, ativo = false }) {
   if (!Number.isFinite(cx) || !Number.isFinite(cy) || value == null) return null;
@@ -384,7 +388,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                 <span>{visao === "mes" ? "Detalhes do mês" : "Análise histórica"}</span>
                 <h2 id="evolucao-anual-modal-titulo">
                   {visao === "mes" && mesSelecionado !== null
-                    ? MESES_CURTOS[mesSelecionado - 1] + " de " + ano
+                    ? MESES_COMPLETOS[mesSelecionado - 1] + " de " + ano
                     : "Evolução anual · " + ano}
                 </h2>
               </div>
