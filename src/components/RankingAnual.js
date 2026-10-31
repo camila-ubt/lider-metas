@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { resumirResultadosMensais } from "@/lib/rankingAnual.mjs";
-import { compararVendidoComMeta } from "@/lib/detalheMensalRanking.mjs";
+import { compararVendidoComMeta, descreverSituacaoMeta } from "@/lib/detalheMensalRanking.mjs";
 import styles from "./RankingAnual.module.css";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -53,15 +53,15 @@ function StatusCelula({ resultado, titulo, aoAbrir }) {
 function SaldoMeta({ resultado, compacto = false }) {
   const comparacao = compararVendidoComMeta(resultado.vendido, resultado.meta, resultado.configurada);
   if (comparacao.situacao === "semMeta") {
-    return <span className={styles.saldoSemMeta}>Meta não configurada</span>;
+    return <span className={styles.saldoSemMeta}>{descreverSituacaoMeta("semMeta", resultado.nivel === "parcial")}</span>;
   }
 
   const acima = comparacao.situacao === "acima";
   const abaixo = comparacao.situacao === "abaixo";
   const simbolo = acima ? "↑" : abaixo ? "↓" : "✓";
   const valor = (acima ? "+" : abaixo ? "−" : "") + moeda.format(Math.abs(comparacao.diferenca));
-  const descricao = acima ? "acima da meta" : abaixo ? "faltam para a meta" : "meta atingida";
   const parcial = resultado.nivel === "parcial";
+  const descricao = descreverSituacaoMeta(comparacao.situacao, parcial);
 
   return (
     <div className={[
@@ -71,7 +71,7 @@ function SaldoMeta({ resultado, compacto = false }) {
     ].filter(Boolean).join(" ")}>
       <span className={styles.saldoSimbolo} aria-hidden="true">{simbolo}</span>
       <strong>{valor}</strong>
-      <span>{descricao}{parcial ? " até agora" : ""}</span>
+      <span>{descricao}</span>
     </div>
   );
 }
