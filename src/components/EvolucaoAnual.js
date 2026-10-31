@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
+  Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 import {
-  compararAnosEquivalentes, MESES_CURTOS, montarComparativo, resumirSerieAnual,
+  compararAnosEquivalentes, detalharMesEvolucao, MESES_CURTOS, montarComparativo, resumirSerieAnual,
 } from "@/lib/evolucaoAnual.mjs";
 import styles from "./EvolucaoAnual.module.css";
 
@@ -91,6 +91,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const [lojaId, setLojaId] = useState("geral");
   const [periodo, setPeriodo] = useState("todos");
   const [modo, setModo] = useState("acumulado");
+  const [mesSelecionado, setMesSelecionado] = useState(null);
   const [historico, setHistorico] = useState({});
   const [buscando, setBuscando] = useState(false);
   const [erro, setErro] = useState("");
@@ -207,6 +208,18 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const parcial = ano === hoje.getFullYear() && mini.some((item) => item.parcial);
   const temGraficos = dadosGrafico.some((item) => anosComparados.some((y) => item[String(y)] !== null));
   const TipoGrafico = modo === "mensal" ? BarChart : LineChart;
+  const detalheMes = useMemo(
+    () => mesSelecionado === null ? null : detalharMesEvolucao(series[ano], series[ano - 1], mesSelecionado),
+    [ano, mesSelecionado, series]
+  );
+
+  function escolherMesNoGrafico(estado) {
+    const indicePorNome = MESES_CURTOS.indexOf(String(estado?.activeLabel ?? ""));
+    const indiceBruto = estado?.activeTooltipIndex;
+    const indicePorPosicao = indiceBruto == null ? -1 : Number(indiceBruto);
+    const indice = indicePorNome >= 0 ? indicePorNome : indicePorPosicao;
+    if (Number.isInteger(indice) && indice >= 0 && indice < 12) setMesSelecionado(indice + 1);
+  }
 
   return (
     <>
@@ -217,7 +230,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
             <p>{ano} · vendas mensais das três lojas</p>
           </div>
           <button type="button" ref={botaoExpandirRef} className={styles.botaoExpandir}
-            onClick={() => setAberto(true)}>
+            onClick={() => { setMesSelecionado(null); setAberto(true); }}>
             Ver análise completa <span aria-hidden="true">↗</span>
           </button>
         </div>
@@ -284,7 +297,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
               {temGraficos ? (
                 <div className={styles.grafico}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <TipoGrafico data={dadosGrafico} margin={{ top: 14, right: 10, left: 0, bottom: 0 }}>
+                    <TipoGrafico data={dadosGrafico} margin={{ top: 14, right: 10, left: 0, bottom: 0 }}
+                      onClick={escolherMesNoGrafico} cursor="pointer">
                       <CartesianGrid stroke="#ebe5f1" strokeDasharray="4 4" />
                       <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#73697e" }} tickLine={false} />
                       <YAxis width={70} tick={{ fontSize: 11, fill: "#73697e" }} tickLine={false}
@@ -295,6 +309,10 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                         contentStyle={{ borderRadius: 12, borderColor: "#e4ddec" }}
                       />
                       <Legend />
+                      {mesSelecionado !== null && (
+                        <ReferenceLine x={MESES_CURTOS[mesSelecionado - 1]}
+                          stroke="#8e82a0" strokeDasharray="4 4" />
+                      )}
                       {anosComparados.map((y, i) => modo === "mensal" ? (
                         <Bar key={y} name={String(y)} dataKey={String(y)}
                           fill={CORES[i]} maxBarSize={16} radius={[3, 3, 0, 0]}
@@ -309,6 +327,69 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                   </ResponsiveContainer>
                 </div>
               ) : <p className={styles.semDados}>Não há registros para este filtro.</p>}
+              {temGraficos && (
+                <div className={styles.selecaoMes}>
+                  <span>Toque no gráfico ou escolha um mês para ver os detalhes.</span>
+                  <label>Mês
+                    <select value={mesSelecionado ?? ""} onChange={(evento) =>
+                      setMesSelecionado(evento.target.value ? Number(evento.target.value) : null)}>
+                      <option value="">Selecionar</option>
+                      {MESES_CURTOS.map((nome, i) =>
+                        <option key={nome} value={i + 1}>{nome}</option>
+                      )}
+                    </select>
+                  </label>
+                </div>
+              )}
+              {detalheMes && (
+                <section className={styles.detalheMes} aria-label={"Detalhes de " + detalheMes.nome + " de " + ano} aria-live="polite">
+                  <header className={styles.detalheMesTopo}>
+                    <div>
+                      <h4>{detalheMes.nome} de {ano}</h4>
+                      {detalheMes.parcial && <span className={styles.mesParcial}>Em andamento</span>}
+                    </div>
+                    <button type="button" aria-label="Fechar detalhe do mês"
+                      onClick={() => setMesSelecionado(null)}>Fechar ×</button>
+                  </header>
+                  <div className={styles.detalheMesValores}>
+                    <div>
+                      <span>Vendido</span>
+                      <strong>{detalheMes.temDados ? dinheiro.format(detalheMes.vendido) : "—"}</strong>
+                    </div>
+                    <div>
+                      <span>Meta</span>
+                      <strong>{detalheMes.meta !== null ? dinheiro.format(detalheMes.meta) : "—"}</strong>
+                    </div>
+                    <div>
+                      <span>Atingimento</span>
+                      <strong>{detalheMes.percentual !== null ? numero.format(detalheMes.percentual) + "%" : "—"}</strong>
+                    </div>
+                  </div>
+                  <div className={styles.balancoMes}>
+                    <p>
+                      <strong>Diferença para a meta: </strong>
+                      {detalheMes.diferencaMeta === null ? "Sem comparação disponível" :
+                        (detalheMes.diferencaMeta > 0 ? "+" : "") + dinheiro.format(detalheMes.diferencaMeta)}
+                    </p>
+                    <p>
+                      <strong>Mesmo mês de {ano - 1}: </strong>
+                      {ano <= 2024 ? "Histórico indisponível" :
+                        detalheMes.vendidoAnterior === null ? (buscando ? "Carregando..." : "Sem registros") :
+                          dinheiro.format(detalheMes.vendidoAnterior)}
+                      {detalheMes.variacaoAnterior !== null && (
+                        <span className={detalheMes.variacaoAnterior >= 0 ? styles.variacaoPositiva : styles.variacaoNegativa}>
+                          {" · " + (detalheMes.variacaoAnterior > 0 ? "+" : "") +
+                            numero.format(detalheMes.variacaoAnterior) + "% (" +
+                            (detalheMes.diferencaAnterior > 0 ? "+" : "") +
+                            dinheiro.format(detalheMes.diferencaAnterior) + ")"}
+                        </span>
+                      )}
+                    </p>
+                    {detalheMes.parcial && <small>O mês atual é parcial. A variação anual só aparece após o fechamento.</small>}
+                    {!detalheMes.temDados && <small>Sem lançamentos registrados para este filtro no mês escolhido.</small>}
+                  </div>
+                </section>
+              )}
               <p className={styles.nota}>
                 Meses sem lançamentos aparecem como lacunas, sem valores estimados.
                 {modo === "acumulado" ? " O acumulado soma apenas meses com registros." : ""}
