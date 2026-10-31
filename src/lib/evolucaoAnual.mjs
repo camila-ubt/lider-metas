@@ -15,11 +15,18 @@ export function resumirSerieAnual({ ano, lojasIds, periodo = "todos", vendas = [
   const metasPorSlot = new Map();
 
   for (const venda of vendas) {
-    const mes = Number(String(venda.data).slice(5, 7));
+    const dataRegistro = String(venda.data ?? "").slice(0, 10);
+    const mes = Number(dataRegistro.slice(5, 7));
     if (!ids.has(String(venda.loja_id)) || !periodos.includes(venda.periodo) || mes < 1 || mes > 12) continue;
-    const atual = vendasPorMes.get(mes) || { vendido: 0, registros: 0 };
+    const atual = vendasPorMes.get(mes) || { vendido: 0, registros: 0, ultimaDataRegistro: null };
     atual.vendido += Number(venda.valor_vendido || 0);
     atual.registros += 1;
+    // Data da venda, não o horário de inclusão no sistema.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dataRegistro) &&
+        dataRegistro.slice(0, 4) === String(ano) &&
+        (!atual.ultimaDataRegistro || dataRegistro > atual.ultimaDataRegistro)) {
+      atual.ultimaDataRegistro = dataRegistro;
+    }
     vendasPorMes.set(mes, atual);
   }
 
@@ -49,6 +56,7 @@ export function resumirSerieAnual({ ano, lojasIds, periodo = "todos", vendas = [
       temDados,
       vendido,
       meta,
+      ultimaDataRegistro: temDados ? observacao.ultimaDataRegistro : null,
       percentual: temDados && meta > 0 ? (vendido / meta) * 100 : null,
     };
   });
