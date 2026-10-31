@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  resumirSerieAnual, montarComparativo, compararAnosEquivalentes,
+  resumirSerieAnual, montarComparativo, compararAnosEquivalentes, detalharMesEvolucao,
 } from "../src/lib/evolucaoAnual.mjs";
 
 const hoje = new Date(2026, 9, 31);
@@ -93,4 +93,46 @@ test("sem período anterior comparável, percentual fica ausente", () => {
     [{ mes: 1, vendido: null, temDados: false }]
   );
   assert.deepEqual(r, { meses: 0, atual: 0, anterior: 0, percentual: null });
+});
+
+test("detalhe do mês reúne vendido, meta e comparação com ano anterior", () => {
+  const atual = [{ mes: 1, nome: "Jan", temDados: true, vendido: 150, meta: 100, percentual: 150, parcial: false }];
+  const anterior = [{ mes: 1, nome: "Jan", temDados: true, vendido: 120, meta: 100, parcial: false }];
+  const resultado = detalharMesEvolucao(atual, anterior, 1);
+  assert.equal(resultado.vendido, 150);
+  assert.equal(resultado.meta, 100);
+  assert.equal(resultado.diferencaMeta, 50);
+  assert.equal(resultado.vendidoAnterior, 120);
+  assert.equal(resultado.diferencaAnterior, 30);
+  assert.ok(Math.abs(resultado.variacaoAnterior - 25) < 1e-9);
+});
+
+test("detalhe não calcula variação anual para mês parcial", () => {
+  const atual = [{ mes: 1, temDados: true, vendido: 40, meta: 100, parcial: true }];
+  const anterior = [{ mes: 1, temDados: true, vendido: 120 }];
+  const resultado = detalharMesEvolucao(atual, anterior, 1);
+  assert.equal(resultado.diferencaMeta, -60);
+  assert.equal(resultado.vendidoAnterior, 120);
+  assert.equal(resultado.diferencaAnterior, null);
+  assert.equal(resultado.variacaoAnterior, null);
+});
+
+test("detalhe de mês sem lançamentos ou sem base histórica não inventa comparação", () => {
+  const atual = [{ mes: 1, temDados: false, vendido: null, meta: 200, parcial: false }];
+  const anterior = [{ mes: 1, temDados: true, vendido: 0 }];
+  const resultado = detalharMesEvolucao(atual, anterior, 1);
+  assert.equal(resultado.diferencaMeta, null);
+  assert.equal(resultado.vendidoAnterior, 0);
+  assert.equal(resultado.variacaoAnterior, null);
+  assert.equal(detalharMesEvolucao(atual, anterior, 0), null);
+  assert.equal(detalharMesEvolucao(atual, anterior, 13), null);
+});
+
+test("não divide por zero quando o ano anterior teve faturamento zero", () => {
+  const atual = [{ mes: 1, temDados: true, vendido: 75, meta: null, parcial: false }];
+  const anterior = [{ mes: 1, temDados: true, vendido: 0 }];
+  const resultado = detalharMesEvolucao(atual, anterior, 1);
+  assert.equal(resultado.diferencaMeta, null);
+  assert.equal(resultado.vendidoAnterior, 0);
+  assert.equal(resultado.variacaoAnterior, null);
 });
