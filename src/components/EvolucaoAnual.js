@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  CartesianGrid, Legend, Line, LineChart, ReferenceLine,
+  Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
@@ -207,6 +207,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const mesesObservados = series[ano].filter((item) => item.temDados).length;
   const parcial = ano === hoje.getFullYear() && mini.some((item) => item.parcial);
   const temGraficos = dadosGrafico.some((item) => anosComparados.some((y) => item[String(y)] !== null));
+  const TipoGrafico = modo === "mensal" ? BarChart : LineChart;
 
   return (
     <>
@@ -286,7 +287,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
               {temGraficos ? (
                 <div className={styles.grafico}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={dadosGrafico} margin={{ top: 14, right: 10, left: 0, bottom: 0 }}>
+                    <TipoGrafico data={dadosGrafico} margin={{ top: 14, right: 10, left: 0, bottom: 0 }}>
                       <CartesianGrid stroke="#ebe5f1" strokeDasharray="4 4" />
                       <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#73697e" }} tickLine={false} />
                       <YAxis width={70} tick={{ fontSize: 11, fill: "#73697e" }} tickLine={false}
@@ -300,13 +301,17 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                       {modo === "meta" && (
                         <ReferenceLine y={100} stroke="#99909e" strokeDasharray="5 5" />
                       )}
-                      {anosComparados.map((y, i) => (
+                      {anosComparados.map((y, i) => modo === "mensal" ? (
+                        <Bar key={y} name={String(y)} dataKey={String(y)}
+                          fill={CORES[i]} maxBarSize={16} radius={[3, 3, 0, 0]}
+                          isAnimationActive={false} />
+                      ) : (
                         <Line key={y} name={String(y)} dataKey={String(y)}
                           type="monotone" stroke={CORES[i]} strokeWidth={i === 0 ? 3 : 2}
                           dot={{ r: i === 0 ? 3 : 2 }} activeDot={{ r: 5 }}
                           connectNulls={false} isAnimationActive={false} />
                       ))}
-                    </LineChart>
+                    </TipoGrafico>
                   </ResponsiveContainer>
                 </div>
               ) : <p className={styles.semDados}>Não há registros para este filtro.</p>}
