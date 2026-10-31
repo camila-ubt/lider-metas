@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
+import EvolucaoAnual from "@/components/EvolucaoAnual";
 import { resumirResultadosMensais } from "@/lib/rankingAnual.mjs";
 import { compararVendidoComMeta, descreverSituacaoMeta } from "@/lib/detalheMensalRanking.mjs";
 import styles from "./RankingAnual.module.css";
@@ -483,6 +484,9 @@ export default function RankingAnual() {
             </div>
           </>}
         </>}
+      {!loading && !erro && lojasOrdenadas.length > 0 && (
+        <EvolucaoAnual ano={ano} lojas={lojasOrdenadas} vendas={vendas} metas={metas} />
+      )}
     </section>
     {detalhe !== null && createPortal(
             <div
