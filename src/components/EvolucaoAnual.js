@@ -133,6 +133,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const botaoExpandirRef = useRef(null);
   const fecharRef = useRef(null);
   const janelaRef = useRef(null);
+  const detalheMesRef = useRef(null);
+  const abrirPeloMiniRef = useRef(false);
 
   const mini = useMemo(() => resumirSerieAnual({
     ano, lojasIds: lojas.map((loja) => loja.id), periodo: "todos", vendas, metas, hoje,
@@ -263,7 +265,14 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     [ano, anoReferencia, mesSelecionado, series]
   );
 
+  useEffect(() => {
+    if (!aberto || mesSelecionado === null || !abrirPeloMiniRef.current) return;
+    abrirPeloMiniRef.current = false;
+    detalheMesRef.current?.scrollIntoView({ block: "nearest" });
+  }, [aberto, mesSelecionado]);
+
   function abrirMesPeloResumo(mes) {
+    abrirPeloMiniRef.current = true;
     setMesSelecionado(mes);
     setAberto(true);
   }
@@ -285,7 +294,11 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
             <p>{ano} · vendas mensais das três lojas</p>
           </div>
           <button type="button" ref={botaoExpandirRef} className={styles.botaoExpandir}
-            onClick={() => { setMesSelecionado(null); setAberto(true); }}>
+            onClick={() => {
+              abrirPeloMiniRef.current = false;
+              setMesSelecionado(null);
+              setAberto(true);
+            }}>
             Ver análise completa <span aria-hidden="true">↗</span>
           </button>
         </div>
@@ -445,7 +458,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                 </div>
               )}
               {detalheMes && (
-                <section className={styles.detalheMes} aria-label={"Detalhes de " + detalheMes.nome + " de " + ano} aria-live="polite">
+                <section ref={detalheMesRef} className={styles.detalheMes}
+                  aria-label={"Detalhes de " + detalheMes.nome + " de " + ano} aria-live="polite">
                   <header className={styles.detalheMesTopo}>
                     <div>
                       <h4>{detalheMes.nome} de {ano}</h4>
