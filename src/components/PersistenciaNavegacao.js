@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const CHAVE_MES = "lider-metas:mes-selecionado";
 const CHAVE_TELA = "lider-metas:tela-selecionada";
 const CHAVE_SCROLL = "lider-metas:posicao-scroll";
-const TELAS_VALIDAS = ["painel", "lancamentos", "acompanhamento", "metas", "manual", "pa", "vendedoras"];
+const TELAS_VALIDAS = ["painel", "lancamentos", "acompanhamento", "ranking", "metas", "manual", "pa", "vendedoras"];
 
 function mesAtual() {
   const data = new Date();
@@ -19,6 +19,7 @@ function campoMes() {
 function telaDoBotao(botao) {
   if (botao?.hasAttribute?.("data-manual-botao")) return "manual";
   if (botao?.hasAttribute?.("data-pa-botao")) return "pa";
+  if (botao?.hasAttribute?.("data-ranking-anual-botao")) return "ranking";
   if (botao?.hasAttribute?.("data-acompanhamento-botao")) return "acompanhamento";
   if (botao?.hasAttribute?.("data-config-vendedoras-botao")) return "vendedoras";
 
