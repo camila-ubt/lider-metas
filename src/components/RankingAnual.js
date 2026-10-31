@@ -413,9 +413,13 @@ export default function RankingAnual() {
                 {r.pior && <p>Menor: {MESES[r.pior.mes - 1].slice(0, 3)} · {r.pior.percentual.toFixed(1)}%</p>}
               </article>)}
             </div>
-            <div className={styles.painel}>
-              <h3>Desempenho por mês</h3>
-              <div className={styles.scroll}><table>
+            <details className={styles.painel + " " + styles.mesesRecolhiveis}>
+              <summary className={styles.resumoRecolhivel}>
+                <span>Desempenho por mês</span>
+                <span className={styles.iconeRecolhivel} aria-hidden="true" />
+              </summary>
+              <div className={styles.conteudoRecolhivel}>
+                <div className={styles.scroll}><table>
                 <thead><tr><th scope="col">Mês</th>{lojasOrdenadas.map((l) =>
                   <th scope="col" key={l.id}>{l.codigo || l.nome}</th>)}</tr></thead>
                 <tbody>{MESES.map((nome, i) => <tr key={nome}>
@@ -434,7 +438,8 @@ export default function RankingAnual() {
                   </td>)}
                 </tr>)}</tbody>
               </table></div>
-            </div>
+              </div>
+            </details>
           </> : <>
             <div className={styles.resumosTurnos}>
               {resumosTurnos.map((r) => (
@@ -447,8 +452,13 @@ export default function RankingAnual() {
                 </article>
               ))}
             </div>
-            <div className={styles.painel}>
-              <div className={styles.cabecalho}><div><h3>Manhã × Noite</h3>
+            <details className={styles.painel + " " + styles.mesesRecolhiveis}>
+              <summary className={styles.resumoRecolhivel}>
+                <span>Desempenho por mês · Turnos</span>
+                <span className={styles.iconeRecolhivel} aria-hidden="true" />
+              </summary>
+              <div className={styles.conteudoRecolhivel}>
+                <div className={styles.cabecalho}><div><h3>Manhã × Noite</h3>
               <p className="muted">{lojaFiltro === "geral"
                 ? "Todas as lojas: vendas e metas somadas por turno."
                 : "Resultado mensal da loja selecionada."}</p></div>
@@ -481,7 +491,8 @@ export default function RankingAnual() {
                 </td>)}
               </tr>)}</tbody>
             </table></div>
-            </div>
+              </div>
+            </details>
           </>}
         </>}
       {!loading && !erro && lojasOrdenadas.length > 0 && (
