@@ -94,6 +94,16 @@ export default function LiderMetas({ telaInicial = "painel" }) {
   const abaAtiva = (nome) => !vendedorasAberta && tela === nome;
 
   useEffect(() => {
+    function restaurarAcompanhamento() {
+      setMes(hojeLocal().slice(0, 7));
+      setTela("acompanhamento");
+    }
+
+    window.addEventListener("lider-metas:restaurar-acompanhamento", restaurarAcompanhamento);
+    return () => window.removeEventListener("lider-metas:restaurar-acompanhamento", restaurarAcompanhamento);
+  }, []);
+
+  useEffect(() => {
     function localizarRodape() {
       setAlvoAjuda(document.querySelector("[data-app-help-target]"));
     }
@@ -885,6 +895,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
             <button
               type="button"
               className="turn-access-button"
+              data-acompanhamento-botao
               aria-describedby="turn-access-description"
               onClick={() => {
                 setMes(hojeLocal().slice(0, 7));
