@@ -113,3 +113,18 @@ export function detalharMesEvolucao(serieAtual, serieAnterior, mes) {
     variacaoAnterior: comparavel ? (atual.vendido / anterior.vendido - 1) * 100 : null,
   };
 }
+
+export function anosHistoricosDisponiveis(ano, primeiroAno = 2024) {
+  return Array.from({ length: Math.max(0, ano - primeiroAno) }, (_, i) => ano - i - 1);
+}
+
+// Mantém no máximo dois anos anteriores, sempre em ordem decrescente.
+// O ano principal é exibido separadamente e não pode ser desmarcado.
+export function alternarAnoHistorico(anosAtuais, anoAlternado, anoPrincipal, limite = 2) {
+  const disponiveis = anosHistoricosDisponiveis(anoPrincipal);
+  const atuais = disponiveis.filter((ano) => anosAtuais.includes(ano));
+  if (!disponiveis.includes(anoAlternado)) return atuais;
+  if (atuais.includes(anoAlternado)) return atuais.filter((ano) => ano !== anoAlternado);
+  if (atuais.length >= limite) return atuais;
+  return disponiveis.filter((ano) => atuais.includes(ano) || ano === anoAlternado);
+}
