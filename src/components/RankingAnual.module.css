@@ -23,6 +23,14 @@
 .scroll table { width:100%; min-width:300px; border-collapse:collapse; table-layout:fixed; text-align:center; }
 .scroll th { color:var(--muted); font-size:12px; font-weight:700; background:#faf8fd; }
 .scroll th:first-child { width:59px; text-align:left; }
+.mesBotao {
+  display:block; width:100%; border:0; border-radius:5px; padding:7px 0;
+  background:transparent; color:inherit; text-align:left;
+  font:inherit; font-weight:inherit; cursor:pointer;
+}
+.mesBotao:hover { color:var(--primary); }
+.mesBotao:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
+
 .scroll th,.scroll td { padding:5px; border-bottom:1px solid #eee9f4; }
 .scroll td { min-width:72px; }
 .celula { display:flex; width:100%; min-height:44px; align-items:center; justify-content:center; flex-direction:column; gap:0; border:1px solid transparent; border-radius:9px; padding:4px 2px; font-variant-numeric:tabular-nums; }
@@ -111,7 +119,7 @@
 .saldoCompacto .saldoSimbolo { font-size:15px; }
 .saldoCompacto strong { font-size:12px; }
 .modalFundo {
-  position:fixed; inset:0; z-index:1000;
+  position:fixed; inset:0; z-index:4000;
   display:flex; align-items:center; justify-content:center;
   padding:16px;
   background:rgba(27,17,40,.64);
