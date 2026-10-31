@@ -154,9 +154,9 @@ export function situacaoMetaMensal(detalhe) {
   }
   if (diferenca > 0) {
     return {
-      titulo: detalhe.parcial ? "Meta já superada" : "Meta superada",
+      titulo: detalhe.parcial ? "Meta já superada em" : "Meta superada em",
       valor: diferenca,
-      complemento: "acima da meta",
+      complemento: "",
       tom: "positivo",
     };
   }
