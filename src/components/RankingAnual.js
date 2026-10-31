@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { resumirResultadosMensais } from "@/lib/rankingAnual.mjs";
+import { compararVendidoComMeta } from "@/lib/detalheMensalRanking.mjs";
 import styles from "./RankingAnual.module.css";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -44,6 +45,82 @@ function StatusCelula({ resultado, titulo, aoAbrir }) {
       aria-label={titulo + ": " + resultado.percentual.toFixed(1) + "%, " + STATUS[resultado.nivel] + ". Ver valores"}>
       <b>{resultado.percentual.toFixed(1)}%</b><small>{STATUS[resultado.nivel]}</small>
     </button>
+  );
+}
+
+
+function SaldoMeta({ resultado, compacto = false }) {
+  const comparacao = compararVendidoComMeta(resultado.vendido, resultado.meta, resultado.configurada);
+  if (comparacao.situacao === "semMeta") {
+    return <span className={styles.saldoSemMeta}>Meta não configurada</span>;
+  }
+
+  const acima = comparacao.situacao === "acima";
+  const abaixo = comparacao.situacao === "abaixo";
+  const simbolo = acima ? "↑" : abaixo ? "↓" : "✓";
+  const valor = (acima ? "+" : abaixo ? "−" : "") + moeda.format(Math.abs(comparacao.diferenca));
+  const descricao = acima ? "acima da meta" : abaixo ? "faltam para a meta" : "meta atingida";
+  const parcial = resultado.nivel === "parcial";
+
+  return (
+    <div className={[
+      styles.saldoMeta,
+      styles[acima ? "saldoPositivo" : abaixo ? "saldoNegativo" : "saldoAtingido"],
+      compacto ? styles.saldoCompacto : "",
+    ].filter(Boolean).join(" ")}>
+      <span className={styles.saldoSimbolo} aria-hidden="true">{simbolo}</span>
+      <strong>{valor}</strong>
+      <span>{descricao}{parcial ? " até agora" : ""}</span>
+    </div>
+  );
+}
+
+function DetalheTurno({ nome, resultado }) {
+  const comparacao = compararVendidoComMeta(resultado.vendido, resultado.meta, resultado.configurada);
+  return (
+    <div className={styles.turnoDetalhe}>
+      <div className={styles.turnoTopo}>
+        <strong>{nome}</strong>
+        {comparacao.percentual !== null && (
+          <span className={styles.turnoPercentual}>{comparacao.percentual.toFixed(1)}%</span>
+        )}
+      </div>
+      <p className={styles.turnoValores}>
+        <span>Vendido <b>{moeda.format(resultado.vendido)}</b></span>
+        <span>Meta <b>{resultado.configurada ? moeda.format(resultado.meta) : "—"}</b></span>
+      </p>
+      <SaldoMeta resultado={resultado} compacto />
+    </div>
+  );
+}
+
+function CartaoDetalheMensal({ titulo, resultado, manha, noite }) {
+  const situacao = STATUS[resultado.nivel] || "Sem meta";
+  return (
+    <article className={styles.cartaoDetalhe + " " + (styles["detalhe" + resultado.nivel] || "")}>
+      <header className={styles.detalheTopo}>
+        <h4>{titulo}</h4>
+        <span className={styles.seloNivel + " " + (styles[resultado.nivel] || "")}>
+          {situacao}
+          {resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
+        </span>
+      </header>
+      <div className={styles.detalheValores}>
+        <div>
+          <span>Vendido</span>
+          <strong className={styles.valorVendido}>{moeda.format(resultado.vendido)}</strong>
+        </div>
+        <div>
+          <span>Meta</span>
+          <strong>{resultado.configurada ? moeda.format(resultado.meta) : "Não configurada"}</strong>
+        </div>
+      </div>
+      <SaldoMeta resultado={resultado} />
+      <div className={styles.turnosDetalhe}>
+        <DetalheTurno nome="Manhã" resultado={manha} />
+        <DetalheTurno nome="Noite" resultado={noite} />
+      </div>
+    </article>
   );
 }
 
@@ -243,37 +320,33 @@ export default function RankingAnual() {
             </table></div>
             </div>
           </>}
-          {detalhe && <div className={styles.painel}>
-            <div className={styles.cabecalho}><h3>{MESES[detalhe - 1]} de {ano}</h3>
-              <button type="button" className={styles.fechar} onClick={() => setDetalhe(null)}>Fechar</button>
-            </div>
-            <div className={styles.detalhes}>
-              {tipo === "turnos" && lojaFiltro === "geral" && (() => {
-                const geral = resultadoGeral(detalhe);
-                return <article>
-                  <h4>Geral das 3 lojas</h4>
-                  <p>Vendido: <b>{moeda.format(geral.vendido)}</b></p>
-                  <p>Meta: {geral.configurada ? moeda.format(geral.meta) : "Sem meta completa"}</p>
-                  {PERIODOS.map((p) => {
-                    const turno = resultadoGeral(detalhe, p);
-                    return <p key={p}>{p === "manha" ? "Manhã" : "Noite"}: {moeda.format(turno.vendido)} / {turno.configurada ? moeda.format(turno.meta) : "Sem meta"}</p>;
-                  })}
-                </article>;
-              })()}
-              {(tipo === "turnos" && lojaFiltro !== "geral" ? [lojaSelecionada] : lojasOrdenadas).map((l) => {
-                const r = resultado(l, detalhe);
-                return <article key={l.id}>
-                  <h4>{l.codigo} · {l.nome}</h4>
-                  <p>Vendido: <b>{moeda.format(r.vendido)}</b></p>
-                  <p>Meta: {r.configurada ? moeda.format(r.meta) : "Sem meta completa"}</p>
-                  {PERIODOS.map((p) => {
-                    const t = resultado(l, detalhe, p);
-                    return <p key={p}>{p === "manha" ? "Manhã" : "Noite"}: {moeda.format(t.vendido)} / {t.configurada ? moeda.format(t.meta) : "Sem meta"}</p>;
-                  })}
-                </article>;
-              })}
-            </div>
-          </div>}
+          {detalhe && (
+            <section className={styles.painel} aria-label={"Detalhes de " + MESES[detalhe - 1]}>
+              <div className={styles.cabecalho}>
+                <h3>{MESES[detalhe - 1]} de {ano}</h3>
+                <button type="button" className={styles.fechar} onClick={() => setDetalhe(null)}>Fechar</button>
+              </div>
+              <div className={styles.detalhes}>
+                {tipo === "turnos" && lojaFiltro === "geral" && (
+                  <CartaoDetalheMensal
+                    titulo="Geral das 3 lojas"
+                    resultado={resultadoGeral(detalhe)}
+                    manha={resultadoGeral(detalhe, "manha")}
+                    noite={resultadoGeral(detalhe, "noite")}
+                  />
+                )}
+                {(tipo === "turnos" && lojaFiltro !== "geral" ? [lojaSelecionada] : lojasOrdenadas).map((loja) => (
+                  <CartaoDetalheMensal
+                    key={loja.id}
+                    titulo={loja.codigo + " · " + loja.nome}
+                    resultado={resultado(loja, detalhe)}
+                    manha={resultado(loja, detalhe, "manha")}
+                    noite={resultado(loja, detalhe, "noite")}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
         </>}
     </section>
   );
