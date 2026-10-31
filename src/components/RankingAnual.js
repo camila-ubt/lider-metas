@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { resumirResultadosMensais } from "@/lib/rankingAnual.mjs";
 import styles from "./RankingAnual.module.css";
 
 const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -136,14 +137,23 @@ export default function RankingAnual() {
     return consolidar(registros, mes);
   }
 
-  const ranking = lojasOrdenadas.map((loja) => {
-    const meses = MESES.map((_, i) => ({ mes: i + 1, ...resultado(loja, i + 1) }))
-      .filter((r) => !["parcial", "futuro", "semMeta"].includes(r.nivel));
-    const batidos = meses.filter((r) => ["meta", "super", "mega"].includes(r.nivel)).length;
-    const melhor = [...meses].sort((a, b) => b.percentual - a.percentual)[0];
-    const pior = [...meses].sort((a, b) => a.percentual - b.percentual)[0];
-    return { loja, meses: meses.length, batidos, taxa: meses.length ? batidos / meses.length : -1, melhor, pior };
-  }).sort((a, b) => b.taxa - a.taxa || b.batidos - a.batidos);
+  const ranking = lojasOrdenadas.map((loja) => ({
+    loja,
+    ...resumirResultadosMensais(
+      MESES.map((_, i) => ({ mes: i + 1, ...resultado(loja, i + 1) }))
+    ),
+  })).sort((a, b) => b.taxa - a.taxa || b.batidos - a.batidos);
+
+  // Mesmos critérios das lojas, aplicados ao consolidado ou à loja selecionada.
+  const resumosTurnos = lojaSelecionada ? PERIODOS.map((periodo) => {
+    const resultados = MESES.map((_, i) => ({
+      mes: i + 1,
+      ...(lojaFiltro === "geral"
+        ? resultadoGeral(i + 1, periodo)
+        : resultado(lojaSelecionada, i + 1, periodo)),
+    }));
+    return { periodo, ...resumirResultadosMensais(resultados) };
+  }) : [];
 
   return (
     <section className={styles.area} aria-label="Ranking anual">
@@ -193,8 +203,20 @@ export default function RankingAnual() {
                 </tr>)}</tbody>
               </table></div>
             </div>
-          </> : <div className={styles.painel}>
-            <div className={styles.cabecalho}><div><h3>Manhã × Noite</h3>
+          </> : <>
+            <div className={styles.resumosTurnos}>
+              {resumosTurnos.map((r) => (
+                <article className={styles.resumo} key={r.periodo}>
+                  <h3>{r.periodo === "manha" ? "Manhã" : "Noite"}</h3>
+                  <strong>{r.meses ? r.batidos + "/" + r.meses : "—"}</strong>
+                  <small>meses com meta atingida</small>
+                  {r.melhor && <p>Melhor: {MESES[r.melhor.mes - 1].slice(0, 3)} · {r.melhor.percentual.toFixed(1)}%</p>}
+                  {r.pior && <p>Menor: {MESES[r.pior.mes - 1].slice(0, 3)} · {r.pior.percentual.toFixed(1)}%</p>}
+                </article>
+              ))}
+            </div>
+            <div className={styles.painel}>
+              <div className={styles.cabecalho}><div><h3>Manhã × Noite</h3>
               <p className="muted">{lojaFiltro === "geral"
                 ? "Todas as lojas: vendas e metas somadas por turno."
                 : "Resultado mensal da loja selecionada."}</p></div>
@@ -219,7 +241,8 @@ export default function RankingAnual() {
                 </td>)}
               </tr>)}</tbody>
             </table></div>
-          </div>}
+            </div>
+          </>}
           {detalhe && <div className={styles.painel}>
             <div className={styles.cabecalho}><h3>{MESES[detalhe - 1]} de {ano}</h3>
               <button type="button" className={styles.fechar} onClick={() => setDetalhe(null)}>Fechar</button>
