@@ -118,6 +118,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const supabase = useMemo(() => createClient(), []);
   const hoje = useMemo(() => new Date(), []);
   const [aberto, setAberto] = useState(false);
+  const [visao, setVisao] = useState("ano");
   const [lojaId, setLojaId] = useState("geral");
   const [periodo, setPeriodo] = useState("todos");
   const [modo, setModo] = useState("acumulado");
@@ -133,8 +134,6 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const botaoExpandirRef = useRef(null);
   const fecharRef = useRef(null);
   const janelaRef = useRef(null);
-  const detalheMesRef = useRef(null);
-  const abrirPeloMiniRef = useRef(false);
 
   const mini = useMemo(() => resumirSerieAnual({
     ano, lojasIds: lojas.map((loja) => loja.id), periodo: "todos", vendas, metas, hoje,
@@ -145,6 +144,11 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   const anosAnteriores = useMemo(() => (
     anosMarcados.ano === ano ? anosMarcados.anos : anosDisponiveis.slice(0, 2)
   ), [ano, anosMarcados, anosDisponiveis]);
+  const anoReferencia = anosAnteriores[0] ?? null;
+  const anosNecessarios = useMemo(
+    () => visao === "mes" ? (anoReferencia === null ? [] : [anoReferencia]) : anosAnteriores,
+    [visao, anoReferencia, anosAnteriores]
+  );
 
   function alternarAno(anoEscolhido) {
     setAnosMarcados((estado) => {
@@ -159,7 +163,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
   useEffect(() => {
     if (!aberto) return undefined;
     let ativo = true;
-    const faltantes = anosAnteriores.filter((y) => !cache.current[y]);
+    const faltantes = anosNecessarios.filter((y) => !cache.current[y]);
     if (!faltantes.length) {
       setHistorico({ ...cache.current });
       setBuscando(false);
@@ -180,7 +184,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
       })
       .finally(() => { if (ativo) setBuscando(false); });
     return () => { ativo = false; };
-  }, [aberto, ano, anosAnteriores, supabase]);
+  }, [aberto, anosNecessarios, supabase]);
 
   useEffect(() => {
     if (!aberto) return undefined;
@@ -247,7 +251,6 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     () => montarComparativo(series, anosComparados, modo),
     [series, anosComparados, modo]
   );
-  const anoReferencia = anosAnteriores[0] ?? null;
   const variacao = useMemo(
     () => compararAnosEquivalentes(series[ano], anoReferencia === null ? undefined : series[anoReferencia]),
     [series, ano, anoReferencia]
@@ -265,17 +268,15 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     [ano, anoReferencia, mesSelecionado, series]
   );
 
-  useEffect(() => {
-    if (!aberto || mesSelecionado === null || !abrirPeloMiniRef.current) return;
-    abrirPeloMiniRef.current = false;
-    detalheMesRef.current?.scrollIntoView({ block: "nearest" });
-  }, [aberto, mesSelecionado]);
-
   function abrirMesPeloResumo(mes) {
-    abrirPeloMiniRef.current = true;
-    setModo("mensal");
+    setVisao("mes");
     setMesSelecionado(mes);
     setAberto(true);
+  }
+
+  function escolherAnoReferencia(anoEscolhido) {
+    const numeroAno = Number(anoEscolhido);
+    setAnosMarcados({ ano, anos: numeroAno ? [numeroAno] : [] });
   }
 
   function escolherMesNoGrafico(estado) {
@@ -285,6 +286,64 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
     const indice = indicePorNome >= 0 ? indicePorNome : indicePorPosicao;
     if (Number.isInteger(indice) && indice >= 0 && indice < 12) setMesSelecionado(indice + 1);
   }
+
+  const painelDetalheMes = detalheMes ? (
+                <section className={styles.detalheMes + (visao === "mes" ? " " + styles.detalheMesFocado : "")}
+                  aria-label={"Detalhes de " + detalheMes.nome + " de " + ano} aria-live="polite">
+                  {visao === "ano" && <header className={styles.detalheMesTopo}>
+                    <div>
+                      <h4>{detalheMes.nome} de {ano}</h4>
+                      {detalheMes.parcial && <span className={styles.mesParcial}>Em andamento</span>}
+                    </div>
+                    <button type="button" aria-label="Fechar detalhe do mês"
+                      onClick={() => setMesSelecionado(null)}>Fechar ×</button>
+                  </header>}
+                  {visao === "mes" && detalheMes.parcial && (
+                    <p className={styles.legendaParcial}>
+                      <span className={styles.marcadorParcial} aria-hidden="true" />
+                      Mês em andamento · resultado parcial
+                    </p>
+                  )}
+                  <div className={styles.detalheMesValores}>
+                    <div>
+                      <span>Vendido</span>
+                      <strong>{detalheMes.temDados ? dinheiro.format(detalheMes.vendido) : "—"}</strong>
+                    </div>
+                    <div>
+                      <span>Meta</span>
+                      <strong>{detalheMes.meta !== null ? dinheiro.format(detalheMes.meta) : "—"}</strong>
+                    </div>
+                    <div>
+                      <span>Atingimento</span>
+                      <strong>{detalheMes.percentual !== null ? numero.format(detalheMes.percentual) + "%" : "—"}</strong>
+                    </div>
+                  </div>
+                  <div className={styles.balancoMes}>
+                    <p>
+                      <strong>Diferença para a meta: </strong>
+                      {detalheMes.diferencaMeta === null ? "Sem comparação disponível" :
+                        (detalheMes.diferencaMeta > 0 ? "+" : "") + dinheiro.format(detalheMes.diferencaMeta)}
+                    </p>
+                    <p>
+                      <strong>{anoReferencia === null ? "Comparativo histórico: " : "Mesmo mês de " + anoReferencia + ": "}</strong>
+                      {anoReferencia === null ? (anosDisponiveis.length ? "Selecione um ano acima" : "Histórico indisponível") :
+                        detalheMes.vendidoAnterior === null
+                          ? (buscando && !series[anoReferencia] ? "Carregando..." : "Sem registros")
+                          : dinheiro.format(detalheMes.vendidoAnterior)}
+                      {detalheMes.variacaoAnterior !== null && (
+                        <span className={detalheMes.variacaoAnterior >= 0 ? styles.variacaoPositiva : styles.variacaoNegativa}>
+                          {" · " + (detalheMes.variacaoAnterior > 0 ? "+" : "") +
+                            numero.format(detalheMes.variacaoAnterior) + "% (" +
+                            (detalheMes.diferencaAnterior > 0 ? "+" : "") +
+                            dinheiro.format(detalheMes.diferencaAnterior) + ")"}
+                        </span>
+                      )}
+                    </p>
+                    {detalheMes.parcial && <small>O mês atual é parcial. A variação anual só aparece após o fechamento.</small>}
+                    {!detalheMes.temDados && <small>Sem lançamentos registrados para este filtro no mês escolhido.</small>}
+                  </div>
+                </section>
+  ) : null;
 
   return (
     <>
@@ -296,7 +355,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
           </div>
           <button type="button" ref={botaoExpandirRef} className={styles.botaoExpandir}
             onClick={() => {
-              abrirPeloMiniRef.current = false;
+              setVisao("ano");
               setModo("acumulado");
               setMesSelecionado(null);
               setAberto(true);
@@ -322,14 +381,18 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
             aria-labelledby="evolucao-anual-modal-titulo" className={styles.janela}>
             <header className={styles.cabecalho}>
               <div>
-                <span>Análise histórica</span>
-                <h2 id="evolucao-anual-modal-titulo">Evolução anual · {ano}</h2>
+                <span>{visao === "mes" ? "Detalhes do mês" : "Análise histórica"}</span>
+                <h2 id="evolucao-anual-modal-titulo">
+                  {visao === "mes" && mesSelecionado !== null
+                    ? MESES_CURTOS[mesSelecionado - 1] + " de " + ano
+                    : "Evolução anual · " + ano}
+                </h2>
               </div>
               <button ref={fecharRef} type="button" className={styles.fechar}
                 onClick={() => setAberto(false)}>Fechar ×</button>
             </header>
             <div className={styles.conteudo}>
-              <div className={styles.filtros}>
+              <div className={styles.filtros + (visao === "mes" ? " " + styles.filtrosMes : "")}>
                 <label>Loja
                   <select value={lojaId} onChange={(e) => setLojaId(e.target.value)}>
                     <option value="geral">Geral das 3 lojas</option>
@@ -345,14 +408,35 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                     <option value="noite">Noite</option>
                   </select>
                 </label>
-                <label>Visualização
-                  <select value={modo} onChange={(e) => setModo(e.target.value)}>
-                    <option value="acumulado">Acumulado no ano</option>
-                    <option value="mensal">Vendas mês a mês</option>
-                  </select>
-                </label>
+                {visao === "ano" && (
+                  <label>Visualização
+                    <select value={modo} onChange={(e) => setModo(e.target.value)}>
+                      <option value="acumulado">Acumulado no ano</option>
+                      <option value="mensal">Vendas mês a mês</option>
+                    </select>
+                  </label>
+                )}
               </div>
 
+              {visao === "mes" ? (
+                <>
+                  {anosDisponiveis.length > 0 && (
+                    <label className={styles.filtroComparativoMes}>
+                      Comparar com
+                      <select value={anoReferencia ?? ""} onChange={(evento) => escolherAnoReferencia(evento.target.value)}>
+                        <option value="">Sem comparação</option>
+                        {anosDisponiveis.map((y) => (
+                          <option key={y} value={y}>{y}</option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                  {erro && <p role="alert" className={styles.aviso}>{erro}</p>}
+                  {buscando && <p role="status" className={styles.aviso}>Carregando comparação histórica...</p>}
+                  {painelDetalheMes}
+                </>
+              ) : (
+                <>
               {anosDisponiveis.length > 0 && (
                 <fieldset className={styles.anosComparar}>
                   <legend>Comparar com <span>(até 2 anos)</span></legend>
@@ -459,57 +543,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                   </label>
                 </div>
               )}
-              {detalheMes && (
-                <section ref={detalheMesRef} className={styles.detalheMes}
-                  aria-label={"Detalhes de " + detalheMes.nome + " de " + ano} aria-live="polite">
-                  <header className={styles.detalheMesTopo}>
-                    <div>
-                      <h4>{detalheMes.nome} de {ano}</h4>
-                      {detalheMes.parcial && <span className={styles.mesParcial}>Em andamento</span>}
-                    </div>
-                    <button type="button" aria-label="Fechar detalhe do mês"
-                      onClick={() => setMesSelecionado(null)}>Fechar ×</button>
-                  </header>
-                  <div className={styles.detalheMesValores}>
-                    <div>
-                      <span>Vendido</span>
-                      <strong>{detalheMes.temDados ? dinheiro.format(detalheMes.vendido) : "—"}</strong>
-                    </div>
-                    <div>
-                      <span>Meta</span>
-                      <strong>{detalheMes.meta !== null ? dinheiro.format(detalheMes.meta) : "—"}</strong>
-                    </div>
-                    <div>
-                      <span>Atingimento</span>
-                      <strong>{detalheMes.percentual !== null ? numero.format(detalheMes.percentual) + "%" : "—"}</strong>
-                    </div>
-                  </div>
-                  <div className={styles.balancoMes}>
-                    <p>
-                      <strong>Diferença para a meta: </strong>
-                      {detalheMes.diferencaMeta === null ? "Sem comparação disponível" :
-                        (detalheMes.diferencaMeta > 0 ? "+" : "") + dinheiro.format(detalheMes.diferencaMeta)}
-                    </p>
-                    <p>
-                      <strong>{anoReferencia === null ? "Comparativo histórico: " : "Mesmo mês de " + anoReferencia + ": "}</strong>
-                      {anoReferencia === null ? (anosDisponiveis.length ? "Selecione um ano acima" : "Histórico indisponível") :
-                        detalheMes.vendidoAnterior === null
-                          ? (buscando && !series[anoReferencia] ? "Carregando..." : "Sem registros")
-                          : dinheiro.format(detalheMes.vendidoAnterior)}
-                      {detalheMes.variacaoAnterior !== null && (
-                        <span className={detalheMes.variacaoAnterior >= 0 ? styles.variacaoPositiva : styles.variacaoNegativa}>
-                          {" · " + (detalheMes.variacaoAnterior > 0 ? "+" : "") +
-                            numero.format(detalheMes.variacaoAnterior) + "% (" +
-                            (detalheMes.diferencaAnterior > 0 ? "+" : "") +
-                            dinheiro.format(detalheMes.diferencaAnterior) + ")"}
-                        </span>
-                      )}
-                    </p>
-                    {detalheMes.parcial && <small>O mês atual é parcial. A variação anual só aparece após o fechamento.</small>}
-                    {!detalheMes.temDados && <small>Sem lançamentos registrados para este filtro no mês escolhido.</small>}
-                  </div>
-                </section>
-              )}
+              {painelDetalheMes}
               <p className={styles.nota}>
                 Meses sem lançamentos aparecem como lacunas, sem valores estimados.
                 {modo === "acumulado" ? " O acumulado soma apenas meses com registros." : ""}
@@ -533,6 +567,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                   </table>
                 </div>
               </details>
+                </>
+              )}
             </div>
           </section>
         </div>,
