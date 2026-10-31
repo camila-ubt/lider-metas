@@ -268,10 +268,11 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
               <div className={styles.kpis}>
                 <div><span>Vendido em {ano}</span><strong>{dinheiro.format(valorAno)}</strong>
                   <small>{mesesObservados} mês(es) com registros{parcial ? " · inclui o atual" : ""}</small></div>
-                <div><span>Comparativo com {ano - 1}</span>
+                <div><span>{anosAnteriores.length ? "Comparativo com " + (ano - 1) : "Comparativo histórico"}</span>
                   <strong>{variacao.percentual === null ? "—" :
                     (variacao.percentual > 0 ? "+" : "") + numero.format(variacao.percentual) + "%"}</strong>
-                  <small>{variacao.meses ? variacao.meses + " mês(es) fechados equivalentes" : "Sem meses comparáveis"}</small>
+                  <small>{variacao.meses ? variacao.meses + " mês(es) fechados equivalentes" :
+                    anosAnteriores.length ? "Sem meses comparáveis" : "Histórico a partir de 2024"}</small>
                 </div>
               </div>
 
@@ -311,6 +312,8 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
               ) : <p className={styles.semDados}>Não há registros para este filtro.</p>}
               <p className={styles.nota}>
                 Meses sem lançamentos aparecem como lacunas, sem valores estimados.
+                {modo === "acumulado" ? " O acumulado soma apenas meses com registros." : ""}
+                {modo === "meta" ? " A porcentagem exige metas preenchidas para todo o filtro." : ""}
                 {parcial ? " O mês atual é parcial; a comparação mensal com anos fechados exige cautela." : ""}
               </p>
 
