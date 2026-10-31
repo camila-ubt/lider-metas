@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ReferenceLine,
+  Bar, BarChart, CartesianGrid, Legend, Line, LineChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
@@ -16,16 +16,15 @@ const dinheiro = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "
 const numero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 const CORES = ["#7650a7", "#248676", "#c88d4f"];
 
-function formatoEixo(valor, percentual) {
-  if (percentual) return numero.format(valor) + "%";
+function formatoEixo(valor) {
   const abs = Math.abs(valor);
   if (abs >= 1000000) return numero.format(valor / 1000000) + " mi";
   if (abs >= 1000) return numero.format(valor / 1000) + " mil";
   return numero.format(valor);
 }
 
-function formatarMedida(valor, percentual) {
-  return percentual ? numero.format(valor) + "%" : dinheiro.format(valor);
+function formatarMedida(valor) {
+  return dinheiro.format(valor);
 }
 
 function MiniGrafico({ linhas, ano }) {
@@ -261,7 +260,6 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                   <select value={modo} onChange={(e) => setModo(e.target.value)}>
                     <option value="acumulado">Acumulado no ano</option>
                     <option value="mensal">Vendas mês a mês</option>
-                    <option value="meta">% da meta mensal</option>
                   </select>
                 </label>
               </div>
@@ -278,8 +276,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
               </div>
 
               <div className={styles.tituloGrafico}>
-                <h3>{modo === "acumulado" ? "Evolução acumulada" :
-                  modo === "mensal" ? "Vendas por mês" : "Atingimento da meta"}</h3>
+                <h3>{modo === "acumulado" ? "Evolução acumulada" : "Vendas por mês"}</h3>
                 <span>{[ano, ...anosAnteriores].join(" × ")}</span>
               </div>
               {erro && <p role="alert" className={styles.aviso}>{erro}</p>}
@@ -291,16 +288,13 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                       <CartesianGrid stroke="#ebe5f1" strokeDasharray="4 4" />
                       <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#73697e" }} tickLine={false} />
                       <YAxis width={70} tick={{ fontSize: 11, fill: "#73697e" }} tickLine={false}
-                        tickFormatter={(n) => formatoEixo(n, modo === "meta")} />
+                        tickFormatter={formatoEixo} />
                       <Tooltip
-                        formatter={(valor, nome) => [formatarMedida(valor, modo === "meta"), nome]}
+                        formatter={(valor, nome) => [formatarMedida(valor), nome]}
                         labelFormatter={(nome) => "Mês: " + nome}
                         contentStyle={{ borderRadius: 12, borderColor: "#e4ddec" }}
                       />
                       <Legend />
-                      {modo === "meta" && (
-                        <ReferenceLine y={100} stroke="#99909e" strokeDasharray="5 5" />
-                      )}
                       {anosComparados.map((y, i) => modo === "mensal" ? (
                         <Bar key={y} name={String(y)} dataKey={String(y)}
                           fill={CORES[i]} maxBarSize={16} radius={[3, 3, 0, 0]}
@@ -318,7 +312,6 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
               <p className={styles.nota}>
                 Meses sem lançamentos aparecem como lacunas, sem valores estimados.
                 {modo === "acumulado" ? " O acumulado soma apenas meses com registros." : ""}
-                {modo === "meta" ? " A porcentagem exige metas preenchidas para todo o filtro." : ""}
                 {parcial ? " O mês atual é parcial; a comparação mensal com anos fechados exige cautela." : ""}
               </p>
 
@@ -333,7 +326,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
                       <th scope="row">{linha.mes}</th>
                       {anosComparados.map((y) => (
                         <td key={y}>{linha[String(y)] === null ? "—" :
-                          formatarMedida(linha[String(y)], modo === "meta")}</td>
+                          formatarMedida(linha[String(y)])}</td>
                       ))}
                     </tr>)}</tbody>
                   </table>
