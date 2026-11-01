@@ -24,7 +24,7 @@ As vendas informadas durante o turno atualizam o valor restante por loja e no ge
 
 ## Painel e Roteiro da Reunião
 
-O Painel mostra o total vendido e o próximo nível mensal completo de cada período (Manhã e Noite) separadamente das três faixas de metas diárias ajustadas, suas variações versus a meta fixa e os valores por loja/turno. A meta mensal muda de Meta para Supermeta e Megameta conforme o desempenho, sem divisão por dia ou por loja. Nos meses encerrados, o cabeçalho mostra a meta mensal original. Destaca o menor desempenho entre lojas e períodos. O Roteiro da Reunião também compara manhã e noite em relação à meta.
+O Painel mostra o total vendido e o próximo nível mensal completo de cada período (Manhã e Noite) separadamente das três faixas de metas diárias ajustadas, suas variações versus a meta fixa e os valores por loja/turno. A meta mensal muda de Meta para Supermeta e Megameta conforme o desempenho, sem divisão por dia ou por loja. Uma barra independente em cada período usa 100% = Megameta mensal, com marcos de Meta (83,3%) e Supermeta (91,7%); exibe o avanço vendido e o valor que falta para a Megameta (ou o excedente quando superada). Nos meses encerrados, descreve o valor que faltou no passado. Nos meses encerrados, o cabeçalho mostra a meta mensal original. Destaca o menor desempenho entre lojas e períodos. O Roteiro da Reunião também compara manhã e noite em relação à meta.
 
 ## Inteligência Gerencial
 
