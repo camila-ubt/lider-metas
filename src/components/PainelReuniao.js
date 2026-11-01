@@ -437,6 +437,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         mediaAtual,
         projecaoFechamento,
         metasAjustadas,
+        proximaFaixa: proximoNivel(totalAtual, metaTurno),
         mediaHistorica,
         variacaoHistorica,
         temVendas: atuais.length > 0,
@@ -710,16 +711,33 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
           {resumo.turnos.map((turno) => (
             <article key={turno.periodo}>
               <header>
-                <strong>{nomeTurno(turno.periodo)}</strong>
-                {futuro ? (
-                  <span>{statusHistorico(turno, contexto.tipo)}</span>
-                ) : (
+                <div className={styles.turnoCabecalho}>
+                  <strong>{nomeTurno(turno.periodo)}</strong>
+                  <span className={styles.turnoHistoricoStatus}>
+                    {statusHistorico(turno, contexto.tipo)}
+                  </span>
+                </div>
+                {!futuro && (
                   <div className={styles.turnoIndicadores}>
                     <span className={styles.turnoTotalVendido}>
-                      Vendido: <b>{dinheiro.format(turno.totalAtual)}</b>
+                      <span>Vendido no mês</span>
+                      <b>{dinheiro.format(turno.totalAtual)}</b>
                     </span>
-                    <span className={styles.turnoHistoricoStatus}>
-                      {statusHistorico(turno, contexto.tipo)}
+                    <span className={styles.turnoMetaMensal}>
+                      <span>
+                        {turno.meta <= 0
+                          ? "Meta mensal"
+                          : encerrado
+                            ? "Meta mensal"
+                            : turno.proximaFaixa
+                              ? `Próxima: ${turno.proximaFaixa.nome}`
+                              : "Megameta atingida"}
+                      </span>
+                      <b>{turno.meta <= 0
+                        ? "—"
+                        : dinheiro.format(encerrado
+                          ? turno.meta
+                          : turno.proximaFaixa?.valor ?? turno.meta * 1.2)}</b>
                     </span>
                   </div>
                 )}
@@ -770,44 +788,28 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                         <b>{turno.periodosRestantes}</b>
                       </p>
                       {turno.metasAjustadas.map((nivel) => (
-                        <div
-                          className={`${styles.turnoNivel} ${nivel.proxima ? styles.turnoNivelProxima : ""}`}
-                          key={nivel.nivel}
-                        >
-                          <div className={styles.turnoNivelCabecalho}>
-                            <strong>{nivel.nome}</strong>
-                            {nivel.proxima && <small>Próxima</small>}
-                          </div>
+                        <div className={styles.turnoNivel} key={nivel.nivel}>
+                          <strong>{nivel.nome}</strong>
                           <p>
-                            <span>Meta fixa/turno</span>
-                            <b>{dinheiro.format(nivel.fixa)}</b>
+                            <span>Meta ajustada</span>
+                            <b>{nivel.ajustada === null
+                              ? "Sem turnos restantes"
+                              : dinheiro.format(nivel.ajustada)}</b>
                           </p>
-                          {nivel.atingida ? (
-                            <small className={styles.nivelAtingido}>Atingida</small>
-                          ) : turno.periodosRestantes === 0 ? (
-                            <small className={styles.nivelSemTurnos}>Não atingida · sem turnos</small>
-                          ) : (
-                            <>
-                              <p>
-                                <span>Meta ajustada</span>
-                                <b>{dinheiro.format(nivel.ajustada)}</b>
-                              </p>
-                              <small className={
-                                nivel.variacao === null || Math.abs(nivel.variacao) < 0.05
-                                  ? styles.variacaoNeutra
-                                  : nivel.variacao < 0
-                                    ? styles.variacaoFavoravel
-                                    : styles.variacaoDesfavoravel
-                              }>
-                                {compararMetaFixa(nivel.variacao)}
-                              </small>
-                              {nivel.porLojaTurno !== null && (
-                                <p className={styles.turnoPorLoja}>
-                                  <span>Por loja/turno</span>
-                                  <b>{dinheiro.format(nivel.porLojaTurno)}</b>
-                                </p>
-                              )}
-                            </>
+                          <small className={
+                            nivel.variacao === null || Math.abs(nivel.variacao) < 0.05
+                              ? styles.variacaoNeutra
+                              : nivel.variacao < 0
+                                ? styles.variacaoFavoravel
+                                : styles.variacaoDesfavoravel
+                          }>
+                            {compararMetaFixa(nivel.variacao)}
+                          </small>
+                          {nivel.porLojaTurno !== null && (
+                            <p className={styles.turnoPorLoja}>
+                              <span>Por loja/turno</span>
+                              <b>{dinheiro.format(nivel.porLojaTurno)}</b>
+                            </p>
                           )}
                         </div>
                       ))}
