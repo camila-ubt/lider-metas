@@ -163,6 +163,44 @@ test("metas por turno comparam necessário com a meta fixa das lojas", () => {
   assert.equal(faixas[2].porLojaTurno, 6660 / 11 / 2);
 });
 
+test("turno mantém o valor fixo e destaca a próxima meta após atingir a Meta", () => {
+  const faixas = calcularMetasTurno({
+    metas: [{ loja_id: 1, periodo: "manha", valor_meta: 3000 }],
+    lojas: [{ id: 1 }], periodo: "manha", vendido: 3250,
+    diasMes: 30, turnosRestantes: 0,
+  });
+  assert.deepEqual(faixas.map(({ fixa }) => fixa), [100, 110, 120]);
+  assert.deepEqual(faixas.map(({ atingida }) => atingida), [true, false, false]);
+  assert.deepEqual(faixas.map(({ proxima }) => proxima), [false, true, false]);
+  assert.ok(faixas.every(({ ajustada }) => ajustada === null));
+});
+
+test("após superar a Supermeta, só a Megameta é a próxima meta ajustada", () => {
+  const faixas = calcularMetasTurno({
+    metas: [
+      { loja_id: 1, periodo: "noite", valor_meta: 3100 },
+      { loja_id: 2, periodo: "noite", valor_meta: 6200 },
+    ],
+    lojas, periodo: "noite", vendido: 10370,
+    diasMes: 31, turnosRestantes: 1,
+  });
+  assert.deepEqual(faixas.map(({ atingida }) => atingida), [true, true, false]);
+  assert.deepEqual(faixas.map(({ proxima }) => proxima), [false, false, true]);
+  assert.deepEqual(faixas.map(({ fixa }) => fixa), [300, 330, 360]);
+  assert.equal(faixas[2].ajustada, 790);
+  assert.equal(faixas[2].porLojaTurno, 395);
+  assert.ok(faixas.every(({ fixa }) => fixa > 0));
+});
+
+test("Megameta atingida não inventa próximo nível", () => {
+  const faixas = calcularMetasTurno({
+    metas: [{ loja_id: 1, periodo: "noite", valor_meta: 3000 }],
+    lojas: [{ id: 1 }], periodo: "noite", vendido: 3600,
+    diasMes: 30, turnosRestantes: 2,
+  });
+  assert.ok(faixas.every(({ atingida, proxima }) => atingida && !proxima));
+});
+
 test("sem turnos restantes, não divide o saldo por zero", () => {
   const valores = calcularMetasTurno({
     metas: [{ loja_id: 1, periodo: "manha", valor_meta: 3000 }],
