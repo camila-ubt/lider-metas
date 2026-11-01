@@ -65,8 +65,9 @@ export function proximoNivel(vendido, meta) {
   return niveis.find((nivel) => vendido < nivel.valor) || null;
 }
 
-// Barra mensal: 100% corresponde à Megameta (120% da Meta original).
-// O percentual real pode ultrapassar 100%; somente a largura visual é limitada.
+// Régua visual por etapas, sem confundir a largura com a % real de vendas:
+// 0–50% até a Meta, 50–75% até a Supermeta, 75–100% até a Megameta.
+// Dentro de cada etapa, o preenchimento acompanha o avanço em reais.
 export function calcularProgressoMegameta(vendido, meta) {
   const base = Number(meta);
   const realizado = Number(vendido);
@@ -74,12 +75,22 @@ export function calcularProgressoMegameta(vendido, meta) {
     return null;
   }
 
+  const metaSuper = base * 1.1;
   const alvo = base * 1.2;
   const percentualReal = Math.max(0, (realizado / alvo) * 100);
+  const percentualBarra = realizado <= 0
+    ? 0
+    : realizado < base
+      ? (realizado / base) * 50
+      : realizado < metaSuper
+        ? 50 + ((realizado - base) / (metaSuper - base)) * 25
+        : realizado < alvo
+          ? 75 + ((realizado - metaSuper) / (alvo - metaSuper)) * 25
+          : 100;
   return {
     alvo,
     percentual: percentualReal,
-    percentualBarra: Math.min(100, percentualReal),
+    percentualBarra: Math.min(100, Math.max(0, percentualBarra)),
     falta: Math.max(alvo - realizado, 0),
     excedente: Math.max(realizado - alvo, 0),
   };
