@@ -11,6 +11,7 @@ import {
 import {
   contextoDoMes,
   calcularProgressoMegameta,
+  calcularValorPorLojaDia,
   nivelDoResultado,
   percentualDoResultado,
   proximoNivel,
@@ -415,6 +416,20 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       const necessarioPorLojaPeriodo =
         lojas.length > 0 ? necessarioPorPeriodo / lojas.length : 0;
 
+      const proximaFaixa = proximoNivel(totalAtual, metaTurno);
+      const quantidadeLojasComMeta = new Set(
+        metas
+          .filter((item) => item.periodo === periodo && Number(item.valor_meta) > 0)
+          .map((item) => String(item.loja_id)),
+      ).size;
+      const adicionalPorLojaDia = proximaFaixa
+        ? calcularValorPorLojaDia({
+            falta: Math.max(0, proximaFaixa.valor - totalAtual),
+            quantidadeLojas: quantidadeLojasComMeta,
+            turnosRestantes: periodosRestantes,
+            diasMes: contexto.ultimoDia,
+          })
+        : null;
       const projecaoFechamento = previsao.valor;
       const metasAjustadas = calcularMetasTurno({
         metas,
@@ -438,7 +453,8 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         mediaAtual,
         projecaoFechamento,
         metasAjustadas,
-        proximaFaixa: proximoNivel(totalAtual, metaTurno),
+        proximaFaixa,
+        adicionalPorLojaDia,
         progressoMegameta: calcularProgressoMegameta(totalAtual, metaTurno),
         mediaHistorica,
         variacaoHistorica,
@@ -759,9 +775,23 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                   </div>
                   <div className={styles.turnoBarraResumo}>
                     <span>Vendido: <b>{dinheiro.format(turno.totalAtual)}</b></span>
-                    <span>
+                    <span className={styles.turnoSaldo}>
                       {turno.proximaFaixa
-                        ? <>{encerrado ? "Faltou" : "Falta"} p/ {turno.proximaFaixa.nome}: <b>{dinheiro.format(Math.max(0, turno.proximaFaixa.valor - turno.totalAtual))}</b></>
+                        ? (
+                          <>
+                            <span>
+                              {turno.adicionalPorLojaDia?.retrospectivo ? "Faltou" : "Falta"} p/ {turno.proximaFaixa.nome}:{" "}
+                              <b>{dinheiro.format(Math.max(0, turno.proximaFaixa.valor - turno.totalAtual))}</b>
+                            </span>
+                            {turno.adicionalPorLojaDia && (
+                              <small>
+                                {turno.adicionalPorLojaDia.retrospectivo
+                                  ? `Teria batido com +${dinheiro.format(turno.adicionalPorLojaDia.valor)} por loja/dia`
+                                  : `Necessário: ${dinheiro.format(turno.adicionalPorLojaDia.valor)} por loja/turno restante`}
+                              </small>
+                            )}
+                          </>
+                        )
                         : turno.progressoMegameta.excedente > 0
                           ? <>Excedente: <b>{dinheiro.format(turno.progressoMegameta.excedente)}</b></>
                           : <b>Megameta atingida</b>}
