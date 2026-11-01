@@ -10,6 +10,7 @@ import {
 } from "@/lib/horariosPeriodos";
 import {
   contextoDoMes,
+  calcularProgressoMegameta,
   nivelDoResultado,
   percentualDoResultado,
   proximoNivel,
@@ -438,6 +439,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         projecaoFechamento,
         metasAjustadas,
         proximaFaixa: proximoNivel(totalAtual, metaTurno),
+        progressoMegameta: calcularProgressoMegameta(totalAtual, metaTurno),
         mediaHistorica,
         variacaoHistorica,
         temVendas: atuais.length > 0,
@@ -742,6 +744,48 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                   </div>
                 )}
               </header>
+
+              {!futuro && turno.progressoMegameta && (
+                <div
+                  className={styles.turnoBarraMega}
+                  role="group"
+                  aria-label={`Avanço mensal da ${nomeTurno(turno.periodo)} até a Megameta`}
+                >
+                  <div className={styles.turnoBarraResumo}>
+                    <strong>
+                      {percentual.format(turno.progressoMegameta.percentual)}% da Megameta
+                    </strong>
+                    <span>
+                      {turno.progressoMegameta.falta > 0
+                        ? `${encerrado ? "Faltaram" : "Faltam"} ${dinheiro.format(turno.progressoMegameta.falta)}`
+                        : turno.progressoMegameta.excedente > 0
+                          ? `Superou em ${dinheiro.format(turno.progressoMegameta.excedente)}`
+                          : "Megameta atingida"}
+                    </span>
+                  </div>
+                  <div
+                    className={styles.turnoBarraTrilha}
+                    role="progressbar"
+                    aria-label="Progresso até a Megameta mensal"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Number(turno.progressoMegameta.percentualBarra.toFixed(1))}
+                    aria-valuetext={`${percentual.format(turno.progressoMegameta.percentual)}% da Megameta mensal`}
+                  >
+                    <span
+                      className={styles.turnoBarraPreenchimento}
+                      style={{ width: `${turno.progressoMegameta.percentualBarra}%` }}
+                    />
+                    <span className={styles.turnoBarraMarcoMeta} aria-hidden="true" />
+                    <span className={styles.turnoBarraMarcoSuper} aria-hidden="true" />
+                  </div>
+                  <div className={styles.turnoBarraLegenda}>
+                    <span>Meta · 83,3%</span>
+                    <span>Supermeta · 91,7%</span>
+                    <span>Megameta · 100%</span>
+                  </div>
+                </div>
+              )}
 
               {futuro ? (
                 <p>
