@@ -218,26 +218,26 @@ test("a meta mensal da manhã e noite avança de nível sem depender dos turnos 
   assert.equal(proximoNivel(0, 0), null);
 });
 
-test("a barra da Megameta usa 120% da meta mensal como teto de 100%", async () => {
+test("a régua por etapas distribui Meta, Supermeta e Megameta em 50/75/100", async () => {
   const { calcularProgressoMegameta } = await import("../src/lib/contextoMes.js");
-  const antes = calcularProgressoMegameta(600, 1000);
-  assert.equal(antes.alvo, 1200);
-  assert.equal(antes.percentual, 50);
-  assert.equal(antes.percentualBarra, 50);
-  assert.equal(antes.falta, 600);
-  assert.equal(antes.excedente, 0);
+  const progresso = (valor) => calcularProgressoMegameta(valor, 1000);
+  const conferir = (valor, esperado) =>
+    assert.ok(Math.abs(progresso(valor).percentualBarra - esperado) < 1e-9);
 
-  const meta = calcularProgressoMegameta(1000, 1000);
-  assert.ok(Math.abs(meta.percentual - 83.3333333333) < 0.001);
-  assert.equal(meta.falta, 200);
+  conferir(0, 0);
+  conferir(500, 25);
+  conferir(1000, 50);
+  conferir(1050, 62.5);
+  conferir(1100, 75);
+  conferir(1150, 87.5);
+  conferir(1200, 100);
 
-  const supermeta = calcularProgressoMegameta(1100, 1000);
-  assert.ok(Math.abs(supermeta.percentual - 91.6666666667) < 0.001);
-  assert.equal(supermeta.falta, 100);
-
-  const mega = calcularProgressoMegameta(1200, 1000);
-  assert.equal(mega.percentual, 100);
-  assert.equal(mega.falta, 0);
+  assert.equal(progresso(600).alvo, 1200);
+  assert.equal(progresso(600).percentual, 50); // percentual financeiro é diferente do visual
+  assert.equal(progresso(600).percentualBarra, 30);
+  assert.equal(progresso(600).falta, 600);
+  assert.equal(progresso(1100).falta, 100);
+  assert.equal(progresso(1200).falta, 0);
 });
 
 test("acima da Megameta a barra não ultrapassa o limite mas conserva o excedente", async () => {
