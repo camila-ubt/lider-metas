@@ -5,3 +5,5 @@ Acompanhamento de turnos com projeções, média necessária por loja e previsã
 Os cards de Manhã e Noite mostram a meta mensal atual acima de uma barra proporcional ao vendido até a Megameta, com marcos discretos e sem porcentagens escritas. O vendido recebe fonte um pouco maior que a meta. Abaixo aparecem o vendido e quanto falta para a próxima faixa, ou o excedente. Os três cards de metas diárias ajustadas e porcentagem versus meta fixa permanecem intactos.
 
 Saldo para o próximo nível apresenta valor por loja/turno restante; após o período, mostra o adicional retrospectivo por loja/dia.
+
+A gestão pode marcar dias não trabalhados no PA, inclusive a folga do último dia, sem lançar vendas nem contabilizar dia trabalhado.
