@@ -217,3 +217,37 @@ test("a meta mensal da manhã e noite avança de nível sem depender dos turnos 
   assert.deepEqual(proximoNivel(71500, metaNoite), { nome: "Supermeta", valor: 78650 });
   assert.equal(proximoNivel(0, 0), null);
 });
+
+test("a barra da Megameta usa 120% da meta mensal como teto de 100%", async () => {
+  const { calcularProgressoMegameta } = await import("../src/lib/contextoMes.js");
+  const antes = calcularProgressoMegameta(600, 1000);
+  assert.equal(antes.alvo, 1200);
+  assert.equal(antes.percentual, 50);
+  assert.equal(antes.percentualBarra, 50);
+  assert.equal(antes.falta, 600);
+  assert.equal(antes.excedente, 0);
+
+  const meta = calcularProgressoMegameta(1000, 1000);
+  assert.ok(Math.abs(meta.percentual - 83.3333333333) < 0.001);
+  assert.equal(meta.falta, 200);
+
+  const supermeta = calcularProgressoMegameta(1100, 1000);
+  assert.ok(Math.abs(supermeta.percentual - 91.6666666667) < 0.001);
+  assert.equal(supermeta.falta, 100);
+
+  const mega = calcularProgressoMegameta(1200, 1000);
+  assert.equal(mega.percentual, 100);
+  assert.equal(mega.falta, 0);
+});
+
+test("acima da Megameta a barra não ultrapassa o limite mas conserva o excedente", async () => {
+  const { calcularProgressoMegameta } = await import("../src/lib/contextoMes.js");
+  const resultado = calcularProgressoMegameta(1320, 1000);
+  assert.equal(resultado.percentual, 110);
+  assert.equal(resultado.percentualBarra, 100);
+  assert.equal(resultado.excedente, 120);
+  assert.equal(resultado.falta, 0);
+  assert.equal(calcularProgressoMegameta(0, 0), null);
+  assert.equal(calcularProgressoMegameta(100, -1), null);
+  assert.equal(calcularProgressoMegameta(100, NaN), null);
+});
