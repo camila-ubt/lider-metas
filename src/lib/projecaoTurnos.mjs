@@ -129,6 +129,10 @@ export function calcularMetasTurno({
     )
     .reduce((total, item) => total + Number(item.valor_meta || 0), 0);
 
+  const proximoNivel = metaMensal > 0
+    ? NIVEIS_META_TURNO.find(({ fator }) => vendido < metaMensal * fator)?.nivel ?? null
+    : null;
+
   return NIVEIS_META_TURNO.map(({ nome, nivel, fator }) => {
     const alvo = metaMensal * fator;
     const falta = Math.max(alvo - vendido, 0);
@@ -145,6 +149,10 @@ export function calcularMetasTurno({
     const porLojaTurno = ajustada !== null && lojas.length > 0
       ? ajustada / lojas.length
       : null;
-    return { nome, nivel, alvo, falta, fixa, ajustada, porLojaTurno, variacao };
+    return {
+      nome, nivel, alvo, falta, fixa, ajustada, porLojaTurno, variacao,
+      atingida: metaMensal > 0 && vendido >= alvo,
+      proxima: nivel === proximoNivel,
+    };
   });
 }
