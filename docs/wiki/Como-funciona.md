@@ -34,6 +34,8 @@ O Painel apresenta a tendência recente e o padrão do mesmo mês nos dois anos 
 
 A área de PA permite à gestão conferir os dados enviados pelo sistema de Cálculo PA.
 
+Em **Totais por loja**, além de adicionar vendas e registrar férias, a gestão pode usar **Marcar dia não trabalhado** para informar uma folga ou ausência em uma data do mês selecionado. Não é preciso selecionar loja ou preencher vendas e peças. O dia passa a constar no PA da vendedora sem contar como trabalhado, inclusive quando é o último dia do mês e permite a apuração da premiação. Um registro com vendas, férias ou de mês já fechado não é sobrescrito.
+
 É possível consultar resultados por vendedora e loja, aprovar lançamentos, corrigir dados, registrar férias e acompanhar a situação mensal.
 
 O fechamento do PA é independente do fechamento das vendas.

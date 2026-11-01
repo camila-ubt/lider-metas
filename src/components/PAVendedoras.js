@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import CorrecaoLancamentoPA from "@/components/CorrecaoLancamentoPA";
 import AdicionarLancamentoPA from "@/components/AdicionarLancamentoPA";
 import RegistrarFeriasPA from "@/components/RegistrarFeriasPA";
+import RegistrarDiaNaoTrabalhadoPA from "@/components/RegistrarDiaNaoTrabalhadoPA";
 import styles from "@/app/pa-vendedoras/PAVendedoras.module.css";
 
 function inicioMes(mes) {
@@ -542,6 +543,20 @@ export default function PAVendedoras({ mes, sessao, perfil }) {
                 onSalvou={({ data, loja: codigoLoja }) => {
                   const dataFormatada = data.split("-").reverse().join("/");
                   setMensagemCorrecao(`Lançamento de ${dataFormatada} · ${codigoLoja} adicionado e já disponível no PA da vendedora.`);
+                  setLoja(null);
+                  setDetalhes([]);
+                  setRevisao((valor) => valor + 1);
+                }}
+              />
+
+              <RegistrarDiaNaoTrabalhadoPA
+                vendedora={vendedora}
+                mes={mes}
+                supabase={supabase}
+                onSalvou={({ data }) => {
+                  setMensagemCorrecao(
+                    `Dia ${data.split("-").reverse().join("/")} marcado como não trabalhado para ${vendedora.nome || "a vendedora"}. O PA do mês foi atualizado.`,
+                  );
                   setLoja(null);
                   setDetalhes([]);
                   setRevisao((valor) => valor + 1);
