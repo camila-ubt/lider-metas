@@ -74,8 +74,8 @@ test("gestão registra um dia não trabalhado no PA com segurança", async (t) =
     insert into public.lojas values (1,'AB','Adoro Bijoux',true);
 
     insert into public.dias_pa (usuario_id, data, situacao)
-    select '${vendedora}', data::date, 'trabalhado'
-    from generate_series('2026-10-01'::date, '2026-10-15'::date, '1 day') as data;
+    select '${vendedora}', gs.dia::date, 'trabalhado'
+    from generate_series('2026-10-01'::date, '2026-10-15'::date, '1 day') as gs(dia);
 
     insert into public.lancamentos_pa (dia_id, loja_id, vendas, pecas)
     select id,1,2,5 from public.dias_pa
