@@ -719,30 +719,6 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                     {statusHistorico(turno, contexto.tipo)}
                   </span>
                 </div>
-                {!futuro && (
-                  <div className={styles.turnoIndicadores}>
-                    <span className={styles.turnoTotalVendido}>
-                      <span>Vendido no mês</span>
-                      <b>{dinheiro.format(turno.totalAtual)}</b>
-                    </span>
-                    <span className={styles.turnoMetaMensal}>
-                      <span>
-                        {turno.meta <= 0
-                          ? "Meta mensal"
-                          : encerrado
-                            ? "Meta mensal"
-                            : turno.proximaFaixa
-                              ? `Próxima: ${turno.proximaFaixa.nome}`
-                              : "Megameta atingida"}
-                      </span>
-                      <b>{turno.meta <= 0
-                        ? "—"
-                        : dinheiro.format(encerrado
-                          ? turno.meta
-                          : turno.proximaFaixa?.valor ?? turno.meta * 1.2)}</b>
-                    </span>
-                  </div>
-                )}
               </header>
 
               {!futuro && turno.progressoMegameta && (
@@ -751,26 +727,28 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                   role="group"
                   aria-label={`Avanço mensal da ${nomeTurno(turno.periodo)} até a Megameta`}
                 >
-                  <div className={styles.turnoBarraResumo}>
-                    <strong>
-                      {percentual.format(turno.progressoMegameta.percentual)}% da Megameta
-                    </strong>
+                  <div className={styles.turnoMetaAtual}>
                     <span>
-                      {turno.progressoMegameta.falta > 0
-                        ? `${encerrado ? "Faltaram" : "Faltam"} ${dinheiro.format(turno.progressoMegameta.falta)}`
-                        : turno.progressoMegameta.excedente > 0
-                          ? `Superou em ${dinheiro.format(turno.progressoMegameta.excedente)}`
+                      {encerrado
+                        ? "Meta mensal"
+                        : turno.proximaFaixa
+                          ? `Meta atual · ${turno.proximaFaixa.nome}`
                           : "Megameta atingida"}
                     </span>
+                    <strong>
+                      {dinheiro.format(encerrado
+                        ? turno.meta
+                        : turno.proximaFaixa?.valor ?? turno.progressoMegameta.alvo)}
+                    </strong>
                   </div>
                   <div
                     className={styles.turnoBarraTrilha}
                     role="progressbar"
-                    aria-label="Progresso até a Megameta mensal"
+                    aria-label="Progresso do vendido até a Megameta mensal"
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={Number(turno.progressoMegameta.percentualBarra.toFixed(1))}
-                    aria-valuetext={`${percentual.format(turno.progressoMegameta.percentual)}% da Megameta mensal`}
+                    aria-valuetext={`${dinheiro.format(turno.totalAtual)} vendidos de ${dinheiro.format(turno.progressoMegameta.alvo)} da Megameta`}
                   >
                     <span
                       className={styles.turnoBarraPreenchimento}
@@ -779,10 +757,15 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                     <span className={styles.turnoBarraMarcoMeta} aria-hidden="true" />
                     <span className={styles.turnoBarraMarcoSuper} aria-hidden="true" />
                   </div>
-                  <div className={styles.turnoBarraLegenda}>
-                    <span>Meta · 83,3%</span>
-                    <span>Supermeta · 91,7%</span>
-                    <span>Megameta · 100%</span>
+                  <div className={styles.turnoBarraResumo}>
+                    <span>Vendido: <b>{dinheiro.format(turno.totalAtual)}</b></span>
+                    <span>
+                      {turno.proximaFaixa
+                        ? <>{encerrado ? "Faltou" : "Falta"} p/ {turno.proximaFaixa.nome}: <b>{dinheiro.format(Math.max(0, turno.proximaFaixa.valor - turno.totalAtual))}</b></>
+                        : turno.progressoMegameta.excedente > 0
+                          ? <>Excedente: <b>{dinheiro.format(turno.progressoMegameta.excedente)}</b></>
+                          : <b>Megameta atingida</b>}
+                    </span>
                   </div>
                 </div>
               )}
