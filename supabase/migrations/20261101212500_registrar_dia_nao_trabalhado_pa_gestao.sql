@@ -4,7 +4,7 @@
 create schema if not exists private;
 grant usage on schema private to authenticated;
 
-create function private.registrar_dia_nao_trabalhado_pa_gestao(
+create or replace function private.registrar_dia_nao_trabalhado_pa_gestao(
   p_usuario_id uuid,
   p_data date
 ) returns jsonb
@@ -88,7 +88,7 @@ from public, anon, authenticated;
 grant execute on function private.registrar_dia_nao_trabalhado_pa_gestao(uuid,date)
 to authenticated;
 
-create function public.registrar_dia_nao_trabalhado_pa_gestao(
+create or replace function public.registrar_dia_nao_trabalhado_pa_gestao(
   p_usuario_id uuid,
   p_data date
 ) returns jsonb
