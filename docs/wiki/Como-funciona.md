@@ -24,7 +24,7 @@ As vendas informadas durante o turno atualizam o valor restante por loja e no ge
 
 ## Painel e Roteiro da Reunião
 
-O Painel mostra projeções de fechamento, turnos restantes e média necessária por loja para Meta, Supermeta e Megameta. Destaca o menor desempenho entre lojas e períodos. O Roteiro da Reunião também compara manhã e noite em relação à meta.
+O Painel mostra projeções de fechamento, turnos restantes e metas fixas por turno para Meta, Supermeta e Megameta. Identifica os níveis atingidos, destaca o próximo e mantém a meta ajustada e a média necessária por loja apenas para níveis ainda não alcançados, quando há turnos restantes. Destaca o menor desempenho entre lojas e períodos. O Roteiro da Reunião também compara manhã e noite em relação à meta.
 
 ## Inteligência Gerencial
 
