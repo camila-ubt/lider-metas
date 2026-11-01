@@ -24,7 +24,7 @@
 .turnosGrid .turnoBarraResumo{display:flex;flex-wrap:wrap;justify-content:space-between;gap:3px 12px;min-width:0}
 .turnosGrid .turnoBarraResumo span{font-size:11px;color:#62556b;line-height:1.4;font-variant-numeric:tabular-nums}
 .turnosGrid .turnoBarraResumo b{font-weight:700;color:#382b43}
-.turnosGrid .turnoBarraResumo span:first-child b{font-size:17px;line-height:1.2}
+.turnosGrid .turnoBarraResumo > span:first-child b{font-size:17px;line-height:1.2}
 .turnosGrid .turnoBarraResumo .turnoSaldo{display:grid;gap:3px;min-width:0}
 .turnosGrid .turnoBarraResumo .turnoSaldo > span{font-size:11px;line-height:1.4}
 .turnosGrid .turnoBarraResumo .turnoSaldo > small{font-size:10px;line-height:1.35;color:#7650a7;overflow-wrap:break-word}
@@ -33,7 +33,7 @@
   .turnosGrid .turnoMetaAtual span{font-size:11px}
   .turnosGrid .turnoMetaAtual strong{font-size:13px}
   .turnosGrid .turnoBarraResumo span{font-size:10px}
-  .turnosGrid .turnoBarraResumo span:first-child b{font-size:15px}
+  .turnosGrid .turnoBarraResumo > span:first-child b{font-size:15px}
 }
 
 .turnoMetaRestante{display:grid;gap:8px;margin-top:12px;padding:11px 12px;border-radius:12px;background:#fbf7fd;border:1px solid #eee4f3}.turnoMetaRestante p{display:grid;gap:2px;margin:0!important;font-size:12px!important;line-height:1.4}.turnoMetaRestante span{color:#746a79}.turnoMetaRestante b{color:#4a3657;font-size:13px}
