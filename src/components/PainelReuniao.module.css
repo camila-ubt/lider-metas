@@ -7,24 +7,15 @@
 @media(max-width:760px){.wrap{margin:18px 12px;padding:16px;border-radius:20px}.header{align-items:flex-start}.header h2{font-size:20px}.score{min-width:96px;padding:10px 12px}.score strong{font-size:24px}.grid,.turnosGrid{grid-template-columns:1fr}.turnoLojas{grid-template-columns:1fr 1fr}}
 @media(max-width:430px){.turnoLojas{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.turnoLojas p{min-width:0;padding:9px 8px}.turnoLojas span{line-height:1.35}.header{gap:10px}.score{min-width:86px}.score span{font-size:10px}}
 
-/* Total vendido e comparação histórica na mesma linha, sem acrescentar um bloco. */
-.turnosGrid .turnoIndicadores {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
+/* Metas mensais ficam no cabeçalho; as três colunas inferiores são apenas diárias. */
+.turnosGrid .turnoCabecalho {
+  display: flex;
   align-items: baseline;
+  justify-content: space-between;
   gap: 8px;
   min-width: 0;
 }
-.turnosGrid .turnoTotalVendido {
-  color: #382b43;
-  font-size: 12px;
-  line-height: 1.3;
-  white-space: nowrap;
-}
-.turnosGrid .turnoTotalVendido b {
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
+.turnosGrid .turnoCabecalho strong { flex-shrink: 0; }
 .turnosGrid .turnoHistoricoStatus {
   min-width: 0;
   color: #6f6377;
@@ -32,11 +23,40 @@
   line-height: 1.3;
   text-align: right;
 }
+.turnosGrid .turnoIndicadores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 8px;
+}
+.turnosGrid .turnoTotalVendido,
+.turnosGrid .turnoMetaMensal {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+}
+.turnosGrid .turnoTotalVendido > span,
+.turnosGrid .turnoMetaMensal > span {
+  color: #746a79;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.turnosGrid .turnoTotalVendido b,
+.turnosGrid .turnoMetaMensal b {
+  color: #382b43;
+  font-size: 13px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.turnosGrid .turnoMetaMensal > span,
+.turnosGrid .turnoMetaMensal b { color: #7650a7; }
 @media (max-width: 430px) {
-  .turnosGrid .turnoIndicadores { gap: 5px; }
-  .turnosGrid .turnoTotalVendido { font-size: 11px; }
-  .turnosGrid .turnoTotalVendido b { font-size: 12px; }
+  .turnosGrid .turnoIndicadores { gap: 6px; }
   .turnosGrid .turnoHistoricoStatus { font-size: 10px; }
+  .turnosGrid .turnoTotalVendido b,
+  .turnosGrid .turnoMetaMensal b { font-size: 12px; }
 }
 
 .turnoMetaRestante{display:grid;gap:8px;margin-top:12px;padding:11px 12px;border-radius:12px;background:#fbf7fd;border:1px solid #eee4f3}.turnoMetaRestante p{display:grid;gap:2px;margin:0!important;font-size:12px!important;line-height:1.4}.turnoMetaRestante span{color:#746a79}.turnoMetaRestante b{color:#4a3657;font-size:13px}
@@ -69,14 +89,6 @@
 .turnoNivel>small.variacaoFavoravel{color:#166534;font-weight:600}
 .turnoNivel>small.variacaoDesfavoravel{color:#b42318;font-weight:600}
 .turnoNivel>small.variacaoNeutra{color:#665274}
-/* Mantém a meta fixa visível mesmo após alcançar o nível ou encerrar o turno. */
-.turnoNivelCabecalho{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 5px}
-.turnoNivelCabecalho strong{color:#382b43;font-size:clamp(11px,2.8vw,13px);line-height:1.2}
-.turnoNivelCabecalho small{font-size:10px;font-weight:700;color:#7650a7}
-.turnoNivelProxima{border-color:#bba0d5;box-shadow:inset 0 0 0 1px #ecdef5}
-.turnoNivel>small.nivelAtingido{color:#166534;font-weight:700}
-.turnoNivel>small.nivelSemTurnos{color:#746a79}
-
 
 .turnoNivel>p.turnoPorLoja{padding-top:7px;border-top:1px solid #eee4f3}
 .turnoNivel>p.turnoPorLoja b{color:#49335d}
