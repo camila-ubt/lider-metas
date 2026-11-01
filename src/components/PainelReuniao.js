@@ -10,6 +10,8 @@ import {
 } from "@/lib/horariosPeriodos";
 import {
   contextoDoMes,
+  calcularProgressoMegameta,
+  calcularValorPorLojaDia,
   nivelDoResultado,
   percentualDoResultado,
   proximoNivel,
@@ -414,6 +416,20 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       const necessarioPorLojaPeriodo =
         lojas.length > 0 ? necessarioPorPeriodo / lojas.length : 0;
 
+      const proximaFaixa = proximoNivel(totalAtual, metaTurno);
+      const quantidadeLojasComMeta = new Set(
+        metas
+          .filter((item) => item.periodo === periodo && Number(item.valor_meta) > 0)
+          .map((item) => String(item.loja_id)),
+      ).size;
+      const adicionalPorLojaDia = proximaFaixa
+        ? calcularValorPorLojaDia({
+            falta: Math.max(0, proximaFaixa.valor - totalAtual),
+            quantidadeLojas: quantidadeLojasComMeta,
+            turnosRestantes: periodosRestantes,
+            diasMes: contexto.ultimoDia,
+          })
+        : null;
       const projecaoFechamento = previsao.valor;
       const metasAjustadas = calcularMetasTurno({
         metas,
@@ -437,6 +453,9 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
         mediaAtual,
         projecaoFechamento,
         metasAjustadas,
+        proximaFaixa,
+        adicionalPorLojaDia,
+        progressoMegameta: calcularProgressoMegameta(totalAtual, metaTurno),
         mediaHistorica,
         variacaoHistorica,
         temVendas: atuais.length > 0,
@@ -710,20 +729,76 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
           {resumo.turnos.map((turno) => (
             <article key={turno.periodo}>
               <header>
-                <strong>{nomeTurno(turno.periodo)}</strong>
-                {futuro ? (
-                  <span>{statusHistorico(turno, contexto.tipo)}</span>
-                ) : (
-                  <div className={styles.turnoIndicadores}>
-                    <span className={styles.turnoTotalVendido}>
-                      Vendido: <b>{dinheiro.format(turno.totalAtual)}</b>
+                <div className={styles.turnoCabecalho}>
+                  <strong>{nomeTurno(turno.periodo)}</strong>
+                  <span className={styles.turnoHistoricoStatus}>
+                    {statusHistorico(turno, contexto.tipo)}
+                  </span>
+                </div>
+              </header>
+
+              {!futuro && turno.progressoMegameta && (
+                <div
+                  className={styles.turnoBarraMega}
+                  role="group"
+                  aria-label={`Avanço mensal da ${nomeTurno(turno.periodo)} até a Megameta`}
+                >
+                  <div className={styles.turnoMetaAtual}>
+                    <span>
+                      {encerrado
+                        ? "Meta mensal"
+                        : turno.proximaFaixa
+                          ? `Meta atual · ${turno.proximaFaixa.nome}`
+                          : "Megameta atingida"}
                     </span>
-                    <span className={styles.turnoHistoricoStatus}>
-                      {statusHistorico(turno, contexto.tipo)}
+                    <strong>
+                      {dinheiro.format(encerrado
+                        ? turno.meta
+                        : turno.proximaFaixa?.valor ?? turno.progressoMegameta.alvo)}
+                    </strong>
+                  </div>
+                  <div
+                    className={styles.turnoBarraTrilha}
+                    role="progressbar"
+                    aria-label="Progresso do vendido até a Megameta mensal"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Number(turno.progressoMegameta.percentualBarra.toFixed(1))}
+                    aria-valuetext={`${dinheiro.format(turno.totalAtual)} vendidos de ${dinheiro.format(turno.progressoMegameta.alvo)} da Megameta`}
+                  >
+                    <span
+                      className={styles.turnoBarraPreenchimento}
+                      style={{ width: `${turno.progressoMegameta.percentualBarra}%` }}
+                    />
+                    <span className={styles.turnoBarraMarcoMeta} aria-hidden="true" />
+                    <span className={styles.turnoBarraMarcoSuper} aria-hidden="true" />
+                  </div>
+                  <div className={styles.turnoBarraResumo}>
+                    <span>Vendido: <b>{dinheiro.format(turno.totalAtual)}</b></span>
+                    <span className={styles.turnoSaldo}>
+                      {turno.proximaFaixa
+                        ? (
+                          <>
+                            <span>
+                              {turno.adicionalPorLojaDia?.retrospectivo ? "Faltou" : "Falta"} p/ {turno.proximaFaixa.nome}:{" "}
+                              <b>{dinheiro.format(Math.max(0, turno.proximaFaixa.valor - turno.totalAtual))}</b>
+                            </span>
+                            {turno.adicionalPorLojaDia && (
+                              <small>
+                                {turno.adicionalPorLojaDia.retrospectivo
+                                  ? `Teria batido com +${dinheiro.format(turno.adicionalPorLojaDia.valor)} por loja/dia`
+                                  : `Necessário: ${dinheiro.format(turno.adicionalPorLojaDia.valor)} por loja/turno restante`}
+                              </small>
+                            )}
+                          </>
+                        )
+                        : turno.progressoMegameta.excedente > 0
+                          ? <>Excedente: <b>{dinheiro.format(turno.progressoMegameta.excedente)}</b></>
+                          : <b>Megameta atingida</b>}
                     </span>
                   </div>
-                )}
-              </header>
+                </div>
+              )}
 
               {futuro ? (
                 <p>

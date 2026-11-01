@@ -65,6 +65,49 @@ export function proximoNivel(vendido, meta) {
   return niveis.find((nivel) => vendido < nivel.valor) || null;
 }
 
+// Progresso matemático: o valor vendido é proporcional à Megameta mensal.
+// A largura para em 100%, mas o excedente real continua disponível.
+export function calcularProgressoMegameta(vendido, meta) {
+  const base = Number(meta);
+  const realizado = Number(vendido);
+  if (!(base > 0) || !Number.isFinite(base) || !Number.isFinite(realizado)) {
+    return null;
+  }
+
+  const alvo = base * 1.2;
+  const percentualReal = Math.max(0, (realizado / alvo) * 100);
+  const percentualBarra = Math.min(100, percentualReal);
+  return {
+    alvo,
+    percentual: percentualReal,
+    percentualBarra: Math.min(100, Math.max(0, percentualBarra)),
+    falta: Math.max(alvo - realizado, 0),
+    excedente: Math.max(realizado - alvo, 0),
+  };
+}
+
+// Valor necessário por loja e por dia para alcançar o próximo nível.
+// Com turnos restantes, distribui o saldo pelo futuro; após o último
+// turno, calcula quanto teria faltado por loja/dia ao longo do mês.
+export function calcularValorPorLojaDia({ falta, quantidadeLojas, turnosRestantes, diasMes }) {
+  const saldo = Number(falta);
+  const lojas = Number(quantidadeLojas);
+  const restantes = Number(turnosRestantes);
+  const dias = Number(diasMes);
+  if (!Number.isFinite(saldo) || !(saldo > 0) ||
+      !Number.isInteger(lojas) || !(lojas > 0)) {
+    return null;
+  }
+
+  const retrospectivo = !Number.isFinite(restantes) || restantes <= 0;
+  const divisorDias = retrospectivo ? dias : restantes;
+  if (!Number.isInteger(divisorDias) || !(divisorDias > 0)) return null;
+
+  // Arredonda para cima no centavo: o valor exibido é suficiente para bater o alvo.
+  const valor = Math.ceil((saldo / (lojas * divisorDias) - 1e-9) * 100) / 100;
+  return { valor, retrospectivo };
+}
+
 export function fraseSemBase(contexto, temMeta, temVendas) {
   if (contexto === "futuro") {
     return temMeta

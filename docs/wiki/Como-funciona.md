@@ -24,7 +24,7 @@ As vendas informadas durante o turno atualizam o valor restante por loja e no ge
 
 ## Painel e Roteiro da Reunião
 
-O Painel mostra projeções de fechamento, turnos restantes e média necessária por loja para Meta, Supermeta e Megameta. Destaca o menor desempenho entre lojas e períodos. O Roteiro da Reunião também compara manhã e noite em relação à meta.
+Nos cards de **Manhã** e **Noite**, a barra segue a proporção real das vendas em relação à Megameta mensal, com os marcos de Meta e Supermeta nas posições matemáticas correspondentes e sem porcentagens escritas na interface. O valor vendido é exibido em fonte maior que o valor da meta. Acima da barra aparece apenas a **meta mensal atual** (Meta, Supermeta ou Megameta) e seu valor cheio, somado entre as lojas. Abaixo, aparecem o **vendido do mês** e **quanto falta para o nível atual**, ou o excedente após atingir a Megameta. Enquanto há turnos, o saldo indica o valor necessário **por loja/turno restante**; ao terminar o período, mostra quanto cada loja teria precisado vender **a mais por dia**, considerando os dias do mês. Em meses encerrados, exibe a meta mensal original e trata o saldo faltante no passado. As três colunas de **Meta, Supermeta e Megameta diárias** permanecem separadas, com meta ajustada, porcentagem versus a meta fixa e valor por loja/turno. O Painel destaca o menor desempenho entre lojas e períodos; o Roteiro da Reunião também compara manhã e noite em relação à meta.
 
 ## Inteligência Gerencial
 

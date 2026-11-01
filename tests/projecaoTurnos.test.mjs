@@ -205,3 +205,88 @@ test("o parcial de hoje compõe o realizado sem contar um turno inteiro duas vez
   assert.equal(completo.diasBase, 2);
   assert.equal(completo.valor, 5250);
 });
+
+test("a meta mensal da manhã e noite avança de nível sem depender dos turnos restantes", async () => {
+  const { proximoNivel } = await import("../src/lib/contextoMes.js");
+  const metaManha = 48000;
+  const metaNoite = 71500;
+  assert.deepEqual(proximoNivel(47000, metaManha), { nome: "Meta", valor: 48000 });
+  assert.deepEqual(proximoNivel(53221.28, metaManha), { nome: "Megameta", valor: 57600 });
+  assert.equal(proximoNivel(57600, metaManha), null);
+  assert.deepEqual(proximoNivel(79600.76, metaNoite), { nome: "Megameta", valor: 85800 });
+  assert.deepEqual(proximoNivel(71500, metaNoite), { nome: "Supermeta", valor: 78650 });
+  assert.equal(proximoNivel(0, 0), null);
+});
+
+test("a régua usa a proporção matemática até a Megameta mensal", async () => {
+  const { calcularProgressoMegameta } = await import("../src/lib/contextoMes.js");
+  const progresso = (valor) => calcularProgressoMegameta(valor, 1000);
+  const conferir = (valor, esperado) =>
+    assert.ok(Math.abs(progresso(valor).percentualBarra - esperado) < 1e-9);
+
+  conferir(0, 0);
+  conferir(500, (500 / 1200) * 100);
+  conferir(1000, (1000 / 1200) * 100);
+  conferir(1050, 87.5);
+  conferir(1100, (1100 / 1200) * 100);
+  conferir(1150, (1150 / 1200) * 100);
+  conferir(1200, 100);
+
+  assert.equal(progresso(600).alvo, 1200);
+  assert.equal(progresso(600).percentual, 50);
+  assert.equal(progresso(600).percentualBarra, 50);
+  assert.equal(progresso(600).falta, 600);
+  assert.equal(progresso(1100).falta, 100);
+  assert.equal(progresso(1200).falta, 0);
+});
+
+test("acima da Megameta a barra não ultrapassa o limite mas conserva o excedente", async () => {
+  const { calcularProgressoMegameta } = await import("../src/lib/contextoMes.js");
+  const resultado = calcularProgressoMegameta(1320, 1000);
+  assert.ok(Math.abs(resultado.percentual - 110) < 1e-9);
+  assert.equal(resultado.percentualBarra, 100);
+  assert.equal(resultado.excedente, 120);
+  assert.equal(resultado.falta, 0);
+  assert.equal(calcularProgressoMegameta(0, 0), null);
+  assert.equal(calcularProgressoMegameta(100, -1), null);
+  assert.equal(calcularProgressoMegameta(100, NaN), null);
+});
+
+test("saldo futuro divide a próxima meta por lojas com meta e turnos restantes", async () => {
+  const { calcularValorPorLojaDia, proximoNivel } = await import("../src/lib/contextoMes.js");
+  const alvo = proximoNivel(80000, 71400);
+  assert.equal(alvo.nome, "Megameta");
+  const resultado = calcularValorPorLojaDia({
+    falta: alvo.valor - 80000, quantidadeLojas: 3,
+    turnosRestantes: 4, diasMes: 31,
+  });
+  assert.equal(resultado.retrospectivo, false);
+  assert.equal(resultado.valor, 473.34);
+  assert.ok(resultado.valor * 3 * 4 >= alvo.valor - 80000);
+});
+
+test("mês fechado calcula adicional por loja/dia com os dias do mês inteiro", async () => {
+  const { calcularValorPorLojaDia } = await import("../src/lib/contextoMes.js");
+  const resultado = calcularValorPorLojaDia({
+    falta: 3488.89, quantidadeLojas: 3, turnosRestantes: 0, diasMes: 31,
+  });
+  assert.deepEqual(resultado, { valor: 37.52, retrospectivo: true });
+  const manha = calcularValorPorLojaDia({
+    falta: 678.72, quantidadeLojas: 3, turnosRestantes: 0, diasMes: 31,
+  });
+  assert.deepEqual(manha, { valor: 7.30, retrospectivo: true });
+  assert.ok(resultado.valor * 3 * 31 >= 3488.89);
+});
+
+test("sem meta atingível, lojas ou dias válidos não inventa média", async () => {
+  const { calcularValorPorLojaDia } = await import("../src/lib/contextoMes.js");
+  const params = { falta: 100, quantidadeLojas: 3, turnosRestantes: 2, diasMes: 31 };
+  assert.equal(calcularValorPorLojaDia({ ...params, falta: 0 }), null);
+  assert.equal(calcularValorPorLojaDia({ ...params, falta: -1 }), null);
+  assert.equal(calcularValorPorLojaDia({ ...params, quantidadeLojas: 0 }), null);
+  assert.equal(calcularValorPorLojaDia({ ...params, quantidadeLojas: 1.5 }), null);
+  assert.equal(calcularValorPorLojaDia({ ...params, turnosRestantes: 0, diasMes: 0 }), null);
+  assert.deepEqual(calcularValorPorLojaDia({ ...params, turnosRestantes: 0, diasMes: 30 }), {
+    valor: 1.12, retrospectivo: true,
+  });
+});
