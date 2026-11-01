@@ -163,44 +163,6 @@ test("metas por turno comparam necessário com a meta fixa das lojas", () => {
   assert.equal(faixas[2].porLojaTurno, 6660 / 11 / 2);
 });
 
-test("turno mantém o valor fixo e destaca a próxima meta após atingir a Meta", () => {
-  const faixas = calcularMetasTurno({
-    metas: [{ loja_id: 1, periodo: "manha", valor_meta: 3000 }],
-    lojas: [{ id: 1 }], periodo: "manha", vendido: 3250,
-    diasMes: 30, turnosRestantes: 0,
-  });
-  assert.deepEqual(faixas.map(({ fixa }) => fixa), [100, 110, 120]);
-  assert.deepEqual(faixas.map(({ atingida }) => atingida), [true, false, false]);
-  assert.deepEqual(faixas.map(({ proxima }) => proxima), [false, true, false]);
-  assert.ok(faixas.every(({ ajustada }) => ajustada === null));
-});
-
-test("após superar a Supermeta, só a Megameta é a próxima meta ajustada", () => {
-  const faixas = calcularMetasTurno({
-    metas: [
-      { loja_id: 1, periodo: "noite", valor_meta: 3100 },
-      { loja_id: 2, periodo: "noite", valor_meta: 6200 },
-    ],
-    lojas, periodo: "noite", vendido: 10370,
-    diasMes: 31, turnosRestantes: 1,
-  });
-  assert.deepEqual(faixas.map(({ atingida }) => atingida), [true, true, false]);
-  assert.deepEqual(faixas.map(({ proxima }) => proxima), [false, false, true]);
-  assert.deepEqual(faixas.map(({ fixa }) => fixa), [300, 330, 360]);
-  assert.equal(faixas[2].ajustada, 790);
-  assert.equal(faixas[2].porLojaTurno, 395);
-  assert.ok(faixas.every(({ fixa }) => fixa > 0));
-});
-
-test("Megameta atingida não inventa próximo nível", () => {
-  const faixas = calcularMetasTurno({
-    metas: [{ loja_id: 1, periodo: "noite", valor_meta: 3000 }],
-    lojas: [{ id: 1 }], periodo: "noite", vendido: 3600,
-    diasMes: 30, turnosRestantes: 2,
-  });
-  assert.ok(faixas.every(({ atingida, proxima }) => atingida && !proxima));
-});
-
 test("sem turnos restantes, não divide o saldo por zero", () => {
   const valores = calcularMetasTurno({
     metas: [{ loja_id: 1, periodo: "manha", valor_meta: 3000 }],
@@ -242,4 +204,16 @@ test("o parcial de hoje compõe o realizado sem contar um turno inteiro duas vez
   const completo = projetar(vendas, "noite", contexto("andamento", 2), 1320, 1320);
   assert.equal(completo.diasBase, 2);
   assert.equal(completo.valor, 5250);
+});
+
+test("a meta mensal da manhã e noite avança de nível sem depender dos turnos restantes", async () => {
+  const { proximoNivel } = await import("../src/lib/contextoMes.js");
+  const metaManha = 48000;
+  const metaNoite = 71500;
+  assert.deepEqual(proximoNivel(47000, metaManha), { nome: "Meta", valor: 48000 });
+  assert.deepEqual(proximoNivel(53221.28, metaManha), { nome: "Megameta", valor: 57600 });
+  assert.equal(proximoNivel(57600, metaManha), null);
+  assert.deepEqual(proximoNivel(79600.76, metaNoite), { nome: "Megameta", valor: 85800 });
+  assert.deepEqual(proximoNivel(71500, metaNoite), { nome: "Supermeta", valor: 78650 });
+  assert.equal(proximoNivel(0, 0), null);
 });
