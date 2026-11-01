@@ -7,7 +7,7 @@
 @media(max-width:760px){.wrap{margin:18px 12px;padding:16px;border-radius:20px}.header{align-items:flex-start}.header h2{font-size:20px}.score{min-width:96px;padding:10px 12px}.score strong{font-size:24px}.grid,.turnosGrid{grid-template-columns:1fr}.turnoLojas{grid-template-columns:1fr 1fr}}
 @media(max-width:430px){.turnoLojas{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.turnoLojas p{min-width:0;padding:9px 8px}.turnoLojas span{line-height:1.35}.header{gap:10px}.score{min-width:86px}.score span{font-size:10px}}
 
-/* Barra de vendas mensais: 100% da largura é a Megameta, sem porcentagem visível. */
+/* Régua por faixas: Meta em 50%, Supermeta em 75% e Megameta em 100%. */
 .turnosGrid .turnoCabecalho{display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0}
 .turnosGrid .turnoCabecalho strong{flex-shrink:0}
 .turnosGrid .turnoHistoricoStatus{min-width:0;color:#6f6377;font-size:11px;line-height:1.3;text-align:right}
@@ -19,8 +19,8 @@
 .turnosGrid .turnoBarraPreenchimento{position:absolute;top:0;bottom:0;left:0;background:#7650a7;border-radius:999px;max-width:100%}
 .turnosGrid .turnoBarraMarcoMeta,
 .turnosGrid .turnoBarraMarcoSuper{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(69,40,88,.2);pointer-events:none}
-.turnosGrid .turnoBarraMarcoMeta{left:83.3333%}
-.turnosGrid .turnoBarraMarcoSuper{left:91.6667%}
+.turnosGrid .turnoBarraMarcoMeta{left:50%}
+.turnosGrid .turnoBarraMarcoSuper{left:75%}
 .turnosGrid .turnoBarraResumo{display:flex;flex-wrap:wrap;justify-content:space-between;gap:3px 12px;min-width:0}
 .turnosGrid .turnoBarraResumo span{font-size:11px;color:#62556b;line-height:1.4;font-variant-numeric:tabular-nums}
 .turnosGrid .turnoBarraResumo b{font-weight:700;color:#382b43}
