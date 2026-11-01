@@ -69,6 +69,14 @@
 .turnoNivel>small.variacaoFavoravel{color:#166534;font-weight:600}
 .turnoNivel>small.variacaoDesfavoravel{color:#b42318;font-weight:600}
 .turnoNivel>small.variacaoNeutra{color:#665274}
+/* Mantém a meta fixa visível mesmo após alcançar o nível ou encerrar o turno. */
+.turnoNivelCabecalho{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 5px}
+.turnoNivelCabecalho strong{color:#382b43;font-size:clamp(11px,2.8vw,13px);line-height:1.2}
+.turnoNivelCabecalho small{font-size:10px;font-weight:700;color:#7650a7}
+.turnoNivelProxima{border-color:#bba0d5;box-shadow:inset 0 0 0 1px #ecdef5}
+.turnoNivel>small.nivelAtingido{color:#166534;font-weight:700}
+.turnoNivel>small.nivelSemTurnos{color:#746a79}
+
 
 .turnoNivel>p.turnoPorLoja{padding-top:7px;border-top:1px solid #eee4f3}
 .turnoNivel>p.turnoPorLoja b{color:#49335d}
