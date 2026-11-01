@@ -25,6 +25,9 @@
 .turnosGrid .turnoBarraResumo span{font-size:11px;color:#62556b;line-height:1.4;font-variant-numeric:tabular-nums}
 .turnosGrid .turnoBarraResumo b{font-weight:700;color:#382b43}
 .turnosGrid .turnoBarraResumo span:first-child b{font-size:17px;line-height:1.2}
+.turnosGrid .turnoBarraResumo .turnoSaldo{display:grid;gap:3px;min-width:0}
+.turnosGrid .turnoBarraResumo .turnoSaldo > span{font-size:11px;line-height:1.4}
+.turnosGrid .turnoBarraResumo .turnoSaldo > small{font-size:10px;line-height:1.35;color:#7650a7;overflow-wrap:break-word}
 @media(max-width:400px){
   .turnosGrid .turnoHistoricoStatus{font-size:10px}
   .turnosGrid .turnoMetaAtual span{font-size:11px}
