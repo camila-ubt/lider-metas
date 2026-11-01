@@ -251,3 +251,42 @@ test("acima da Megameta a barra não ultrapassa o limite mas conserva o excedent
   assert.equal(calcularProgressoMegameta(100, -1), null);
   assert.equal(calcularProgressoMegameta(100, NaN), null);
 });
+
+test("saldo futuro divide a próxima meta por lojas com meta e turnos restantes", async () => {
+  const { calcularValorPorLojaDia, proximoNivel } = await import("../src/lib/contextoMes.js");
+  const alvo = proximoNivel(80000, 71400);
+  assert.equal(alvo.nome, "Megameta");
+  const resultado = calcularValorPorLojaDia({
+    falta: alvo.valor - 80000, quantidadeLojas: 3,
+    turnosRestantes: 4, diasMes: 31,
+  });
+  assert.equal(resultado.retrospectivo, false);
+  assert.equal(resultado.valor, 473.34);
+  assert.ok(resultado.valor * 3 * 4 >= alvo.valor - 80000);
+});
+
+test("mês fechado calcula adicional por loja/dia com os dias do mês inteiro", async () => {
+  const { calcularValorPorLojaDia } = await import("../src/lib/contextoMes.js");
+  const resultado = calcularValorPorLojaDia({
+    falta: 3488.89, quantidadeLojas: 3, turnosRestantes: 0, diasMes: 31,
+  });
+  assert.deepEqual(resultado, { valor: 37.52, retrospectivo: true });
+  const manha = calcularValorPorLojaDia({
+    falta: 678.72, quantidadeLojas: 3, turnosRestantes: 0, diasMes: 31,
+  });
+  assert.deepEqual(manha, { valor: 7.30, retrospectivo: true });
+  assert.ok(resultado.valor * 3 * 31 >= 3488.89);
+});
+
+test("sem meta atingível, lojas ou dias válidos não inventa média", async () => {
+  const { calcularValorPorLojaDia } = await import("../src/lib/contextoMes.js");
+  const params = { falta: 100, quantidadeLojas: 3, turnosRestantes: 2, diasMes: 31 };
+  assert.equal(calcularValorPorLojaDia({ ...params, falta: 0 }), null);
+  assert.equal(calcularValorPorLojaDia({ ...params, falta: -1 }), null);
+  assert.equal(calcularValorPorLojaDia({ ...params, quantidadeLojas: 0 }), null);
+  assert.equal(calcularValorPorLojaDia({ ...params, quantidadeLojas: 1.5 }), null);
+  assert.equal(calcularValorPorLojaDia({ ...params, turnosRestantes: 0, diasMes: 0 }), null);
+  assert.deepEqual(calcularValorPorLojaDia({ ...params, turnosRestantes: 0, diasMes: 30 }), {
+    valor: 1.12, retrospectivo: true,
+  });
+});
