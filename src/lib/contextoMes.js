@@ -65,9 +65,8 @@ export function proximoNivel(vendido, meta) {
   return niveis.find((nivel) => vendido < nivel.valor) || null;
 }
 
-// Régua visual por etapas, sem confundir a largura com a % real de vendas:
-// 0–50% até a Meta, 50–75% até a Supermeta, 75–100% até a Megameta.
-// Dentro de cada etapa, o preenchimento acompanha o avanço em reais.
+// Progresso matemático: o valor vendido é proporcional à Megameta mensal.
+// A largura para em 100%, mas o excedente real continua disponível.
 export function calcularProgressoMegameta(vendido, meta) {
   const base = Number(meta);
   const realizado = Number(vendido);
@@ -75,18 +74,9 @@ export function calcularProgressoMegameta(vendido, meta) {
     return null;
   }
 
-  const metaSuper = base * 1.1;
   const alvo = base * 1.2;
   const percentualReal = Math.max(0, (realizado / alvo) * 100);
-  const percentualBarra = realizado <= 0
-    ? 0
-    : realizado < base
-      ? (realizado / base) * 50
-      : realizado < metaSuper
-        ? 50 + ((realizado - base) / (metaSuper - base)) * 25
-        : realizado < alvo
-          ? 75 + ((realizado - metaSuper) / (alvo - metaSuper)) * 25
-          : 100;
+  const percentualBarra = Math.min(100, percentualReal);
   return {
     alvo,
     percentual: percentualReal,
