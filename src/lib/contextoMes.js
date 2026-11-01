@@ -86,6 +86,28 @@ export function calcularProgressoMegameta(vendido, meta) {
   };
 }
 
+// Valor necessário por loja e por dia para alcançar o próximo nível.
+// Com turnos restantes, distribui o saldo pelo futuro; após o último
+// turno, calcula quanto teria faltado por loja/dia ao longo do mês.
+export function calcularValorPorLojaDia({ falta, quantidadeLojas, turnosRestantes, diasMes }) {
+  const saldo = Number(falta);
+  const lojas = Number(quantidadeLojas);
+  const restantes = Number(turnosRestantes);
+  const dias = Number(diasMes);
+  if (!Number.isFinite(saldo) || !(saldo > 0) ||
+      !Number.isInteger(lojas) || !(lojas > 0)) {
+    return null;
+  }
+
+  const retrospectivo = !Number.isFinite(restantes) || restantes <= 0;
+  const divisorDias = retrospectivo ? dias : restantes;
+  if (!Number.isInteger(divisorDias) || !(divisorDias > 0)) return null;
+
+  // Arredonda para cima no centavo: o valor exibido é suficiente para bater o alvo.
+  const valor = Math.ceil((saldo / (lojas * divisorDias) - 1e-9) * 100) / 100;
+  return { valor, retrospectivo };
+}
+
 export function fraseSemBase(contexto, temMeta, temVendas) {
   if (contexto === "futuro") {
     return temMeta
