@@ -243,7 +243,7 @@ test("a barra da Megameta usa 120% da meta mensal como teto de 100%", async () =
 test("acima da Megameta a barra não ultrapassa o limite mas conserva o excedente", async () => {
   const { calcularProgressoMegameta } = await import("../src/lib/contextoMes.js");
   const resultado = calcularProgressoMegameta(1320, 1000);
-  assert.equal(resultado.percentual, 110);
+  assert.ok(Math.abs(resultado.percentual - 110) < 1e-9);
   assert.equal(resultado.percentualBarra, 100);
   assert.equal(resultado.excedente, 120);
   assert.equal(resultado.falta, 0);
