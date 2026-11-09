@@ -20,10 +20,10 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.5.10",
+    "@electric-sql/pglite": "0.5.15",
     "@tailwindcss/postcss": "^4",
     "eslint": "^10",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "16.4.5",
     "tailwindcss": "^4"
   }
 }
