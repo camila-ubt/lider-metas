@@ -465,7 +465,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         <article className={styles.kpi}>
           <span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span>
           <strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong>
-          <small>
+          <small className={!dados.mesPassado && dados.projecao !== null ? styles.projecaoLegenda : undefined}>
             {dados.mesPassado
               ? dinheiro.format(dados.totalVendido)
               : dados.projecao === null
