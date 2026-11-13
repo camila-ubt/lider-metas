@@ -9,7 +9,7 @@
   color: #7650a7;
 }
 
-/* Dois traços de 25 graus formam um V mais aberto que o chevron tradicional. */
+/* Dois traços de 33 graus formam um V mais aberto que o chevron tradicional. */
 .sinal::before,
 .sinal::after {
   content: "";
@@ -24,20 +24,20 @@
 .sinal::before {
   left: calc(50% - 11px);
   transform-origin: right center;
-  transform: rotate(25deg);
+  transform: rotate(33deg);
 }
 .sinal::after {
   left: 50%;
   transform-origin: left center;
-  transform: rotate(-25deg);
+  transform: rotate(-33deg);
 }
 .aberto::before,
 :global(details[open] > summary) .nativo::before {
-  transform: rotate(-25deg);
+  transform: rotate(-33deg);
 }
 .aberto::after,
 :global(details[open] > summary) .nativo::after {
-  transform: rotate(25deg);
+  transform: rotate(33deg);
 }
 @media (prefers-reduced-motion: reduce) {
   .sinal::before, .sinal::after { transition: none; }
