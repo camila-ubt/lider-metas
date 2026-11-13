@@ -199,6 +199,17 @@
   line-height: 1.4;
 }
 
+/* Destaque sem alterar a cor do texto auxiliar da projeção. */
+.kpi .projecaoAbaixo {
+  color: #a3324c;
+  font-weight: 800;
+}
+
+.kpi .projecaoAcima {
+  color: #2c7243;
+  font-weight: 800;
+}
+
 /* Duas colunas independentes evitam a sobreposição em telas estreitas. */
 .metaKpiLinha {
   display: flex;
