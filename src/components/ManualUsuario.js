@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./ManualUsuario.module.css";
+import SinalExpandir from "./SinalExpandir";
 
 const secoes = [
   {
@@ -133,12 +134,13 @@ export default function ManualUsuario() {
           >
             <summary>
               <h3>{secao.titulo}</h3>
+              <SinalExpandir nativo />
             </summary>
 
             <div className={styles.groupContent}>
               {secao.itens.map(([pergunta, respostas]) => (
                 <details key={pergunta} open={termo ? true : undefined}>
-                  <summary>{pergunta}</summary>
+                  <summary><span className={styles.pergunta}>{pergunta}</span><SinalExpandir nativo /></summary>
                   <div className={styles.answer}>
                     {respostas.map((resposta) => <p key={resposta}>{resposta}</p>)}
                   </div>

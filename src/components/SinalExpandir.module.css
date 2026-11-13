@@ -1,0 +1,42 @@
+.sinal {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  color: #7650a7;
+}
+
+/* Dois traços de 40 graus formam o chevron, sem fundo circular. */
+.sinal::before,
+.sinal::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 1px);
+  width: 11px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform 0.18s ease;
+}
+.sinal::before {
+  left: calc(50% - 11px);
+  transform-origin: right center;
+  transform: rotate(40deg);
+}
+.sinal::after {
+  left: 50%;
+  transform-origin: left center;
+  transform: rotate(-40deg);
+}
+.aberto::before,
+:global(details[open] > summary) .nativo::before {
+  transform: rotate(-40deg);
+}
+.aberto::after,
+:global(details[open] > summary) .nativo::after {
+  transform: rotate(40deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sinal::before, .sinal::after { transition: none; }
+}

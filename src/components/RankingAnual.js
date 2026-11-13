@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import EvolucaoAnual from "@/components/EvolucaoAnual";
+import SinalExpandir from "./SinalExpandir";
 import { resumirResultadosMensais } from "@/lib/rankingAnual.mjs";
 import { compararVendidoComMeta, descreverSituacaoMeta } from "@/lib/detalheMensalRanking.mjs";
 import styles from "./RankingAnual.module.css";
@@ -126,12 +127,12 @@ function CartaoDetalheMensal({ identificador, titulo, resultado, manha, noite, a
             {situacao}{resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
           </span>
         </span>
+        <span className={styles.acordeaoIcone}><SinalExpandir aberto={aberto} /></span>
         <span className={styles.acordeaoSegundaLinha}>
           <span className={styles.resumoVendido}>
             <span>Vendido</span>
             <strong>{moeda.format(resultado.vendido)}</strong>
           </span>
-          <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
         </span>
       </button>
 
@@ -175,12 +176,12 @@ function CartaoDetalheTurno({ identificador, titulo, resultado, lojas, aberto, a
             {situacao}{resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
           </span>
         </span>
+        <span className={styles.acordeaoIcone}><SinalExpandir aberto={aberto} /></span>
         <span className={styles.acordeaoSegundaLinha}>
           <span className={styles.resumoVendido}>
             <span>Vendido</span>
             <strong>{moeda.format(resultado.vendido)}</strong>
           </span>
-          <span className={styles.acordeaoSeta} aria-hidden="true">{aberto ? "⌃" : "⌄"}</span>
         </span>
       </button>
       <div id={idConteudo} className={styles.conteudoCartao} hidden={!aberto}>
@@ -416,7 +417,7 @@ export default function RankingAnual() {
             <details className={styles.painel + " " + styles.mesesRecolhiveis}>
               <summary className={styles.resumoRecolhivel}>
                 <span>Desempenho por mês</span>
-                <span className={styles.iconeRecolhivel} aria-hidden="true" />
+                <SinalExpandir nativo />
               </summary>
               <div className={styles.conteudoRecolhivel}>
                 <div className={styles.scroll}><table>
@@ -455,7 +456,7 @@ export default function RankingAnual() {
             <details className={styles.painel + " " + styles.mesesRecolhiveis}>
               <summary className={styles.resumoRecolhivel}>
                 <span>Desempenho por mês · Turnos</span>
-                <span className={styles.iconeRecolhivel} aria-hidden="true" />
+                <SinalExpandir nativo />
               </summary>
               <div className={styles.conteudoRecolhivel}>
                 <div className={styles.cabecalho}><div><h3>Manhã × Noite</h3>

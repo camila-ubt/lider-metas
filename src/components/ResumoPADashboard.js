@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./ResumoPADashboard.module.css";
+import SinalExpandir from "./SinalExpandir";
 
 function formatarPa(valor) {
   return Number(valor || 0).toFixed(2).replace(".", ",");
@@ -170,7 +171,7 @@ export default function ResumoPADashboard({ mes }) {
             </div>
           </div>
           <span className={styles.more}>
-            Ver resumo do PA <i aria-hidden="true">⌄</i>
+            Resumo do PA <SinalExpandir nativo />
           </span>
         </summary>
 

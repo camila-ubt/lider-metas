@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import SinalExpandir from "./SinalExpandir";
 import { createClient } from "@/lib/supabase/client";
 import {
   acumuladoPorDia,
@@ -627,7 +628,7 @@ export default function InteligenciaGerencial() {
                 : "Projeções, tendências e comparativos do mês em andamento."}
           </span>
         </div>
-        <i aria-hidden="true">⌄</i>
+        <SinalExpandir nativo />
       </summary>
 
       <div className="inteligencia-gerencial-conteudo">

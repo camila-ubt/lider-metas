@@ -99,7 +99,7 @@ function criarControle() {
         <strong>🧠 Inteligência Gerencial</strong>
         <span>Projeções, tendências e comparativos históricos.</span>
       </div>
-      <i aria-hidden="true">⌄</i>
+      <span class="inteligencia-seta" aria-hidden="true"></span>
     </summary>
   `;
   return details;

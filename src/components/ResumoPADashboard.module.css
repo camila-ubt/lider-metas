@@ -12,7 +12,7 @@
 
 .summary {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   padding: 18px 21px;
@@ -60,24 +60,13 @@
 }
 
 .more {
+  align-self: flex-start;
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 7px;
   font-size: 12px;
   font-weight: 800;
-}
-
-.more i {
-  color: var(--primary-dark);
-  font-size: 20px;
-  font-style: normal;
-  line-height: 1;
-  transition: transform 0.2s ease;
-}
-
-.details[open] .more i {
-  transform: rotate(180deg);
 }
 
 .content {

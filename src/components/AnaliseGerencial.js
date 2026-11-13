@@ -21,6 +21,7 @@ import {
 } from "@/lib/analiseGerencial";
 import { extremosDiasSemana } from "@/lib/extremosDiasSemana.mjs";
 import styles from "./AnaliseGerencial.module.css";
+import SinalExpandir from "./SinalExpandir";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -121,7 +122,7 @@ function Bloco({ titulo, resumo, children, modo, aberto = false }) {
           <strong>{titulo}</strong>
           {resumo && <span>{resumo}</span>}
         </div>
-        <i>⌄</i>
+        <SinalExpandir nativo />
       </summary>
       <div className={styles.blockContent}>{children}</div>
     </details>

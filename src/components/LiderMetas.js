@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import DashboardEstavel from "@/components/DashboardEstavel";
 import RankingAnual from "@/components/RankingAnual";
 import ManualUsuario from "@/components/ManualUsuario";
+import SinalExpandir from "@/components/SinalExpandir";
 import PAVendedoras from "@/components/PAVendedoras";
 import MetasImpressao from "@/components/MetasImpressao";
 import AcompanhamentoTurno from "@/components/AcompanhamentoTurno";
@@ -708,32 +709,49 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         <div className="top-actions">
           <input
             type="month"
+            aria-label="Escolher mês"
             value={mes}
             onChange={(evento) => setMes(evento.target.value)}
           />
-          <button className="secondary-button" onClick={sair}>Sair</button>
+          {perfil.papel === "admin" && (
+            <details
+              className="config-navigation"
+              onClick={(evento) => {
+                const opcao = evento.target.closest(".config-navigation-options button");
+                if (opcao) {
+                  evento.currentTarget.open = false;
+                  evento.currentTarget.querySelector("summary")?.focus();
+                }
+              }}
+              onKeyDown={(evento) => {
+                if (evento.key === "Escape") {
+                  evento.currentTarget.open = false;
+                  evento.currentTarget.querySelector("summary")?.focus();
+                }
+              }}
+            >
+              <summary><span>Configurações</span><SinalExpandir nativo /></summary>
+              <div className="config-navigation-options" data-config-navigation-options>
+                <button
+                  type="button"
+                  className={abaAtiva("metas") ? "active" : ""}
+                  data-config-metas-botao
+                  aria-pressed={abaAtiva("metas")}
+                  onClick={() => setTela("metas")}
+                >
+                  Metas
+                </button>
+              </div>
+            </details>
+          )}
+          <button type="button" className="secondary-button" onClick={sair}>Sair</button>
         </div>
       </header>
 
       <nav className="tabs" aria-label="Áreas do Líder Metas" data-tela-inicial={telaInicial}
-        onClick={(evento) => {
-          const opcao = evento.target.closest(".config-navigation-options button");
-          const menu = evento.currentTarget.querySelector("details");
-          if (opcao && menu) {
-            menu.open = false;
-            menu.querySelector("summary")?.focus();
-          } else if (evento.target.closest("button") && menu) {
-            menu.open = false;
-          }
-        }}
-        onKeyDown={(evento) => {
-          if (evento.key === "Escape") {
-            const menu = evento.currentTarget.querySelector("details");
-            if (menu?.open) {
-              menu.open = false;
-              menu.querySelector("summary")?.focus();
-            }
-          }
+        onClick={() => {
+          const menu = document.querySelector(".top-actions .config-navigation");
+          if (menu?.open) menu.open = false;
         }}
       >
         <button
@@ -773,21 +791,6 @@ export default function LiderMetas({ telaInicial = "painel" }) {
           >
             PA das vendedoras
           </button>
-        )}
-        {perfil.papel === "admin" && (
-          <details className="config-navigation">
-            <summary>Configurações</summary>
-            <div className="config-navigation-options" data-config-navigation-options>
-              <button
-                type="button"
-                className={abaAtiva("metas") ? "active" : ""}
-                aria-pressed={abaAtiva("metas")}
-                onClick={() => setTela("metas")}
-              >
-                Metas
-              </button>
-            </div>
-          </details>
         )}
       </nav>
 

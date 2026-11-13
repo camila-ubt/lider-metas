@@ -9,6 +9,7 @@ import {
   validarHorariosPeriodos,
 } from "@/lib/horariosPeriodos";
 import styles from "./ConfiguracaoHorarios.module.css";
+import SinalExpandir from "./SinalExpandir";
 
 function abaMetasAtiva() {
   return Array.from(document.querySelectorAll("nav.tabs button")).some(
@@ -178,7 +179,7 @@ export default function ConfiguracaoHorarios() {
 
           <div className={styles.toggleSide}>
             <span className={styles.profileBadge}>Compartilhado entre os apps</span>
-            <span className={styles.arrow} aria-hidden="true">⌄</span>
+            <SinalExpandir aberto={aberto} />
           </div>
         </button>
 

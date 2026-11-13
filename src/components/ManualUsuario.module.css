@@ -6,8 +6,10 @@
 .intro, .version, .result { color:var(--muted); line-height:1.5; }
 .version { font-size:13px; }
 .start { margin:18px 0; border:1px solid #ded0ec; border-radius:12px; background:#faf7fc; }
-.manual summary { min-height:48px; padding:14px 16px; box-sizing:border-box; cursor:pointer; font-weight:800; line-height:1.5; }
-.manual summary::marker { color:var(--primary); }
+.manual summary { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:48px; padding:14px 16px; box-sizing:border-box; cursor:pointer; font-weight:800; line-height:1.5; list-style:none; }
+.manual summary::-webkit-details-marker { display:none; }
+.manual summary::marker { content:""; }
+.pergunta { min-width:0; }
 .manual :is(summary,a,button,input):focus-visible { outline:3px solid var(--primary); outline-offset:3px; }
 .searchLabel { display:block; font-weight:800; margin:16px 0 8px; }
 .searchRow { display:flex; flex-wrap:wrap; gap:8px; }
@@ -20,7 +22,6 @@
 .sections { display:grid; gap:12px; margin-top:16px; }
 .group { scroll-margin-top:24px; }
 .group > summary h3 { display:inline; margin:0; font-size:17px; }
-.group > summary span { display:block; margin:4px 0 0 20px; font-size:13px; color:var(--muted); font-weight:400; }
 .groupContent { padding:0 14px 14px; }
 .groupContent details { border-top:1px solid #eee8f3; }
 .answer { padding:0 16px 16px; color:#51485a; line-height:1.65; }

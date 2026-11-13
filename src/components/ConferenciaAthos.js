@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./ConferenciaAthos.module.css";
+import SinalExpandir from "./SinalExpandir";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -288,7 +289,7 @@ export default function ConferenciaAthos() {
             <span>Conferência com o Athos</span>
             <strong>{aberto ? "Ocultar relatório" : "Mostrar relatório diário"}</strong>
           </div>
-          <i className={aberto ? styles.arrowOpen : ""}>⌄</i>
+          <SinalExpandir aberto={aberto} />
         </button>
 
         {aberto && (

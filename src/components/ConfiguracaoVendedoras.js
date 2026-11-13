@@ -10,7 +10,7 @@ export default function ConfiguracaoVendedoras() {
   const [aberta, setAberta] = useState(false);
   const [secao, setSecao] = useState("pendentes");
   const [filtro, setFiltro] = useState("ativas");
-  const [alvos, setAlvos] = useState({ tabs: null, app: null });
+  const [alvos, setAlvos] = useState({ tabs: null, app: null, menu: null });
   const [vendedoras, setVendedoras] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [alterando, setAlterando] = useState("");
@@ -19,8 +19,11 @@ export default function ConfiguracaoVendedoras() {
   const localizarAlvos = useCallback(() => {
     const tabs = document.querySelector(".app-shell .tabs");
     const app = document.querySelector(".app-shell");
+    const menu = document.querySelector(".app-shell .top-actions [data-config-navigation-options]");
     setAlvos((atual) =>
-      atual.tabs === tabs && atual.app === app ? atual : { tabs, app }
+      atual.tabs === tabs && atual.app === app && atual.menu === menu
+        ? atual
+        : { tabs, app, menu }
     );
   }, []);
 
@@ -95,7 +98,7 @@ export default function ConfiguracaoVendedoras() {
     if (!alvos.tabs) return undefined;
 
     function aoClicarNasAbas(evento) {
-      const botao = evento.target.closest("nav.tabs button, [data-manual-botao]");
+      const botao = evento.target.closest("nav.tabs button, [data-manual-botao], [data-config-metas-botao]");
       if (!botao) return;
       if (botao.hasAttribute("data-config-vendedoras-botao")) return;
       setAberta(false);
@@ -177,7 +180,7 @@ export default function ConfiguracaoVendedoras() {
     setAlterando("");
   }
 
-  if (!admin || !alvos.tabs || !alvos.app) return null;
+  if (!admin || !alvos.tabs || !alvos.app || !alvos.menu) return null;
 
   const pendentes = vendedoras.filter((item) => !item.aprovado_em);
   const cadastradas = vendedoras.filter((item) => Boolean(item.aprovado_em));
@@ -200,7 +203,7 @@ export default function ConfiguracaoVendedoras() {
           aria-pressed={aberta}
           onClick={() => {
             setAberta(true);
-            const menu = alvos.tabs.querySelector("details");
+            const menu = alvos.menu.closest("details");
             if (menu) {
               menu.open = false;
               menu.querySelector("summary")?.focus();
@@ -209,7 +212,7 @@ export default function ConfiguracaoVendedoras() {
         >
           Vendedoras{pendentes.length > 0 ? ` (${pendentes.length})` : ""}
         </button>,
-        alvos.tabs.querySelector("[data-config-navigation-options]") || alvos.tabs
+        alvos.menu
       )}
 
       {aberta && createPortal(

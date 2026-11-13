@@ -12,17 +12,44 @@
   background: white;
   color: var(--muted);
   font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   text-align: center;
   cursor: pointer;
   list-style: none;
 }
 .config-navigation summary::-webkit-details-marker { display: none; }
-.config-navigation summary::after { content: " ▾"; }
-.config-navigation[open] summary::after { content: " ▴"; }
+.config-navigation summary::marker { content: ""; }
+/* Chevron compacto para não quebrar o título no botão de meia coluna. */
+.config-navigation summary > span:last-child {
+  width: 24px;
+  height: 24px;
+}
 .config-navigation:has(button.active) summary {
   background: var(--primary);
   border-color: var(--primary);
   color: white;
+}
+.config-navigation-options > button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: white;
+  color: var(--muted);
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+}
+.config-navigation-options > button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+.config-navigation-options > button:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
 }
 .config-navigation-options {
   position: absolute;
@@ -52,11 +79,26 @@
 .tabs button, .config-navigation summary { width: 100%; min-width: 0; }
 @media (max-width: 560px) {
   .tabs { gap: 8px; }
-  .tabs button, .config-navigation summary {
+  .tabs button {
     padding: 10px 12px;
     font-size: 14px;
     line-height: 1.15;
     white-space: normal;
     text-align: center;
+  }
+
+  .top-actions > .config-navigation summary {
+    padding: 9px 7px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .top-actions > .config-navigation summary > span:last-child {
+    width: 20px;
+    height: 20px;
+  }
+
+  .top-actions > .config-navigation .config-navigation-options {
+    min-width: 142px;
   }
 }
