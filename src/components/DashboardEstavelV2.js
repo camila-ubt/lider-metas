@@ -554,6 +554,33 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                   : "Aguardando lançamentos de períodos encerrados."}
           </p>
         )}
+        {dados.mesAtual && Array.isArray(dados.periodoMaisAtrasado.projetadosAbaixoDaMeta) && (
+          <section className={styles.periodoAlertaLista} aria-label="Lojas por turno com projeção abaixo da meta">
+            <div className={styles.periodoAlertaListaTopo}>
+              <h3>Atenção nos períodos</h3>
+              <small>No ritmo atual, podem fechar abaixo da Meta:</small>
+            </div>
+            {["manha", "noite"].map((periodo) => {
+              const emRisco = dados.periodoMaisAtrasado.projetadosAbaixoDaMeta
+                .filter((item) => item.periodo === periodo);
+              return (
+                <div className={styles.periodoAlertaListaLinha} key={periodo}>
+                  <strong>{periodo === "manha" ? "Manhã" : "Noite"}</strong>
+                  <div className={styles.periodoAlertaListaLojas}>
+                    {emRisco.length ? emRisco.map((item) => (
+                      <span className={styles.periodoAlertaListaLoja} key={item.loja.id}>
+                        <span>{item.loja.nome || item.loja.codigo}</span>
+                        <b>{textoPercentual(item.percentualProjetado)}</b>
+                      </span>
+                    )) : (
+                      <small className={styles.periodoAlertaListaVazia}>Nenhuma loja abaixo da Meta</small>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
+        )}
       </article>
 
       <div
