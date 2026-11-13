@@ -481,22 +481,25 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                     : dinheiro.format(dados.metaPorLojaDia)}
               </strong>
               {dados.variacaoMetaPorLojaDia !== null && (
-                <span
-                  className={`${styles.metaKpiIndicador} ${
-                    dados.variacaoMetaPorLojaDia > 0
-                      ? styles.metaKpiAcima
-                      : dados.variacaoMetaPorLojaDia < 0
-                        ? styles.metaKpiAbaixo
-                        : styles.metaKpiIgual
-                  }`}
+                <div
+                  className={styles.metaKpiComparativo}
                   title="Variação da meta ajustada por loja/dia em relação à meta fixa do mesmo nível"
                   aria-label={`Meta por loja e dia ${
                     dados.variacaoMetaPorLojaDia > 0 ? "acima" : dados.variacaoMetaPorLojaDia < 0 ? "abaixo" : "igual"
                   } à meta fixa em ${textoPercentual(Math.abs(dados.variacaoMetaPorLojaDia))}`}
                 >
-                  {dados.variacaoMetaPorLojaDia > 0 ? "↑" : dados.variacaoMetaPorLojaDia < 0 ? "↓" : "→"}{" "}
-                  {textoPercentual(Math.abs(dados.variacaoMetaPorLojaDia))}
-                </span>
+                  <span className={`${styles.metaKpiIndicador} ${
+                    dados.variacaoMetaPorLojaDia > 0
+                      ? styles.metaKpiAcima
+                      : dados.variacaoMetaPorLojaDia < 0
+                        ? styles.metaKpiAbaixo
+                        : styles.metaKpiIgual
+                  }`}>
+                    {dados.variacaoMetaPorLojaDia > 0 ? "↑" : dados.variacaoMetaPorLojaDia < 0 ? "↓" : "→"}{" "}
+                    {textoPercentual(Math.abs(dados.variacaoMetaPorLojaDia))}
+                  </span>
+                  <small className={styles.metaKpiReferencia}>meta fixa</small>
+                </div>
               )}
             </div>
             <small>
