@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import SinalExpandir from "./SinalExpandir";
 import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -581,7 +582,7 @@ export default function EvolucaoAnual({ ano, lojas, vendas, metas }) {
               </p>
 
               <details className={styles.tabelaDetalhada}>
-                <summary>Ver valores mês a mês</summary>
+                <summary>Ver valores mês a mês <SinalExpandir nativo /></summary>
                 <div className={styles.rolagem}>
                   <table>
                     <thead><tr><th scope="col">Mês</th>
