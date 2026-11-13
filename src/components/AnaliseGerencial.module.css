@@ -72,28 +72,10 @@
   font-size: 16px;
 }
 
-.collapse summary span {
+.collapse summary > div > span {
   color: #7b7083;
   font-size: 12px;
   line-height: 1.35;
-}
-
-.collapse summary i {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: #eee7f5;
-  color: #684393;
-  font-size: 22px;
-  font-style: normal;
-  transition: transform 0.2s ease;
-}
-
-.collapse[open] summary i {
-  transform: rotate(180deg);
 }
 
 .blockContent {
@@ -486,7 +468,7 @@
     font-size: 14px;
   }
 
-  .collapse summary span {
+  .collapse summary > div > span {
     font-size: 11px;
   }
 
