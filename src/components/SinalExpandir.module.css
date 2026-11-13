@@ -4,12 +4,10 @@
   flex-shrink: 0;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: #f3ecf9;
   color: #7650a7;
 }
 
-/* Dois traços de 40 graus formam um V mais aberto que o chevron tradicional. */
+/* Dois traços de 40 graus formam o chevron, sem fundo circular. */
 .sinal::before,
 .sinal::after {
   content: "";
