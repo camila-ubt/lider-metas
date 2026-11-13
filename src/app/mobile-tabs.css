@@ -32,6 +32,25 @@
   border-color: var(--primary);
   color: white;
 }
+.config-navigation-options > button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 12px;
+  background: white;
+  color: var(--muted);
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+}
+.config-navigation-options > button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+.config-navigation-options > button:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
 .config-navigation-options {
   position: absolute;
   z-index: 20;
