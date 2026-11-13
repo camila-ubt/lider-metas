@@ -1012,7 +1012,7 @@
 
 .periodoAlertaListaLinha {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-columns: 42px minmax(0, 1fr);
   align-items: start;
   gap: 8px;
 }
@@ -1025,17 +1025,18 @@
 
 .periodoAlertaListaLojas {
   display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
+  flex-wrap: nowrap;
+  gap: 4px;
   min-width: 0;
 }
 
 .periodoAlertaListaLoja {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 3px 7px;
-  padding: 5px 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  gap: 4px;
+  padding: 4px 6px;
   border: 1px solid #ebe3ed;
   border-radius: 8px;
   background: #fbf9fc;
