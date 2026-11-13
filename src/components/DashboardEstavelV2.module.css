@@ -988,7 +988,7 @@
   display: none;
 }
 
-/* Resumo secundário dos turnos sob risco, sem competir com o destaque principal. */
+/* Resumo dos turnos abaixo da meta acumulada, sem competir com o destaque principal. */
 .periodoAlertaLista {
   display: grid;
   gap: 9px;
