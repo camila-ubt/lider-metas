@@ -21,7 +21,7 @@
 .painel h3 { margin:0 0 12px; font-size:18px; }
 .mesesRecolhiveis { padding:0; overflow:hidden; }
 .resumoRecolhivel {
-  display:flex; align-items:center; justify-content:space-between;
+  display:flex; align-items:flex-start; justify-content:space-between;
   gap:12px; padding:15px 17px; cursor:pointer;
   font-weight:800; font-size:17px; list-style:none;
 }
@@ -67,7 +67,7 @@
   overflow:hidden;
 }
 .acordeaoBotao {
-  display:block; width:100%; padding:11px 13px; border:0;
+  position:relative; display:block; width:100%; padding:11px 46px 11px 13px; border:0;
   background:transparent; text-align:left; color:var(--foreground);
 }
 .acordeaoBotao:hover { background:#faf8fd; }
@@ -75,6 +75,7 @@
 .acordeaoPrimeiraLinha { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px; }
 .nomeLojaDetalhe { font-size:14px; line-height:1.4; }
 .acordeaoSegundaLinha { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; }
+.acordeaoIcone { position:absolute; top:7px; right:9px; display:block; }
 .resumoVendido {
   display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 7px;
   color:var(--muted); font-size:12px; line-height:1.35;
@@ -185,7 +186,7 @@
   .modalCabecalho h3 { font-size:18px; }
   .modalConteudo { padding:12px 10px 16px; }
   .detalhes { grid-template-columns:1fr; gap:8px; margin-top:0; }
-  .acordeaoBotao { padding:11px 12px; }
+  .acordeaoBotao { padding:11px 44px 11px 12px; }
   .conteudoCartao { padding:0 12px 12px; }
   .turnosDetalhe { grid-template-columns:1fr; gap:6px; }
   .detalheValores { margin-top:10px; }
