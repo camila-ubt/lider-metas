@@ -60,3 +60,28 @@ test("sem meta, dias ou lojas disponíveis evita divisão inválida", () => {
     vendido: 0, diasRestantes: 8, quantidadeLojas: 3,
   }), null);
 });
+
+test("indicador compara a meta ajustada à fixa do mesmo nível da jornada", async () => {
+  const { calcularVariacaoMetaPorLojaDia } = await import("../src/lib/metaPorLojaDia.mjs");
+  assert.equal(calcularVariacaoMetaPorLojaDia({
+    metaAtual: 1532.56, jornada: jornadaAtiva("Meta", 125000), totalDias: 30, quantidadeLojas: 3,
+  }), 10.3);
+  assert.equal(calcularVariacaoMetaPorLojaDia({
+    metaAtual: 1300, jornada: jornadaAtiva("Meta", 125000), totalDias: 30, quantidadeLojas: 3,
+  }), -6.4);
+  assert.equal(calcularVariacaoMetaPorLojaDia({
+    metaAtual: 137500 / 90, jornada: jornadaAtiva("Supermeta", 137500), totalDias: 30, quantidadeLojas: 3,
+  }), 0);
+});
+
+test("indicador não inventa percentual sem referência válida ou após a Megameta", async () => {
+  const { calcularVariacaoMetaPorLojaDia } = await import("../src/lib/metaPorLojaDia.mjs");
+  const parametros = { jornada: jornadaAtiva("Meta", 125000), totalDias: 30, quantidadeLojas: 3 };
+  assert.equal(calcularVariacaoMetaPorLojaDia({ ...parametros, metaAtual: null }), null);
+  assert.equal(calcularVariacaoMetaPorLojaDia({ ...parametros, metaAtual: 1500, quantidadeLojas: 0 }), null);
+  assert.equal(calcularVariacaoMetaPorLojaDia({ ...parametros, metaAtual: 1500, totalDias: 0 }), null);
+  assert.equal(calcularVariacaoMetaPorLojaDia({
+    ...parametros, metaAtual: null,
+    jornada: { ...jornadaAtiva("Megameta", 150000), completa: true },
+  }), null);
+});
