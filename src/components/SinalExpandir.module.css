@@ -8,5 +8,8 @@
   background: #f3ecf9;
   color: #7650a7;
   font-size: 22px;
+  font-weight: 500;
   line-height: 1;
 }
+.nativo::before { content: "+"; }
+:global(details[open] > summary) .nativo::before { content: "−"; }
