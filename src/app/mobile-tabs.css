@@ -12,13 +12,16 @@
   background: white;
   color: var(--muted);
   font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   text-align: center;
   cursor: pointer;
   list-style: none;
 }
 .config-navigation summary::-webkit-details-marker { display: none; }
-.config-navigation summary::after { content: " ▾"; }
-.config-navigation[open] summary::after { content: " ▴"; }
+.config-navigation summary::marker { content: ""; }
 .config-navigation:has(button.active) summary {
   background: var(--primary);
   border-color: var(--primary);
