@@ -11,5 +11,5 @@
   font-weight: 500;
   line-height: 1;
 }
-.nativo::before { content: "+"; }
+.nativo::before { content: "•"; }
 :global(details[open] > summary) .nativo::before { content: "−"; }
