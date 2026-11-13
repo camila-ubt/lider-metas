@@ -199,10 +199,10 @@
   line-height: 1.4;
 }
 
-/* Na linha do valor: somente a pequena variação percentual recebe cor. */
+/* Comparação compacta: a cor se aplica somente à porcentagem. */
 .metaKpiLinha {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 5px;
   min-width: 0;
 }
@@ -214,13 +214,28 @@
   overflow-wrap: normal;
 }
 
-.kpi .metaKpiIndicador {
+.metaKpiComparativo {
+  display: grid;
   flex: 0 0 auto;
-  display: inline;
+  justify-items: end;
+  gap: 2px;
   margin-left: auto;
-  font-size: 11px;
+}
+
+.kpi .metaKpiIndicador {
+  display: block;
+  font-size: 12px;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
+}
+
+.kpi .metaKpiReferencia {
+  display: block;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.1;
   white-space: nowrap;
 }
 
@@ -833,7 +848,11 @@
   }
 
   .kpi .metaKpiIndicador {
-    font-size: 10px;
+    font-size: 11px;
+  }
+
+  .kpi .metaKpiReferencia {
+    font-size: 8px;
   }
 
   .rankButton {
