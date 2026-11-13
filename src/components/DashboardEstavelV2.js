@@ -554,26 +554,26 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                   : "Aguardando lançamentos de períodos encerrados."}
           </p>
         )}
-        {dados.mesAtual && Array.isArray(dados.periodoMaisAtrasado.projetadosAbaixoDaMeta) && (
-          <section className={styles.periodoAlertaLista} aria-label="Lojas por turno com projeção abaixo da meta">
+        {dados.mesAtual && Array.isArray(dados.periodoMaisAtrasado.abaixoDaMetaAcumulada) && (
+          <section className={styles.periodoAlertaLista} aria-label="Lojas por turno abaixo da meta acumulada">
             <div className={styles.periodoAlertaListaTopo}>
               <h3>Atenção nos períodos</h3>
-              <small>No ritmo atual, podem fechar abaixo da Meta:</small>
+              <small>Abaixo da meta acumulada até os turnos concluídos:</small>
             </div>
             {["manha", "noite"].map((periodo) => {
-              const emRisco = dados.periodoMaisAtrasado.projetadosAbaixoDaMeta
+              const emRisco = dados.periodoMaisAtrasado.abaixoDaMetaAcumulada
                 .filter((item) => item.periodo === periodo);
               return (
                 <div className={styles.periodoAlertaListaLinha} key={periodo}>
                   <strong>{periodo === "manha" ? "Manhã" : "Noite"}</strong>
                   <div className={styles.periodoAlertaListaLojas}>
                     {emRisco.length ? emRisco.map((item) => (
-                      <span className={styles.periodoAlertaListaLoja} key={item.loja.id}>
+                      <span className={styles.periodoAlertaListaLoja} key={item.loja.id} aria-label={`${item.loja.nome || item.loja.codigo}: ${textoPercentual(item.atrasoPercentual)} abaixo da meta acumulada`}>
                         <span title={item.loja.nome || item.loja.codigo}>{item.loja.codigo || (item.loja.nome || "").trim().split(/\s+/).map((palavra) => palavra[0]).join("").toUpperCase()}</span>
-                        <b>{textoPercentual(item.percentualProjetado)}</b>
+                        <b>↓ {textoPercentual(item.atrasoPercentual)}</b>
                       </span>
                     )) : (
-                      <small className={styles.periodoAlertaListaVazia}>Nenhuma loja abaixo da Meta</small>
+                      <small className={styles.periodoAlertaListaVazia}>Nenhuma loja abaixo da meta acumulada</small>
                     )}
                   </div>
                 </div>
