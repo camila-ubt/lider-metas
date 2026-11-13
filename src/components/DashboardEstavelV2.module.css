@@ -1155,3 +1155,17 @@
 .periodoAlertaListaVazia {
   padding: 5px 0;
 }
+
+/* Mantém a legenda do fechamento em uma única linha no card de projeção. */
+.kpi small.projecaoLegenda {
+  font-size: 10px;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .kpi small.projecaoLegenda {
+    font-size: clamp(7px, 1.9vw, 8px);
+    letter-spacing: -0.04em;
+  }
+}
