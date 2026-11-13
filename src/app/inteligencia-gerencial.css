@@ -5,7 +5,7 @@
 .inteligencia-gerencial-unificada>summary strong{font-size:18px;color:#2d2334}
 .inteligencia-gerencial-unificada>summary div span{font-size:13px;color:#746b79}
 .inteligencia-gerencial-unificada>summary .inteligencia-seta{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:#f3ecf9;color:#7650a7;font-size:22px;line-height:1}
-.inteligencia-gerencial-unificada>summary .inteligencia-seta::before{content:"+"}
+.inteligencia-gerencial-unificada>summary .inteligencia-seta::before{content:"•"}
 .inteligencia-gerencial-unificada[open]>summary .inteligencia-seta::before{content:"−"}
 .inteligencia-gerencial-conteudo{display:grid;gap:0;border-top:1px solid #eee6f2;padding:6px 22px 22px;background:#fff}
 .inteligencia-gerencial-secao{padding:20px 0;border-bottom:1px solid #eee6f2}
