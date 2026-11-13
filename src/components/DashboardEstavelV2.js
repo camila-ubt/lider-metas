@@ -10,7 +10,7 @@ import {
 import { contextoDoMes } from "@/lib/contextoMes";
 import { classificarProjecao } from "@/lib/classificarProjecao.mjs";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
-import { calcularMetaPorLojaDia } from "@/lib/metaPorLojaDia.mjs";
+import { calcularMetaPorLojaDia, calcularVariacaoMetaPorLojaDia } from "@/lib/metaPorLojaDia.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
 import { descreverSituacaoNivel } from "@/lib/situacaoNiveis.mjs";
@@ -334,6 +334,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       jornada, vendido: totalVendido, diasRestantes: diasRestantesGeral,
       quantidadeLojas: lojas.length,
     });
+    const variacaoMetaPorLojaDia = calcularVariacaoMetaPorLojaDia({
+      metaAtual: metaPorLojaDia, jornada, totalDias, quantidadeLojas: lojas.length,
+    });
 
     let acumulado = 0;
     const acumuladoGeral = dias.map((valor, indice) => {
@@ -386,7 +389,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       ano, numeroMes, totalDias, diaCorte, mesAtual, mesPassado, mesFuturo,
       diasRestantes: diasRestantesGeral, diasRestantesManha, diasRestantesNoite,
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
-      meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia,
+      meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia, variacaoMetaPorLojaDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
@@ -459,7 +462,24 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
 
       <div className={styles.kpiGrid}>
         <article className={styles.kpi}><span>Total vendido</span><strong>{dinheiro.format(dados.totalVendido)}</strong><small>{textoPercentual(porcentagem(dados.totalVendido, dados.meta))} da Meta</small></article>
-        <article className={styles.kpi}><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong><small>{dados.mesPassado ? dinheiro.format(dados.totalVendido) : dados.projecao === null ? "Aguardando vendas lançadas" : `Fechamento projetado: ${dados.nivelProjetado}`}</small></article>
+        <article className={styles.kpi}>
+          <span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span>
+          <strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong>
+          <small className={!dados.mesPassado && dados.projecao !== null ? styles.projecaoLegenda : undefined}>
+            {dados.mesPassado
+              ? dinheiro.format(dados.totalVendido)
+              : dados.projecao === null
+                ? "Aguardando vendas lançadas"
+                : (
+                  <>
+                    Fechamento projetado:{" "}
+                    <b className={dados.nivelProjetado === "abaixo da Meta" ? styles.projecaoAbaixo : styles.projecaoAcima}>
+                      {dados.nivelProjetado}
+                    </b>
+                  </>
+                )}
+          </small>
+        </article>
         {dados.mesPassado ? (
           <article className={styles.kpi}>
             <span>Fechamento</span>
@@ -469,22 +489,47 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         ) : (
           <article className={styles.kpi}>
             <span>{dados.jornada.completa ? "Jornada concluída" : `${dados.jornada.alvo.nome} por loja/dia`}</span>
-            <strong>
-              {dados.jornada.completa
-                ? "Megameta batida"
-                : dados.metaPorLojaDia === null
-                  ? "—"
-                  : dinheiro.format(dados.metaPorLojaDia)}
-            </strong>
-            <small>
-              {dados.jornada.completa
-                ? "Todas as metas conquistadas"
-                : dados.jornada.semMeta
-                  ? "Sem meta cadastrada"
-                  : dados.diasRestantes === 0
-                    ? "Sem dias restantes"
-                    : dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
-            </small>
+            <div className={styles.metaKpiLinha}>
+              <div className={styles.metaKpiValor}>
+                <strong>
+                  {dados.jornada.completa
+                    ? "Megameta batida"
+                    : dados.metaPorLojaDia === null
+                      ? "—"
+                      : dinheiro.format(dados.metaPorLojaDia)}
+                </strong>
+                <small className={styles.metaKpiDias}>
+                  {dados.jornada.completa
+                    ? "Todas as metas conquistadas"
+                    : dados.jornada.semMeta
+                      ? "Sem meta cadastrada"
+                      : dados.diasRestantes === 0
+                        ? "Sem dias restantes"
+                        : dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
+                </small>
+              </div>
+              {dados.variacaoMetaPorLojaDia !== null && (
+                <div
+                  className={styles.metaKpiComparativo}
+                  title="Variação da meta ajustada por loja/dia em relação à meta fixa do mesmo nível"
+                  aria-label={`Meta por loja e dia ${
+                    dados.variacaoMetaPorLojaDia > 0 ? "acima" : dados.variacaoMetaPorLojaDia < 0 ? "abaixo" : "igual"
+                  } à meta fixa em ${textoPercentual(Math.abs(dados.variacaoMetaPorLojaDia))}`}
+                >
+                  <span className={`${styles.metaKpiIndicador} ${
+                    dados.variacaoMetaPorLojaDia > 0
+                      ? styles.metaKpiAcima
+                      : dados.variacaoMetaPorLojaDia < 0
+                        ? styles.metaKpiAbaixo
+                        : styles.metaKpiIgual
+                  }`}>
+                    {dados.variacaoMetaPorLojaDia > 0 ? "↑" : dados.variacaoMetaPorLojaDia < 0 ? "↓" : "→"}{" "}
+                    {textoPercentual(Math.abs(dados.variacaoMetaPorLojaDia))}
+                  </span>
+                  <small className={styles.metaKpiReferencia}>meta fixa</small>
+                </div>
+              )}
+            </div>
           </article>
         )}
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
@@ -553,6 +598,33 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                   ? "A comparação estará disponível após o início do mês."
                   : "Aguardando lançamentos de períodos encerrados."}
           </p>
+        )}
+        {dados.mesAtual && Array.isArray(dados.periodoMaisAtrasado.abaixoDaMetaAcumulada) && (
+          <section className={styles.periodoAlertaLista} aria-label="Lojas por turno abaixo da meta acumulada">
+            <div className={styles.periodoAlertaListaTopo}>
+              <h3>Atenção nos períodos</h3>
+              <small>Abaixo da meta acumulada até os turnos concluídos:</small>
+            </div>
+            {["manha", "noite"].map((periodo) => {
+              const emRisco = dados.periodoMaisAtrasado.abaixoDaMetaAcumulada
+                .filter((item) => item.periodo === periodo);
+              return (
+                <div className={styles.periodoAlertaListaLinha} key={periodo}>
+                  <strong>{periodo === "manha" ? "Manhã" : "Noite"}</strong>
+                  <div className={styles.periodoAlertaListaLojas}>
+                    {emRisco.length ? emRisco.map((item) => (
+                      <span className={styles.periodoAlertaListaLoja} key={item.loja.id} aria-label={`${item.loja.nome || item.loja.codigo}: ${textoPercentual(item.atrasoPercentual)} abaixo da meta acumulada`}>
+                        <span title={item.loja.nome || item.loja.codigo}>{item.loja.codigo || (item.loja.nome || "").trim().split(/\s+/).map((palavra) => palavra[0]).join("").toUpperCase()}</span>
+                        <b>↓ {textoPercentual(item.atrasoPercentual)}</b>
+                      </span>
+                    )) : (
+                      <small className={styles.periodoAlertaListaVazia}>Nenhuma loja abaixo da meta acumulada</small>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </section>
         )}
       </article>
 
