@@ -501,16 +501,16 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                   <small className={styles.metaKpiReferencia}>meta fixa</small>
                 </div>
               )}
+              <small className={styles.metaKpiDias}>
+                {dados.jornada.completa
+                  ? "Todas as metas conquistadas"
+                  : dados.jornada.semMeta
+                    ? "Sem meta cadastrada"
+                    : dados.diasRestantes === 0
+                      ? "Sem dias restantes"
+                      : dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
+              </small>
             </div>
-            <small>
-              {dados.jornada.completa
-                ? "Todas as metas conquistadas"
-                : dados.jornada.semMeta
-                  ? "Sem meta cadastrada"
-                  : dados.diasRestantes === 0
-                    ? "Sem dias restantes"
-                    : dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
-            </small>
           </article>
         )}
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
