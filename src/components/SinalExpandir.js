@@ -4,7 +4,7 @@ import styles from "./SinalExpandir.module.css";
 export default function SinalExpandir({ aberto, nativo = false }) {
   return (
     <span className={`${styles.sinal} ${nativo ? styles.nativo : ""}`} aria-hidden="true">
-      {nativo ? null : aberto ? "−" : "+"}
+      {nativo ? null : aberto ? "−" : "•"}
     </span>
   );
 }
