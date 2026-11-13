@@ -212,11 +212,23 @@ textarea:focus {
 .top-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
 }
 
-.top-actions input {
-  width: auto;
+.top-actions input[type="month"] {
+  flex: 0 1 210px;
+  width: 210px;
+  min-width: 0;
+}
+
+.top-actions > .config-navigation {
+  flex: 0 0 auto;
+}
+
+.top-actions > .secondary-button {
+  flex: 0 0 auto;
 }
 
 .tabs {
@@ -737,11 +749,7 @@ textarea:focus {
   }
 }
 
-@media (max-width: 560px) {
-  .app-shell {
-    padding: 20px 14px 44px;
-  }
-
+@media (max-width: 760px) {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
@@ -750,9 +758,28 @@ textarea:focus {
   .top-actions {
     width: 100%;
   }
+}
 
-  .top-actions input {
-    flex: 1;
+@media (max-width: 560px) {
+  .app-shell {
+    padding: 20px 14px 44px;
+  }
+
+  .top-actions {
+    gap: 6px;
+  }
+
+  .top-actions input[type="month"] {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    padding: 10px 7px;
+    font-size: clamp(11px, 2.9vw, 13px);
+  }
+
+  .top-actions > .secondary-button {
+    padding: 10px 8px;
+    font-size: 13px;
   }
 
   .kpi-grid {
@@ -888,12 +915,6 @@ textarea:focus {
   outline-offset: 3px;
 }
 
-/* Mantém Configurações centralizado, com a largura dos outros botões. */
-.tabs > .config-navigation:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-  width: calc((100% - 8px) / 2);
-  justify-self: center;
-}
 
 @media (max-width: 560px) {
   .turn-access-panel {
