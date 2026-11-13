@@ -29,13 +29,6 @@
 .resumoRecolhivel::marker { content:""; }
 .resumoRecolhivel:hover { background:#faf8fd; }
 .resumoRecolhivel:focus-visible { outline:3px solid var(--primary); outline-offset:-3px; }
-.iconeRecolhivel {
-  display:grid; flex:none; place-items:center; width:28px; height:28px;
-  border-radius:9px; background:#f0e8f8; color:var(--primary-dark);
-  font-size:20px; font-weight:800; line-height:1;
-}
-.iconeRecolhivel::before { content:"+"; }
-.mesesRecolhiveis[open] .iconeRecolhivel::before { content:"−"; }
 .conteudoRecolhivel { padding:0 16px 16px; }
 .conteudoRecolhivel .cabecalho { margin:3px 0 12px; }
 
@@ -90,7 +83,6 @@
   color:var(--foreground); font-size:17px; font-weight:800;
   font-variant-numeric:tabular-nums;
 }
-.acordeaoSeta { flex:none; font-size:22px; line-height:1; font-weight:800; color:var(--primary); }
 .conteudoCartao { padding:0 13px 13px; border-top:1px solid var(--border); }
 .conteudoCartao[hidden] { display:none; }
 .lojasNoTurno {
