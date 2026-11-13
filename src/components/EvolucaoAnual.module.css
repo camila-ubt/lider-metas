@@ -153,7 +153,9 @@
 .variacaoPositiva { color:#16644a; font-weight:750; }
 .variacaoNegativa { color:#a6354a; font-weight:750; }
 .tabelaDetalhada { border:1px solid var(--border); border-radius:12px; margin-top:15px; overflow:hidden; }
-.tabelaDetalhada summary { padding:11px 13px; color:var(--primary-dark); font-size:13px; font-weight:800; cursor:pointer; }
+.tabelaDetalhada summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 13px; color:var(--primary-dark); font-size:13px; font-weight:800; cursor:pointer; list-style:none; }
+.tabelaDetalhada summary::-webkit-details-marker { display:none; }
+.tabelaDetalhada summary::marker { content:""; }
 .tabelaDetalhada[open] summary { border-bottom:1px solid var(--border); }
 .rolagem { max-width:100%; overflow-x:auto; }
 .rolagem table { width:100%; border-collapse:collapse; min-width:320px; font-variant-numeric:tabular-nums; }
