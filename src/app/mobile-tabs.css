@@ -60,11 +60,26 @@
 .tabs button, .config-navigation summary { width: 100%; min-width: 0; }
 @media (max-width: 560px) {
   .tabs { gap: 8px; }
-  .tabs button, .config-navigation summary {
+  .tabs button {
     padding: 10px 12px;
     font-size: 14px;
     line-height: 1.15;
     white-space: normal;
     text-align: center;
+  }
+
+  .top-actions > .config-navigation summary {
+    padding: 9px 7px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .top-actions > .config-navigation summary > span:last-child {
+    width: 20px;
+    height: 20px;
+  }
+
+  .top-actions > .config-navigation .config-navigation-options {
+    min-width: 142px;
   }
 }
