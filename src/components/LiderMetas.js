@@ -735,6 +735,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                 <button
                   type="button"
                   className={abaAtiva("metas") ? "active" : ""}
+                  data-config-metas-botao
                   aria-pressed={abaAtiva("metas")}
                   onClick={() => setTela("metas")}
                 >
