@@ -888,9 +888,11 @@ textarea:focus {
   outline-offset: 3px;
 }
 
-/* Evita um botão de Configurações isolado após retirar a aba do turno. */
+/* Mantém Configurações centralizado, com a largura dos outros botões. */
 .tabs > .config-navigation:last-child:nth-child(odd) {
   grid-column: 1 / -1;
+  width: calc((100% - 8px) / 2);
+  justify-self: center;
 }
 
 @media (max-width: 560px) {
