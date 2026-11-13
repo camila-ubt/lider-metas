@@ -1,15 +1,44 @@
 .sinal {
-  display: grid;
-  place-items: center;
+  position: relative;
+  display: inline-block;
   flex-shrink: 0;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   background: #f3ecf9;
   color: #7650a7;
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1;
 }
-.nativo::before { content: "•"; }
-:global(details[open] > summary) .nativo::before { content: "−"; }
+
+/* Dois traços de 25 graus formam um V mais aberto que o chevron tradicional. */
+.sinal::before,
+.sinal::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 1px);
+  width: 11px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform 0.18s ease;
+}
+.sinal::before {
+  left: calc(50% - 11px);
+  transform-origin: right center;
+  transform: rotate(25deg);
+}
+.sinal::after {
+  left: 50%;
+  transform-origin: left center;
+  transform: rotate(-25deg);
+}
+.aberto::before,
+:global(details[open] > summary) .nativo::before {
+  transform: rotate(-25deg);
+}
+.aberto::after,
+:global(details[open] > summary) .nativo::after {
+  transform: rotate(25deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sinal::before, .sinal::after { transition: none; }
+}
