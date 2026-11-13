@@ -569,7 +569,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                   <div className={styles.periodoAlertaListaLojas}>
                     {emRisco.length ? emRisco.map((item) => (
                       <span className={styles.periodoAlertaListaLoja} key={item.loja.id}>
-                        <span>{item.loja.nome || item.loja.codigo}</span>
+                        <span title={item.loja.nome || item.loja.codigo}>{item.loja.codigo || (item.loja.nome || "").trim().split(/\s+/).map((palavra) => palavra[0]).join("").toUpperCase()}</span>
                         <b>{textoPercentual(item.percentualProjetado)}</b>
                       </span>
                     )) : (
