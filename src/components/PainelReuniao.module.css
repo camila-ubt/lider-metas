@@ -142,9 +142,15 @@
   font-size: 15px;
   font-weight: 700;
   color: #49335d;
-  list-style-position: inside;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  list-style: none;
 }
 
+.acoes summary::-webkit-details-marker { display: none; }
+.acoes summary::marker { content: ""; }
 .acoes summary:focus-visible {
   outline: 2px solid #7650a7;
   outline-offset: 4px;
