@@ -41,6 +41,30 @@
   margin: 0;
 }
 
+/* O resumo da Jornada nunca recolhe: somente os três cartões de nível. */
+.hero .heroTop {
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.jornadaToggle {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.jornadaToggle:focus-visible {
+  outline: 3px solid #7650a7;
+  outline-offset: 2px;
+}
+
 .activeGoal {
   margin-top: 22px;
   border: 1px solid #e7ddef;
