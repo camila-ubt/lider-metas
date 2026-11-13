@@ -201,29 +201,31 @@
 
 /* Comparação compacta: a cor se aplica somente à porcentagem. */
 .metaKpiLinha {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "valor percentual"
+    "dias referencia";
+  align-items: baseline;
+  column-gap: 5px;
+  row-gap: 3px;
   min-width: 0;
 }
 
 .metaKpiLinha > strong {
-  flex: 0 1 auto;
+  grid-area: valor;
   min-width: 0;
   white-space: nowrap;
   overflow-wrap: normal;
 }
 
 .metaKpiComparativo {
-  display: grid;
-  flex: 0 0 auto;
-  justify-items: end;
-  gap: 2px;
-  margin-left: auto;
+  display: contents;
 }
 
 .kpi .metaKpiIndicador {
-  display: block;
+  grid-area: percentual;
+  justify-self: end;
   font-size: 12px;
   font-weight: 800;
   line-height: 1;
@@ -231,12 +233,18 @@
 }
 
 .kpi .metaKpiReferencia {
-  display: block;
+  grid-area: referencia;
+  justify-self: end;
   font-size: 9px;
   font-weight: 500;
   color: var(--muted);
   line-height: 1.1;
   white-space: nowrap;
+}
+
+.kpi .metaKpiDias {
+  grid-area: dias;
+  min-width: 0;
 }
 
 .kpi .metaKpiAcima {
