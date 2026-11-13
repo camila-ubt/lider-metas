@@ -44,7 +44,6 @@
 .turnosTitulo{display:grid;gap:4px}
 .turnosTitulo strong{font-size:18px;font-weight:700}
 .turnosTitulo small{font-size:13px;color:#746a79}
-.turnosSeta{display:grid;place-items:center;flex-shrink:0;width:32px;height:32px;border-radius:50%;background:#f3ecf9;font-size:22px;color:#7650a7}
 .turnosWrap .turnosHistoricos{margin:0 16px 16px}
 .turnoProjecao{display:grid;gap:5px;margin-top:10px;padding:10px 11px;border:1px solid #e3d7f0;border-radius:12px;background:#f1eaf8}
 .turnoProjecao p{display:flex;align-items:baseline;gap:5px;margin:0!important;font-size:12px!important;line-height:1.3}
