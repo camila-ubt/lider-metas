@@ -882,7 +882,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                     <b>
                       {turno.puxa?.loja?.codigo || "—"} · {turno.puxa?.dados?.percentual === null
                         ? dinheiro.format(turno.puxa?.dados?.vendido || 0)
-                        : `${percentual.format(turno.puxa?.dados?.percentual || 0)}%`}
+                        : <>{percentual.format(turno.puxa?.dados?.percentual || 0)}% <small className={styles.turnoLojasMeta}>da Meta</small></>}
                     </b>
                   </p>
                   <p>
@@ -890,7 +890,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
                     <b>
                       {turno.atencao?.loja?.codigo || "—"} · {turno.atencao?.dados?.percentual === null
                         ? dinheiro.format(turno.atencao?.dados?.vendido || 0)
-                        : `${percentual.format(turno.atencao?.dados?.percentual || 0)}%`}
+                        : <>{percentual.format(turno.atencao?.dados?.percentual || 0)}% <small className={styles.turnoLojasMeta}>da Meta</small></>}
                     </b>
                   </p>
                 </div>
