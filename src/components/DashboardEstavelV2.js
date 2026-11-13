@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   minutosDoHorario,
@@ -13,6 +13,7 @@ import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs"
 import { calcularMetaPorLojaDia, calcularVariacaoMetaPorLojaDia } from "@/lib/metaPorLojaDia.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
+import SinalExpandir from "./SinalExpandir";
 import { descreverSituacaoNivel } from "@/lib/situacaoNiveis.mjs";
 import styles from "./DashboardEstavelV2.module.css";
 
@@ -240,6 +241,8 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
   const [filtroLoja, setFiltroLoja] = useState("geral");
   const [filtroPeriodo, setFiltroPeriodo] = useState("todos");
   const [lojaAberta, setLojaAberta] = useState(null);
+  const [jornadaDetalhesAbertos, setJornadaDetalhesAbertos] = useState(true);
+  const idJornadaDetalhes = useId();
 
   useEffect(() => {
     let cancelado = false;
@@ -448,6 +451,17 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
             <p className={styles.eyebrow}>Jornada do mês</p>
             <h2>{tituloJornada}</h2>
           </div>
+          <button
+            type="button"
+            className={styles.jornadaToggle}
+            aria-label={jornadaDetalhesAbertos ? "Recolher detalhes das metas" : "Mostrar detalhes das metas"}
+            title={jornadaDetalhesAbertos ? "Recolher detalhes das metas" : "Mostrar detalhes das metas"}
+            aria-expanded={jornadaDetalhesAbertos}
+            aria-controls={idJornadaDetalhes}
+            onClick={() => setJornadaDetalhesAbertos((aberto) => !aberto)}
+          >
+            <SinalExpandir aberto={jornadaDetalhesAbertos} />
+          </button>
         </div>
         <div className={styles.activeGoal}>
           <div className={styles.activeGoalHeader}>
@@ -457,7 +471,11 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
           <div className={styles.activeTrack}><span style={{ width: `${dados.jornada.progresso}%` }} /></div>
           <small>{dados.mesPassado ? `${textoPercentual(porcentagem(dados.totalVendido, dados.meta))} da Meta` : `${textoPercentual(dados.jornada.progresso)} desta etapa`}</small>
         </div>
-        <Niveis vendido={dados.totalVendido} jornada={dados.jornada} encerrado={dados.mesPassado} diasRestantes={dados.diasRestantes} quantidadeLojas={Math.max(lojas.length, 1)} />
+        {jornadaDetalhesAbertos && (
+          <div id={idJornadaDetalhes}>
+            <Niveis vendido={dados.totalVendido} jornada={dados.jornada} encerrado={dados.mesPassado} diasRestantes={dados.diasRestantes} quantidadeLojas={Math.max(lojas.length, 1)} />
+          </div>
+        )}
       </article>
 
       <div className={styles.kpiGrid}>
