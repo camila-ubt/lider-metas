@@ -127,12 +127,12 @@ function CartaoDetalheMensal({ identificador, titulo, resultado, manha, noite, a
             {situacao}{resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
           </span>
         </span>
+        <span className={styles.acordeaoIcone}><SinalExpandir aberto={aberto} /></span>
         <span className={styles.acordeaoSegundaLinha}>
           <span className={styles.resumoVendido}>
             <span>Vendido</span>
             <strong>{moeda.format(resultado.vendido)}</strong>
           </span>
-          <SinalExpandir aberto={aberto} />
         </span>
       </button>
 
@@ -176,12 +176,12 @@ function CartaoDetalheTurno({ identificador, titulo, resultado, lojas, aberto, a
             {situacao}{resultado.percentual !== null && " · " + resultado.percentual.toFixed(1) + "%"}
           </span>
         </span>
+        <span className={styles.acordeaoIcone}><SinalExpandir aberto={aberto} /></span>
         <span className={styles.acordeaoSegundaLinha}>
           <span className={styles.resumoVendido}>
             <span>Vendido</span>
             <strong>{moeda.format(resultado.vendido)}</strong>
           </span>
-          <SinalExpandir aberto={aberto} />
         </span>
       </button>
       <div id={idConteudo} className={styles.conteudoCartao} hidden={!aberto}>
