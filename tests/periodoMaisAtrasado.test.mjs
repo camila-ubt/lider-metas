@@ -191,40 +191,37 @@ test("sem períodos restantes não divide a falta projetada por zero", () => {
   assert.equal(resultado.adicionalPorPeriodoRestante, null);
 });
 
-test("resumo lista todos os turnos projetados abaixo da meta, ordenados pelo risco", () => {
+test("resumo mostra apenas períodos abaixo da meta acumulada, com desvio negativo", () => {
   const resultado = calcular(lancamentos(1, (loja, periodo) => {
     if (loja === 2 && periodo === "manha") return 50;
     if (loja === 3 && periodo === "manha") return 80;
     if (loja === 1 && periodo === "noite") return 20;
-    if (loja === 3 && periodo === "noite") return 90;
+    if (loja === 3 && periodo === "noite") return 150;
     return null;
   }));
-  assert.deepEqual(resultado.projetadosAbaixoDaMeta.map((item) => ({
-    loja: item.loja.nome,
-    periodo: item.periodo,
-    percentual: item.percentualProjetado,
+  assert.deepEqual(resultado.abaixoDaMetaAcumulada.map((item) => ({
+    loja: item.loja.nome, periodo: item.periodo, atraso: item.atrasoPercentual,
   })), [
-    { loja: "Clube", periodo: "noite", percentual: 20 },
-    { loja: "Arte", periodo: "manha", percentual: 50 },
-    { loja: "Adoro", periodo: "manha", percentual: 80 },
-    { loja: "Adoro", periodo: "noite", percentual: 90 },
+    { loja: "Clube", periodo: "noite", atraso: 80 },
+    { loja: "Arte", periodo: "manha", atraso: 50 },
+    { loja: "Adoro", periodo: "manha", atraso: 20 },
   ]);
   assert.equal(resultado.loja.nome, "Clube");
   assert.equal(resultado.periodo, "noite");
 });
 
-test("resumo fica vazio quando todos os períodos atingiriam a meta", () => {
+test("resumo fica vazio quando todas estão em dia ou acima da meta acumulada", () => {
   const resultado = calcular(lancamentos(1));
   assert.equal(resultado.status, "em-dia");
-  assert.deepEqual(resultado.projetadosAbaixoDaMeta, []);
+  assert.deepEqual(resultado.abaixoDaMetaAcumulada, []);
 });
 
-test("resumo ignora dias com lançamentos incompletos e não trata ausências como zero", () => {
+test("não considera período incompleto para sinalizar atraso", () => {
   const diaIncompleto = lancamentos(2, (loja, periodo) =>
     loja === 3 && periodo === "manha" ? 0 : null,
   ).filter((item) => !(item.loja_id === 1 && item.periodo === "manha"));
   const resultado = calcular([...lancamentos(1), ...diaIncompleto], {
     contexto: contexto("andamento", 2),
   });
-  assert.deepEqual(resultado.projetadosAbaixoDaMeta, []);
+  assert.deepEqual(resultado.abaixoDaMetaAcumulada, []);
 });
