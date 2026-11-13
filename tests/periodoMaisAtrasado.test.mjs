@@ -190,3 +190,41 @@ test("sem períodos restantes não divide a falta projetada por zero", () => {
   assert.equal(resultado.periodosRestantes, 0);
   assert.equal(resultado.adicionalPorPeriodoRestante, null);
 });
+
+test("resumo lista todos os turnos projetados abaixo da meta, ordenados pelo risco", () => {
+  const resultado = calcular(lancamentos(1, (loja, periodo) => {
+    if (loja === 2 && periodo === "manha") return 50;
+    if (loja === 3 && periodo === "manha") return 80;
+    if (loja === 1 && periodo === "noite") return 20;
+    if (loja === 3 && periodo === "noite") return 90;
+    return null;
+  }));
+  assert.deepEqual(resultado.projetadosAbaixoDaMeta.map((item) => ({
+    loja: item.loja.nome,
+    periodo: item.periodo,
+    percentual: item.percentualProjetado,
+  })), [
+    { loja: "Clube", periodo: "noite", percentual: 20 },
+    { loja: "Arte", periodo: "manha", percentual: 50 },
+    { loja: "Adoro", periodo: "manha", percentual: 80 },
+    { loja: "Adoro", periodo: "noite", percentual: 90 },
+  ]);
+  assert.equal(resultado.loja.nome, "Clube");
+  assert.equal(resultado.periodo, "noite");
+});
+
+test("resumo fica vazio quando todos os períodos atingiriam a meta", () => {
+  const resultado = calcular(lancamentos(1));
+  assert.equal(resultado.status, "em-dia");
+  assert.deepEqual(resultado.projetadosAbaixoDaMeta, []);
+});
+
+test("resumo ignora dias com lançamentos incompletos e não trata ausências como zero", () => {
+  const diaIncompleto = lancamentos(2, (loja, periodo) =>
+    loja === 3 && periodo === "manha" ? 0 : null,
+  ).filter((item) => !(item.loja_id === 1 && item.periodo === "manha"));
+  const resultado = calcular([...lancamentos(1), ...diaIncompleto], {
+    contexto: contexto("andamento", 2),
+  });
+  assert.deepEqual(resultado.projetadosAbaixoDaMeta, []);
+});
