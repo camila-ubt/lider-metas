@@ -10,7 +10,7 @@ import {
 import { contextoDoMes } from "@/lib/contextoMes";
 import { classificarProjecao } from "@/lib/classificarProjecao.mjs";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
-import { calcularMetaPorLojaDia } from "@/lib/metaPorLojaDia.mjs";
+import { calcularMetaPorLojaDia, calcularVariacaoMetaPorLojaDia } from "@/lib/metaPorLojaDia.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
 import { descreverSituacaoNivel } from "@/lib/situacaoNiveis.mjs";
@@ -334,6 +334,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       jornada, vendido: totalVendido, diasRestantes: diasRestantesGeral,
       quantidadeLojas: lojas.length,
     });
+    const variacaoMetaPorLojaDia = calcularVariacaoMetaPorLojaDia({
+      metaAtual: metaPorLojaDia, jornada, totalDias, quantidadeLojas: lojas.length,
+    });
 
     let acumulado = 0;
     const acumuladoGeral = dias.map((valor, indice) => {
@@ -386,7 +389,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       ano, numeroMes, totalDias, diaCorte, mesAtual, mesPassado, mesFuturo,
       diasRestantes: diasRestantesGeral, diasRestantesManha, diasRestantesNoite,
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
-      meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia,
+      meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia, variacaoMetaPorLojaDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
@@ -469,13 +472,33 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         ) : (
           <article className={styles.kpi}>
             <span>{dados.jornada.completa ? "Jornada concluída" : `${dados.jornada.alvo.nome} por loja/dia`}</span>
-            <strong>
-              {dados.jornada.completa
-                ? "Megameta batida"
-                : dados.metaPorLojaDia === null
-                  ? "—"
-                  : dinheiro.format(dados.metaPorLojaDia)}
-            </strong>
+            <div className={styles.metaKpiLinha}>
+              <strong>
+                {dados.jornada.completa
+                  ? "Megameta batida"
+                  : dados.metaPorLojaDia === null
+                    ? "—"
+                    : dinheiro.format(dados.metaPorLojaDia)}
+              </strong>
+              {dados.variacaoMetaPorLojaDia !== null && (
+                <span
+                  className={`${styles.metaKpiIndicador} ${
+                    dados.variacaoMetaPorLojaDia > 0
+                      ? styles.metaKpiAcima
+                      : dados.variacaoMetaPorLojaDia < 0
+                        ? styles.metaKpiAbaixo
+                        : styles.metaKpiIgual
+                  }`}
+                  title="Variação da meta ajustada por loja/dia em relação à meta fixa do mesmo nível"
+                  aria-label={`Meta por loja e dia ${
+                    dados.variacaoMetaPorLojaDia > 0 ? "acima" : dados.variacaoMetaPorLojaDia < 0 ? "abaixo" : "igual"
+                  } à meta fixa em ${textoPercentual(Math.abs(dados.variacaoMetaPorLojaDia))}`}
+                >
+                  {dados.variacaoMetaPorLojaDia > 0 ? "↑" : dados.variacaoMetaPorLojaDia < 0 ? "↓" : "→"}{" "}
+                  {textoPercentual(Math.abs(dados.variacaoMetaPorLojaDia))}
+                </span>
+              )}
+            </div>
             <small>
               {dados.jornada.completa
                 ? "Todas as metas conquistadas"
