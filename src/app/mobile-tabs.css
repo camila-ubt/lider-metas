@@ -15,13 +15,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 5px;
   text-align: center;
   cursor: pointer;
   list-style: none;
 }
 .config-navigation summary::-webkit-details-marker { display: none; }
 .config-navigation summary::marker { content: ""; }
+/* Chevron compacto para não quebrar o título no botão de meia coluna. */
+.config-navigation summary > span:last-child {
+  width: 24px;
+  height: 24px;
+}
 .config-navigation:has(button.active) summary {
   background: var(--primary);
   border-color: var(--primary);
