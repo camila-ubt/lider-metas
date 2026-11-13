@@ -473,13 +473,24 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
           <article className={styles.kpi}>
             <span>{dados.jornada.completa ? "Jornada concluída" : `${dados.jornada.alvo.nome} por loja/dia`}</span>
             <div className={styles.metaKpiLinha}>
-              <strong>
-                {dados.jornada.completa
-                  ? "Megameta batida"
-                  : dados.metaPorLojaDia === null
-                    ? "—"
-                    : dinheiro.format(dados.metaPorLojaDia)}
-              </strong>
+              <div className={styles.metaKpiValor}>
+                <strong>
+                  {dados.jornada.completa
+                    ? "Megameta batida"
+                    : dados.metaPorLojaDia === null
+                      ? "—"
+                      : dinheiro.format(dados.metaPorLojaDia)}
+                </strong>
+                <small className={styles.metaKpiDias}>
+                  {dados.jornada.completa
+                    ? "Todas as metas conquistadas"
+                    : dados.jornada.semMeta
+                      ? "Sem meta cadastrada"
+                      : dados.diasRestantes === 0
+                        ? "Sem dias restantes"
+                        : dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
+                </small>
+              </div>
               {dados.variacaoMetaPorLojaDia !== null && (
                 <div
                   className={styles.metaKpiComparativo}
@@ -501,15 +512,6 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                   <small className={styles.metaKpiReferencia}>meta fixa</small>
                 </div>
               )}
-              <small className={styles.metaKpiDias}>
-                {dados.jornada.completa
-                  ? "Todas as metas conquistadas"
-                  : dados.jornada.semMeta
-                    ? "Sem meta cadastrada"
-                    : dados.diasRestantes === 0
-                      ? "Sem dias restantes"
-                      : dados.diasRestantes === 1 ? "1 dia restante" : `${dados.diasRestantes} dias restantes`}
-              </small>
             </div>
           </article>
         )}
