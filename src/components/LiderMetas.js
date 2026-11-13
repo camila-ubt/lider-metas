@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import DashboardEstavel from "@/components/DashboardEstavel";
 import RankingAnual from "@/components/RankingAnual";
 import ManualUsuario from "@/components/ManualUsuario";
+import SinalExpandir from "@/components/SinalExpandir";
 import PAVendedoras from "@/components/PAVendedoras";
 import MetasImpressao from "@/components/MetasImpressao";
 import AcompanhamentoTurno from "@/components/AcompanhamentoTurno";
@@ -776,7 +777,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
         )}
         {perfil.papel === "admin" && (
           <details className="config-navigation">
-            <summary>Configurações</summary>
+            <summary><span>Configurações</span><SinalExpandir nativo /></summary>
             <div className="config-navigation-options" data-config-navigation-options>
               <button
                 type="button"
