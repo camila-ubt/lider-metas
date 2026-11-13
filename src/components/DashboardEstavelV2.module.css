@@ -987,3 +987,73 @@
 .inteligenciaSlot:empty {
   display: none;
 }
+
+/* Resumo secundário dos turnos sob risco, sem competir com o destaque principal. */
+.periodoAlertaLista {
+  display: grid;
+  gap: 9px;
+  padding-top: 12px;
+  border-top: 1px solid #e8dbe7;
+}
+
+.periodoAlertaListaTopo h3 {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary-dark);
+}
+
+.periodoAlertaListaTopo small,
+.periodoAlertaListaVazia {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.periodoAlertaListaLinha {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.periodoAlertaListaLinha > strong {
+  padding-top: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.periodoAlertaListaLojas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+.periodoAlertaListaLoja {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px 7px;
+  padding: 5px 8px;
+  border: 1px solid #ebe3ed;
+  border-radius: 8px;
+  background: #fbf9fc;
+  font-size: 11px;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.periodoAlertaListaLoja > span {
+  overflow-wrap: anywhere;
+}
+
+.periodoAlertaListaLoja b {
+  font-weight: 800;
+  color: #a3324c;
+  white-space: nowrap;
+}
+
+.periodoAlertaListaVazia {
+  padding: 5px 0;
+}
