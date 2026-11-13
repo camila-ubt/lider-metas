@@ -1,7 +1,10 @@
 import styles from "./SinalExpandir.module.css";
 
-// Sinal visual padronizado para controles de abrir/fechar seções.
-// A semântica do botão e aria-expanded ficam no componente que o utiliza.
-export default function SinalExpandir({ aberto }) {
-  return <span className={styles.sinal} aria-hidden="true">{aberto ? "−" : "+"}</span>;
+// Ícone comum aos controles de seção. Em <details>, o CSS acompanha o estado nativo.
+export default function SinalExpandir({ aberto, nativo = false }) {
+  return (
+    <span className={`${styles.sinal} ${nativo ? styles.nativo : ""}`} aria-hidden="true">
+      {nativo ? null : aberto ? "−" : "+"}
+    </span>
+  );
 }
