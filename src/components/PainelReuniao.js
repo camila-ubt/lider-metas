@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import SinalExpandir from "./SinalExpandir";
+import SinalExpandir from "./SinalExpandir";
 import { createClient } from "@/lib/supabase/client";
 import {
   minutosDoHorario,
@@ -688,7 +689,10 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       </div>
 
       <details className={styles.acoes}>
-        <summary>{futuro ? "Antes de começar" : notaCalculada === null ? "Critérios da avaliação" : "Entenda a nota " + notaTexto}</summary>
+        <summary>
+          <span>{futuro ? "Antes de começar" : notaCalculada === null ? "Critérios da avaliação" : "Entenda a nota " + notaTexto}</span>
+          <SinalExpandir nativo />
+        </summary>
         <div className={styles.acoesConteudo}>
           {criterioNota && <p>{criterioNota}</p>}
           {notaCalculada !== null && (
