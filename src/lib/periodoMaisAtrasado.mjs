@@ -109,10 +109,20 @@ export function encontrarPeriodoMaisAtrasado({
 
   if (!resultados.length) return { status: "sem-lancamentos" };
 
+  // Usa os mesmos dias completos da comparação para listar cada loja/turno
+  // projetado abaixo da Meta, preservando o destaque do maior atraso.
+  const projetadosAbaixoDaMeta = resultados
+    .filter((item) => item.percentualProjetado < 100)
+    .sort((a, b) => a.percentualProjetado - b.percentualProjetado ||
+      b.faltaProjetada - a.faltaProjetada)
+    .map(({ loja, periodo, percentualProjetado }) => ({
+      loja, periodo, percentualProjetado,
+    }));
+
   const atrasados = resultados.filter((item) => item.atraso > 0).sort(
     (a, b) => b.atrasoPercentual - a.atrasoPercentual || b.atraso - a.atraso,
   );
   return atrasados.length
-    ? { status: "atrasado", ...atrasados[0] }
-    : { status: "em-dia" };
+    ? { status: "atrasado", ...atrasados[0], projetadosAbaixoDaMeta }
+    : { status: "em-dia", projetadosAbaixoDaMeta };
 }
