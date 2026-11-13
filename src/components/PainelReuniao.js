@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import SinalExpandir from "./SinalExpandir";
 import { createClient } from "@/lib/supabase/client";
 import {
   minutosDoHorario,
@@ -720,7 +721,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
           <strong>{encerrado ? "Resultado final dos turnos" : futuro ? "Planejamento por turno" : "Leitura diária e projeção dos turnos"}</strong>
           <small>Manhã e noite</small>
         </span>
-        <span className={styles.turnosSeta} aria-hidden="true">{turnosAbertos ? "−" : "+"}</span>
+        <SinalExpandir aberto={turnosAbertos} />
       </button>
       {turnosAbertos && (
         <div id={idTurnos}>
