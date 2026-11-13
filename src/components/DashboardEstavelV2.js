@@ -241,7 +241,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
   const [filtroLoja, setFiltroLoja] = useState("geral");
   const [filtroPeriodo, setFiltroPeriodo] = useState("todos");
   const [lojaAberta, setLojaAberta] = useState(null);
-  const [jornadaDetalhesAbertos, setJornadaDetalhesAbertos] = useState(true);
+  const [jornadaDetalhesAbertos, setJornadaDetalhesAbertos] = useState(false);
   const idJornadaDetalhes = useId();
 
   useEffect(() => {
