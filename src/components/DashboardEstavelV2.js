@@ -658,10 +658,10 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
             const resultadoLoja = nivelFechado(loja.vendido, loja.meta);
             return (
               <div className={styles.rankWrapper} key={loja.id}>
-                <button type="button" className={`${styles.rankButton} ${aberta ? styles.rankButtonOpen : ""}`} onClick={() => setLojaAberta(aberta ? null : loja.id)} aria-expanded={aberta}>
+                <button type="button" className={`${styles.rankButton} ${aberta ? styles.rankButtonOpen : ""}`} onClick={() => setLojaAberta(aberta ? null : loja.id)} aria-expanded={aberta} aria-label={`${aberta ? "Recolher" : "Abrir"} detalhes de ${loja.nome}`}>
                   <span className={styles.rankNumber}>{indice + 1}</span>
                   <span className={styles.rankName}><strong>{loja.codigo} — {loja.nome}</strong><small>{dados.mesPassado ? `Fechou em ${resultadoLoja}` : loja.jornada.completa ? "Megameta batida" : `Próximo nível: ${loja.jornada.alvo.nome}`}</small></span>
-                  <b>{textoPercentual(loja.percentual)}</b><span className={styles.chevron}>⌄</span>
+                  <b>{textoPercentual(loja.percentual)}</b><SinalExpandir aberto={aberta} />
                 </button>
                 {aberta && (
                   <div className={styles.rankDetails}>
