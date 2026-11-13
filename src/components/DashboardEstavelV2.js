@@ -462,7 +462,24 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
 
       <div className={styles.kpiGrid}>
         <article className={styles.kpi}><span>Total vendido</span><strong>{dinheiro.format(dados.totalVendido)}</strong><small>{textoPercentual(porcentagem(dados.totalVendido, dados.meta))} da Meta</small></article>
-        <article className={styles.kpi}><span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span><strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong><small>{dados.mesPassado ? dinheiro.format(dados.totalVendido) : dados.projecao === null ? "Aguardando vendas lançadas" : `Fechamento projetado: ${dados.nivelProjetado}`}</small></article>
+        <article className={styles.kpi}>
+          <span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span>
+          <strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong>
+          <small>
+            {dados.mesPassado
+              ? dinheiro.format(dados.totalVendido)
+              : dados.projecao === null
+                ? "Aguardando vendas lançadas"
+                : (
+                  <>
+                    Fechamento projetado:{" "}
+                    <b className={dados.nivelProjetado === "abaixo da Meta" ? styles.projecaoAbaixo : styles.projecaoAcima}>
+                      {dados.nivelProjetado}
+                    </b>
+                  </>
+                )}
+          </small>
+        </article>
         {dados.mesPassado ? (
           <article className={styles.kpi}>
             <span>Fechamento</span>
