@@ -272,3 +272,12 @@
     overflow-wrap: normal;
   }
 }
+
+/* Esclarece que o percentual é da meta, não o percentual de atraso. */
+.turnoLojas b .turnoLojasMeta {
+  display: inline;
+  font-size: 10px;
+  font-weight: 500;
+  color: #746a79;
+  white-space: nowrap;
+}
