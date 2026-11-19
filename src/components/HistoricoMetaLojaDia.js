@@ -2,15 +2,25 @@
 
 import { useEffect, useState } from "react";
 import {
-  CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer,
+  Tooltip, XAxis, YAxis,
 } from "recharts";
 import styles from "./DashboardEstavelV2.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const compacto = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
+const decimal = new Intl.NumberFormat("pt-BR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
-function valorOuTraco(valor) {
-  return valor === null || valor === undefined ? "—" : dinheiro.format(valor);
+function percentual(valor, comSinal = false) {
+  if (valor === null || valor === undefined) return "—";
+  return (comSinal && valor > 0 ? "+" : "") + decimal.format(valor) + "%";
+}
+
+function pontosPercentuais(valor) {
+  if (valor === null || valor === undefined) return "—";
+  return decimal.format(Math.abs(valor)) + " p.p.";
 }
 
 export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
@@ -31,22 +41,31 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
 
   const selecionado = historico.find((item) => item.dia === diaSelecionado)
     || historico[historico.length - 1];
-  const anterior = historico.find((item) => item.dia === selecionado.dia - 1);
-  const variacao = anterior
-    && anterior.nivel === selecionado.nivel
-    && anterior.necessario !== null && anterior.necessario > 0
-    && selecionado.necessario !== null
-    ? ((selecionado.necessario / anterior.necessario) - 1) * 100
-    : null;
   const diaTexto = String(selecionado.dia).padStart(2, "0") + "/" + numeroMes;
   const diaParcial = mesAtual && selecionado.dia === historico[historico.length - 1].dia;
+  const dadosGrafico = historico.map((item) => ({
+    ...item,
+    meta: item.nivel === "Meta" ? item.desvioPercentual : null,
+    super: item.nivel === "Supermeta" ? item.desvioPercentual : null,
+    mega: item.nivel === "Megameta" ? item.desvioPercentual : null,
+  }));
+  const variacao = selecionado.variacaoPp;
+  const mensagemVariacao = variacao === null
+    ? selecionado.mudouNivel
+      ? "Mudança de etapa: a comparação com o dia anterior foi reiniciada."
+      : "Sem comparação com o dia anterior."
+    : variacao > 0
+      ? "↑ Subiu " + pontosPercentuais(variacao) + " desde o dia anterior"
+      : variacao < 0
+        ? "↓ Caiu " + pontosPercentuais(variacao) + " desde o dia anterior"
+        : "→ Sem alteração em relação ao dia anterior";
 
   return (
     <div className={styles.metaHistoricoConteudo}>
       <div className={styles.metaHistoricoCabecalho}>
         <div>
-          <h3>Evolução por loja/dia</h3>
-          <small>Necessário para atingir a próxima etapa × meta fixa da etapa</small>
+          <h3>Evolução da meta necessária</h3>
+          <small>Diferença percentual em relação à meta fixa de cada etapa</small>
         </div>
         <select
           aria-label="Escolher um dia do histórico"
@@ -61,10 +80,10 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
           ))}
         </select>
       </div>
-      <div className={styles.metaHistoricoGrafico} role="group" aria-label="Gráfico da evolução diária da meta necessária">
+      <div className={styles.metaHistoricoGrafico} role="group" aria-label="Evolução do desvio percentual da meta diária em relação à meta fixa">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={historico}
+            data={dadosGrafico}
             margin={{ top: 12, right: 12, left: -8, bottom: 2 }}
             onClick={(estado) => {
               const dia = Number(estado?.activeLabel);
@@ -74,47 +93,46 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
             <CartesianGrid stroke="#eee8f2" strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="dia" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#786f81" }} minTickGap={16} />
             <YAxis
-              width={57}
+              width={52}
               tickLine={false}
               axisLine={false}
               tick={{ fontSize: 10, fill: "#786f81" }}
-              tickFormatter={(valor) => compacto.format(valor)}
-              domain={[0, "auto"]}
+              tickFormatter={(valor) => percentual(valor)}
+              domain={[
+                (minimo) => Math.min(0, Math.floor(minimo)),
+                (maximo) => Math.max(0, Math.ceil(maximo)),
+              ]}
             />
             <Tooltip
-              formatter={(valor, nome) => [valorOuTraco(valor), nome]}
+              formatter={(valor, nome) => [percentual(valor, true), "Diferença · " + nome]}
               labelFormatter={(dia) => "Dia " + String(dia).padStart(2, "0") + "/" + numeroMes}
               contentStyle={{ borderRadius: 12, border: "1px solid #e7ddef", fontSize: 12 }}
             />
-            <Line
-              type="monotone"
-              dataKey="fixa"
-              name="Meta fixa"
-              stroke="#a7a0ae"
-              strokeWidth={2}
-              strokeDasharray="5 4"
-              dot={false}
-              activeDot={{ r: 5 }}
-              isAnimationActive={false}
-              connectNulls={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="necessario"
-              name="Meta necessária"
-              stroke="#7650a7"
-              strokeWidth={3}
-              dot={false}
-              activeDot={{ r: 6 }}
-              isAnimationActive={false}
-              connectNulls={false}
-            />
+            <ReferenceLine y={0} stroke="#a7a0ae" strokeWidth={2} strokeDasharray="5 4" />
+            {[
+              { campo: "meta", nome: "Meta" },
+              { campo: "super", nome: "Supermeta" },
+              { campo: "mega", nome: "Megameta" },
+            ].map((serie) => (
+              <Line
+                key={serie.campo}
+                type="monotone"
+                dataKey={serie.campo}
+                name={serie.nome}
+                stroke="#7650a7"
+                strokeWidth={3}
+                dot={{ r: 2 }}
+                activeDot={{ r: 6 }}
+                isAnimationActive={false}
+                connectNulls={false}
+              />
+            ))}
           </LineChart>
         </ResponsiveContainer>
       </div>
       <div className={styles.metaHistoricoLegenda}>
-        <span><i className={styles.metaHistoricoLinhaNecessaria} /> Meta necessária</span>
-        <span><i className={styles.metaHistoricoLinhaFixa} /> Meta fixa</span>
+        <span><i className={styles.metaHistoricoLinhaNecessaria} /> Desvio da meta fixa</span>
+        <span><i className={styles.metaHistoricoLinhaFixa} /> 0% = meta fixa</span>
       </div>
       <div className={styles.metaHistoricoDetalhe} aria-live="polite">
         <div className={styles.metaHistoricoDetalheTopo}>
@@ -122,24 +140,31 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
           <span>{selecionado.nivel}</span>
         </div>
         <div className={styles.metaHistoricoValores}>
-          <div><small>Necessário por loja/dia</small><strong>{valorOuTraco(selecionado.necessario)}</strong></div>
-          <div><small>Meta fixa da etapa</small><strong>{valorOuTraco(selecionado.fixa)}</strong></div>
+          <div>
+            <small>Em relação à meta fixa</small>
+            <strong>{percentual(selecionado.desvioPercentual, true)}</strong>
+          </div>
+          <div>
+            <small>Variação diária</small>
+            <strong>{variacao === null ? "—" : (variacao > 0 ? "+" : variacao < 0 ? "−" : "") + pontosPercentuais(variacao)}</strong>
+          </div>
         </div>
+        <small className={styles.metaHistoricoVariacao}>
+          {mensagemVariacao}
+        </small>
         <small>
           {selecionado.diasRestantes} {selecionado.diasRestantes === 1 ? "dia restante" : "dias restantes"}
           {" · "}Vendido acumulado: {dinheiro.format(selecionado.acumulado)}
         </small>
         {selecionado.concluida && <small>Todas as etapas conquistadas.</small>}
-        {!selecionado.concluida && selecionado.necessario === null && <small>Não restavam dias para recuperar o saldo.</small>}
-        {variacao !== null && (
-          <small className={styles.metaHistoricoVariacao}>
-            {variacao > 0 ? "↑" : variacao < 0 ? "↓" : "→"} {Math.abs(variacao).toFixed(1).replace(".", ",")}% em relação ao dia anterior
-          </small>
+        {!selecionado.concluida && selecionado.necessario === null && (
+          <small>Não restavam dias para recuperar o saldo.</small>
         )}
       </div>
       <small className={styles.metaHistoricoNota}>
-        Dias anteriores: saldo após o fechamento do dia. Hoje: valor atualizado com as vendas lançadas.
-        A linha fixa acompanha a etapa (Meta, Supermeta ou Megameta).
+        Acima de 0%, precisa vender mais que a meta fixa; abaixo de 0%, menos.
+        A mudança diária aparece em pontos percentuais (p.p.).
+        Na mudança de etapa, a linha e a comparação são reiniciadas.
       </small>
     </div>
   );
