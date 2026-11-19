@@ -11,8 +11,10 @@ import { contextoDoMes } from "@/lib/contextoMes";
 import { classificarProjecao } from "@/lib/classificarProjecao.mjs";
 import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
 import { calcularMetaPorLojaDia, calcularVariacaoMetaPorLojaDia } from "@/lib/metaPorLojaDia.mjs";
+import { gerarHistoricoMetaLojaDia } from "@/lib/historicoMetaLojaDia.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
+import HistoricoMetaLojaDia from "./HistoricoMetaLojaDia";
 import SinalExpandir from "./SinalExpandir";
 import { descreverSituacaoNivel } from "@/lib/situacaoNiveis.mjs";
 import styles from "./DashboardEstavelV2.module.css";
@@ -242,7 +244,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
   const [filtroPeriodo, setFiltroPeriodo] = useState("todos");
   const [lojaAberta, setLojaAberta] = useState(null);
   const [jornadaDetalhesAbertos, setJornadaDetalhesAbertos] = useState(false);
+  const [metaHistoricoAberto, setMetaHistoricoAberto] = useState(false);
   const idJornadaDetalhes = useId();
+  const idMetaHistorico = useId();
 
   useEffect(() => {
     let cancelado = false;
@@ -340,6 +344,10 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const variacaoMetaPorLojaDia = calcularVariacaoMetaPorLojaDia({
       metaAtual: metaPorLojaDia, jornada, totalDias, quantidadeLojas: lojas.length,
     });
+    const historicoMetaLojaDia = gerarHistoricoMetaLojaDia({
+      vendas, metaMensal: meta, quantidadeLojas: lojas.length,
+      totalDias, diaCorte, mesAtual, diasRestantesAtual: diasRestantesGeral,
+    });
 
     let acumulado = 0;
     const acumuladoGeral = dias.map((valor, indice) => {
@@ -393,13 +401,14 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       diasRestantes: diasRestantesGeral, diasRestantesManha, diasRestantesNoite,
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
       meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia, variacaoMetaPorLojaDia,
+      historicoMetaLojaDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
     };
   }, [mes, vendas, metas, lojas, horarios, minutosAtuais]);
 
-  useEffect(() => { setLojaAberta(null); }, [mes]);
+  useEffect(() => { setLojaAberta(null); setMetaHistoricoAberto(false); }, [mes]);
 
   const comparativoHistorico = useMemo(() => {
     const anos = [dados.ano - 2, dados.ano - 1, dados.ano];
@@ -499,14 +508,14 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
           </small>
         </article>
         {dados.mesPassado ? (
-          <article className={styles.kpi}>
-            <span>Fechamento</span>
+          <button type="button" className={`${styles.kpi} ${styles.metaKpiBotao}`} onClick={() => setMetaHistoricoAberto((aberto) => !aberto)} aria-expanded={metaHistoricoAberto} aria-controls={metaHistoricoAberto ? idMetaHistorico : undefined} title={metaHistoricoAberto ? "Recolher histórico da meta diária" : "Abrir histórico da meta diária"}>
+            <div className={styles.metaKpiCabecalho}><span>Fechamento</span><SinalExpandir aberto={metaHistoricoAberto} /></div>
             <strong>{dados.nivelFechado}</strong>
             <small>Mês encerrado</small>
-          </article>
+          </button>
         ) : (
-          <article className={styles.kpi}>
-            <span>{dados.jornada.completa ? "Jornada concluída" : `${dados.jornada.alvo.nome} por loja/dia`}</span>
+          <button type="button" className={`${styles.kpi} ${styles.metaKpiBotao}`} onClick={() => setMetaHistoricoAberto((aberto) => !aberto)} aria-expanded={metaHistoricoAberto} aria-controls={metaHistoricoAberto ? idMetaHistorico : undefined} title={metaHistoricoAberto ? "Recolher histórico da meta diária" : "Abrir histórico da meta diária"}>
+            <div className={styles.metaKpiCabecalho}><span>{dados.jornada.completa ? "Jornada concluída" : `${dados.jornada.alvo.nome} por loja/dia`}</span><SinalExpandir aberto={metaHistoricoAberto} /></div>
             <div className={styles.metaKpiLinha}>
               <div className={styles.metaKpiValor}>
                 <strong>
@@ -548,10 +557,15 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                 </div>
               )}
             </div>
-          </article>
+          </button>
         )}
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
+      {metaHistoricoAberto && (
+        <article id={idMetaHistorico} className={`${styles.card} ${styles.metaHistoricoCard}`}>
+          <HistoricoMetaLojaDia historico={dados.historicoMetaLojaDia} mes={mes} mesAtual={dados.mesAtual} />
+        </article>
+      )}
 
       <article className={`${styles.card} ${styles.periodoAlerta}`} aria-label="Comparativo de desempenho entre lojas e períodos">
         <div className={styles.periodoAlertaTopo}>
