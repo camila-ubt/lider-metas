@@ -50,15 +50,13 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
     mega: item.nivel === "Megameta" ? item.desvioPercentual : null,
   }));
   const variacao = selecionado.variacaoPp;
-  const mensagemVariacao = variacao === null
-    ? selecionado.mudouNivel
-      ? "Mudança de etapa: a comparação com o dia anterior foi reiniciada."
-      : "Sem comparação com o dia anterior."
+  const textoMudanca = variacao === null
+    ? "—"
     : variacao > 0
-      ? "↑ Subiu " + pontosPercentuais(variacao) + " desde o dia anterior"
+      ? "↑ Subiu " + pontosPercentuais(variacao)
       : variacao < 0
-        ? "↓ Caiu " + pontosPercentuais(variacao) + " desde o dia anterior"
-        : "→ Sem alteração em relação ao dia anterior";
+        ? "↓ Caiu " + pontosPercentuais(variacao)
+        : "→ Sem mudança";
 
   return (
     <div className={styles.metaHistoricoConteudo}>
@@ -145,13 +143,17 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
             <strong>{percentual(selecionado.desvioPercentual, true)}</strong>
           </div>
           <div>
-            <small>Variação diária</small>
-            <strong>{variacao === null ? "—" : (variacao > 0 ? "+" : variacao < 0 ? "−" : "") + pontosPercentuais(variacao)}</strong>
+            <small>Mudança em relação ao dia anterior</small>
+            <strong>{textoMudanca}</strong>
           </div>
         </div>
-        <small className={styles.metaHistoricoVariacao}>
-          {mensagemVariacao}
-        </small>
+        {variacao === null && (
+          <small className={styles.metaHistoricoVariacao}>
+            {selecionado.mudouNivel
+              ? "Mudou a etapa da meta; a comparação começa novamente."
+              : "Ainda não há dia anterior para comparar."}
+          </small>
+        )}
         <small>
           {selecionado.diasRestantes} {selecionado.diasRestantes === 1 ? "dia restante" : "dias restantes"}
           {" · "}Vendido acumulado: {dinheiro.format(selecionado.acumulado)}
@@ -163,8 +165,8 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
       </div>
       <small className={styles.metaHistoricoNota}>
         Acima de 0%, precisa vender mais que a meta fixa; abaixo de 0%, menos.
-        A mudança diária aparece em pontos percentuais (p.p.).
-        Na mudança de etapa, a linha e a comparação são reiniciadas.
+        A mudança é em pontos percentuais (p.p.): cair significa precisar vender menos por dia.
+        Ao mudar de etapa, a comparação recomeça.
       </small>
     </div>
   );
