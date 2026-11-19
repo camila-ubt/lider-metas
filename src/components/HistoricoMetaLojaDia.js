@@ -6,6 +6,7 @@ import {
   Tooltip, XAxis, YAxis,
 } from "recharts";
 import styles from "./DashboardEstavelV2.module.css";
+import { obterDiaPeloIndiceGrafico } from "@/lib/selecaoHistoricoGrafico.mjs";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const decimal = new Intl.NumberFormat("pt-BR", {
@@ -21,6 +22,48 @@ function percentual(valor, comSinal = false) {
 function pontosPercentuais(valor) {
   if (valor === null || valor === undefined) return "—";
   return decimal.format(Math.abs(valor)) + " p.p.";
+}
+
+// O ponto conhece o dia pelo próprio payload. Não depende do rótulo de hover,
+// que pode corresponder ao ponto vizinho em telas estreitas.
+function PontoSelecionavel({ cx, cy, payload, diaSelecionado, selecionarDia }) {
+  const dia = Number(payload?.dia);
+  if (!Number.isFinite(cx) || !Number.isFinite(cy) || !Number.isInteger(dia) || dia < 1) {
+    return null;
+  }
+
+  const selecionado = dia === diaSelecionado;
+  const selecionar = (evento) => {
+    evento.stopPropagation();
+    selecionarDia(dia);
+  };
+
+  return (
+    <g
+      role="button"
+      tabIndex={0}
+      aria-label={`Selecionar dados do dia ${dia}`}
+      onClick={selecionar}
+      onKeyDown={(evento) => {
+        if (evento.key === "Enter" || evento.key === " ") {
+          evento.preventDefault();
+          selecionar(evento);
+        }
+      }}
+      style={{ cursor: "pointer" }}
+    >
+      <circle cx={cx} cy={cy} r={8} fill="transparent" pointerEvents="all" />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={selecionado ? 4 : 2.5}
+        fill="#7650a7"
+        stroke={selecionado ? "#fff" : "none"}
+        strokeWidth={2}
+        pointerEvents="none"
+      />
+    </g>
+  );
 }
 
 export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
@@ -84,8 +127,10 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
             data={dadosGrafico}
             margin={{ top: 12, right: 12, left: -8, bottom: 2 }}
             onClick={(estado) => {
-              const dia = Number(estado?.activeLabel);
-              if (Number.isInteger(dia) && dia > 0) setDiaSelecionado(dia);
+              // Para cliques no espaço entre pontos, usa a posição no conjunto
+              // completo de dados, não activeLabel (rótulo sujeito a defasagem).
+              const dia = obterDiaPeloIndiceGrafico(estado, dadosGrafico);
+              if (dia !== null) setDiaSelecionado(dia);
             }}
           >
             <CartesianGrid stroke="#eee8f2" strokeDasharray="3 3" vertical={false} />
@@ -119,8 +164,14 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
                 name={serie.nome}
                 stroke="#7650a7"
                 strokeWidth={3}
-                dot={{ r: 2 }}
-                activeDot={{ r: 6 }}
+                dot={(ponto) => (
+                  <PontoSelecionavel
+                    {...ponto}
+                    diaSelecionado={selecionado.dia}
+                    selecionarDia={setDiaSelecionado}
+                  />
+                )}
+                activeDot={false}
                 isAnimationActive={false}
                 connectNulls={false}
               />
