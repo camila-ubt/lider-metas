@@ -61,3 +61,40 @@ test("não inventa dias anteriores nem divide por zero no último dia encerrado"
   assert.equal(historico[0].necessario, null);
   assert.equal(historico[0].diasRestantes, 0);
 });
+ 
+test("exibe desvio percentual contra a meta fixa e mudança em pontos percentuais", () => {
+  const [dia1, dia2] = gerarHistoricoMetaLojaDia(base);
+  // Dia 1: (8600 / 87) comparado à meta fixa de R$ 100.
+  assert.equal(dia1.desvioPercentual, -1.1);
+  assert.equal(dia1.variacaoPp, null);
+  // Dia 2: (8100 / 84) comparado à meta fixa de R$ 100.
+  assert.equal(dia2.desvioPercentual, -3.6);
+  assert.equal(dia2.variacaoPp, -2.5);
+});
+
+test("não compara diretamente os desvios de etapas diferentes", () => {
+  const registros = gerarHistoricoMetaLojaDia({
+    ...base, diaCorte: 2, vendas: [
+      { data: "2026-11-01", valor_vendido: 8500 },
+      { data: "2026-11-02", valor_vendido: 600 },
+    ],
+  });
+  assert.equal(registros[0].nivel, "Meta");
+  assert.equal(registros[1].nivel, "Supermeta");
+  assert.equal(registros[1].mudouNivel, true);
+  assert.equal(registros[1].variacaoPp, null);
+  assert.equal(registros[1].fixa, 110);
+});
+
+test("sem dias restantes ou com jornada concluída não inventa porcentagens", () => {
+  const ultimo = gerarHistoricoMetaLojaDia({
+    ...base, totalDias: 1, diaCorte: 1, vendas: [],
+  })[0];
+  assert.equal(ultimo.desvioPercentual, null);
+  const completo = gerarHistoricoMetaLojaDia({
+    ...base, diaCorte: 1, vendas: [
+      { data: "2026-11-01", valor_vendido: 12000 },
+    ],
+  })[0];
+  assert.equal(completo.desvioPercentual, null);
+});
