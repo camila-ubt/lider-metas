@@ -1192,3 +1192,83 @@
     letter-spacing: normal;
   }
 }
+
+/* Histórico de meta diária: card clicável, com detalhes apenas quando expandido. */
+.metaKpiBotao {
+  display: block;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  appearance: none;
+  cursor: pointer;
+}
+
+.metaKpiBotao:focus-visible,
+.metaHistoricoSelect:focus-visible {
+  outline: 3px solid #7650a7;
+  outline-offset: 2px;
+}
+
+.metaKpiCabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+}
+.metaKpiCabecalho > span:first-child { min-width: 0; }
+.metaKpiCabecalho > span:last-child { flex: 0 0 auto; }
+
+.metaHistoricoCard { min-width: 0; }
+.metaHistoricoConteudo { display: grid; gap: 11px; min-width: 0; }
+.metaHistoricoCabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.metaHistoricoCabecalho h3 { margin: 0 0 4px; font-size: 17px; }
+.metaHistoricoCabecalho small,
+.metaHistoricoNota,
+.metaHistoricoVazio { color: var(--muted); font-size: 11px; line-height: 1.5; }
+.metaHistoricoSelect {
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: inherit;
+}
+.metaHistoricoGrafico { height: 245px; width: 100%; min-width: 0; }
+.metaHistoricoLegenda { display: flex; flex-wrap: wrap; gap: 12px; color: var(--muted); font-size: 11px; }
+.metaHistoricoLegenda > span { display: inline-flex; align-items: center; gap: 6px; }
+.metaHistoricoLegenda i { width: 24px; border-top: 3px solid; }
+.metaHistoricoLegenda .metaHistoricoLinhaNecessaria { border-color: #7650a7; }
+.metaHistoricoLegenda .metaHistoricoLinhaFixa { border-color: #a7a0ae; border-top-style: dashed; }
+.metaHistoricoDetalhe {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #e7ddef;
+  border-radius: 14px;
+  background: #faf8fc;
+}
+.metaHistoricoDetalheTopo,
+.metaHistoricoValores {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.metaHistoricoDetalheTopo > span { color: var(--primary-dark); font-size: 12px; font-weight: 700; }
+.metaHistoricoValores > div { min-width: 125px; }
+.metaHistoricoValores small,
+.metaHistoricoDetalhe > small { display: block; color: var(--muted); font-size: 11px; }
+.metaHistoricoValores strong { display: block; margin-top: 4px; font-size: 17px; }
+.metaHistoricoDetalhe .metaHistoricoVariacao { color: var(--primary-dark); font-weight: 700; }
+@media (max-width: 620px) {
+  .metaHistoricoCard { padding: 14px; }
+  .metaHistoricoGrafico { height: 225px; }
+  .metaHistoricoValores strong { font-size: 15px; }
+}
