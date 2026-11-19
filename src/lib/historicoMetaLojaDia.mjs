@@ -44,6 +44,22 @@ export function gerarHistoricoMetaLojaDia({
       ? Math.max(0, Number(diasRestantesAtual) || 0)
       : dias - dia;
 
+    const necessario = alvo && diasRestantes > 0
+      ? (alvo.valor - acumulado) / (diasRestantes * lojas)
+      : null;
+    const fixa = alvo ? alvo.valor / (dias * lojas) : null;
+    // A linha do gráfico representa o desvio percentual em relação à meta
+    // fixa da mesma etapa. A mudança entre dias é medida em pontos percentuais.
+    const desvioPercentual = necessario !== null && fixa > 0
+      ? Number(((necessario / fixa - 1) * 100).toFixed(1))
+      : null;
+    const anterior = historico.at(-1);
+    const mudouNivel = Boolean(anterior && anterior.nivel !== (alvo?.nome || "Megameta conquistada"));
+    const variacaoPp = anterior && !mudouNivel
+      && anterior.desvioPercentual !== null && desvioPercentual !== null
+      ? Number((desvioPercentual - anterior.desvioPercentual).toFixed(1))
+      : null;
+
     historico.push({
       dia,
       vendidoDia: vendasPorDia[dia],
@@ -51,10 +67,11 @@ export function gerarHistoricoMetaLojaDia({
       diasRestantes,
       nivel: alvo ? alvo.nome : "Megameta conquistada",
       concluida: !alvo,
-      necessario: alvo && diasRestantes > 0
-        ? (alvo.valor - acumulado) / (diasRestantes * lojas)
-        : null,
-      fixa: alvo ? alvo.valor / (dias * lojas) : null,
+      necessario,
+      fixa,
+      desvioPercentual,
+      variacaoPp,
+      mudouNivel,
     });
   }
 
