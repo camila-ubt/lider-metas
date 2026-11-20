@@ -48,7 +48,7 @@ function textoDoParagrafo(bloco, teste) {
 }
 
 function gerarInsights(blocos) {
-  const [historico, projecao, tendencia] = blocos;
+  const [historico, , tendencia] = blocos;
   const insights = [];
 
   const comparacao = textoDoParagrafo(
@@ -56,12 +56,6 @@ function gerarInsights(blocos) {
     (texto) => texto.includes("mesmo período") || texto.includes("mesmo periodo"),
   );
   if (comparacao) insights.push(comparacao);
-
-  const supermeta = Array.from(projecao.querySelectorAll("strong")).find(
-    (item) => normalizar(item.textContent) === "supermeta",
-  );
-  const chanceSuper = supermeta?.parentElement?.querySelector("span")?.textContent?.trim();
-  if (chanceSuper) insights.push(`A probabilidade de Supermeta é de ${chanceSuper}.`);
 
   const artigos = Array.from(tendencia.querySelectorAll("article"));
   const artigoRitmo = artigos.find(
