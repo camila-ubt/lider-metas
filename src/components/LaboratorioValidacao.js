@@ -138,10 +138,10 @@ export default function LaboratorioValidacao({
 
       {!encerrado ? (
         <p role="status">Este mês ainda está em andamento. Selecione um mês já encerrado.</p>
-      ) : carregando || !dadosProntos ? (
-        <p role="status">Consultando vendas históricas...</p>
       ) : erro ? (
         <p role="alert">{erro}</p>
+      ) : carregando || !dadosProntos ? (
+        <p role="status">Consultando vendas históricas...</p>
       ) : resultado?.status === "base_incompleta" ? (
         <p role="status">
           Não é possível testar este conjunto: {resultado.faltantes} lançamentos ausentes,{" "}
