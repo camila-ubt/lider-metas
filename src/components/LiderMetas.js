@@ -1139,7 +1139,7 @@ export default function LiderMetas({ telaInicial = "painel" }) {
                 />
               </label>
 
-              <p className="muted">Supermeta e Megameta são calculadas automaticamente em 120% e 130%.</p>
+              <p className="muted">Supermeta e Megameta são calculadas automaticamente em 110% e 120%.</p>
               <div className="modal-actions">
                 <button type="button" className="secondary-button" onClick={() => setModalMetaAberto(false)}>
                   {mesFechadoVendas ? "Fechar consulta" : "Cancelar"}
