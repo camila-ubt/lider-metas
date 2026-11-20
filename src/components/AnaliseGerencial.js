@@ -555,7 +555,7 @@ export default function AnaliseGerencial({ modo = "painel" }) {
       situacaoDiasSemana,
       acoes: acoes.slice(0, 7),
     };
-  }, [mes, vendas, metas, lojas, historicos]);
+  }, [mes, vendas, metas, lojas, historicos, horarios, minutosAgora]);
 
   const historicoFiltrado = useMemo(() => {
     if (!analise) return [];
