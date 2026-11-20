@@ -6,6 +6,11 @@ on:
       - "src/lib/projecaoTurnos.mjs"
       - "src/lib/validacaoProjecoes.mjs"
       - "tests/validacaoProjecoes.test.mjs"
+      - "tests/padroesNiveis.test.mjs"
+      - "src/components/FechamentoMensal.js"
+      - "src/components/ResumoLojasFechamento.js"
+      - "src/components/AnaliseGerencial.js"
+      - "src/components/LiderMetas.js"
       - ".github/workflows/validacao-projecoes.yml"
   workflow_dispatch:
 
@@ -20,4 +25,4 @@ jobs:
         with:
           node-version: "22"
       - name: Testar calculos de previsao e backtest
-        run: node --test tests/validacaoProjecoes.test.mjs
+        run: node --test tests/validacaoProjecoes.test.mjs tests/padroesNiveis.test.mjs
