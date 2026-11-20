@@ -14,12 +14,56 @@ export function calcularTurnosRestantes({ contexto, minutosAgora, fimTurno }) {
     (minutosAgora < fimTurno ? 1 : 0);
 }
 
-// A média se baseia somente nos dias com lançamento de cada loja.
-// O horário determina se hoje ainda é um turno restante; lançamento e
-// horário nunca são confundidos com venda zero.
+// O mesmo mês dos anos anteriores orienta a distribuição das vendas.
+// Apenas meses históricos completos, anteriores ao ano avaliado, entram no ajuste.
+function fracaoHistorica({
+  historicos, ano, numeroMes, lojaId, periodo, diaCorte, diasMes,
+}) {
+  const fracoes = [];
+  for (const anoHistorico of [ano - 1, ano - 2]) {
+    const prefixo = anoHistorico + "-" + String(numeroMes).padStart(2, "0") + "-";
+    const diasHistoricos = new Date(anoHistorico, numeroMes, 0).getDate();
+    const dias = new Map();
+    let invalido = false;
+    for (const venda of historicos) {
+      if (!String(venda.data || "").startsWith(prefixo) ||
+          String(venda.loja_id) !== String(lojaId) ||
+          venda.periodo !== periodo) continue;
+      const data = String(venda.data);
+      const dia = Number(data.slice(8, 10));
+      const valor = Number(venda.valor_vendido);
+      if (!Number.isInteger(dia) || dia < 1 || dia > diasHistoricos ||
+          data !== prefixo + String(dia).padStart(2, "0") ||
+          venda.valor_vendido == null || !Number.isFinite(valor) || valor < 0 ||
+          dias.has(dia)) {
+        invalido = true;
+        break;
+      }
+      dias.set(dia, valor);
+    }
+    if (invalido || dias.size !== diasHistoricos) continue;
+    const total = [...dias.values()].reduce((soma, valor) => soma + valor, 0);
+    const corte = Math.max(1, Math.min(diasHistoricos,
+      Math.round(diaCorte * diasHistoricos / diasMes)));
+    let acumulado = 0;
+    for (let dia = 1; dia <= corte; dia += 1) acumulado += dias.get(dia);
+    if (total > 0 && acumulado / total >= 0.05) {
+      fracoes.push(acumulado / total);
+    }
+  }
+  return fracoes.length
+    ? fracoes.reduce((soma, valor) => soma + valor, 0) / fracoes.length
+    : null;
+}
+
+// Projeta por loja e turno respeitando o lançamento no turno seguinte:
+// a noite é registrada na manhã seguinte, e a manhã, à noite.
+// Turno encerrado SEM lançamento permanece pendente, nunca venda zero.
+// Não altera o registro oficial; estima apenas o saldo ainda desconhecido.
 export function calcularProjecaoTurno({
   vendas = [],
   lojas = [],
+  historicos = [],
   periodo,
   lojaId = null,
   contexto,
@@ -30,78 +74,102 @@ export function calcularProjecaoTurno({
     .filter((loja) => lojaId === null || String(loja.id) === String(lojaId))
     .map((loja) => String(loja.id));
   const prefixo = `${contexto.ano}-${String(contexto.numeroMes).padStart(2, "0")}-`;
-  const registros = vendas.filter(
-    (venda) =>
-      venda.periodo === periodo &&
-      ids.includes(String(venda.loja_id)) &&
-      String(venda.data || "").startsWith(prefixo) &&
-      Number(String(venda.data).slice(8, 10)) <= contexto.diaCorte,
-  );
+  if (contexto.tipo === "futuro" || contexto.tipo === "invalido" || !ids.length) {
+    return { valor: null, media: null, diasBase: 0, pendentes: 0, sazonal: false };
+  }
 
+  const corte = Math.min(contexto.ultimoDia, Math.max(0, contexto.diaCorte));
+  const abertoHoje = contexto.tipo !== "encerrado" && minutosAgora < fimTurno;
+  const registros = vendas.filter((venda) => {
+    if (venda.periodo !== periodo || !ids.includes(String(venda.loja_id)) ||
+        !String(venda.data || "").startsWith(prefixo)) return false;
+    const dia = Number(String(venda.data).slice(8, 10));
+    return Number.isInteger(dia) && dia >= 1 && dia <= corte &&
+      Number.isFinite(Number(venda.valor_vendido)) && venda.valor_vendido != null;
+  });
   const totalVendido = registros.reduce(
-    (total, venda) => total + Number(venda.valor_vendido || 0), 0,
+    (total, venda) => total + Number(venda.valor_vendido), 0,
   );
-
-  if (contexto.tipo === "futuro" || !ids.length) {
-    return { valor: null, media: null, diasBase: 0 };
-  }
-
-  const diaAtual = `${prefixo}${String(contexto.diaCorte).padStart(2, "0")}`;
-  const diasFuturos = Math.max(contexto.ultimoDia - contexto.diaCorte, 0);
-  const turnoAberto = contexto.tipo !== "encerrado" && minutosAgora < fimTurno;
-  let mediaTotal = 0;
-  let projecaoTotal = 0;
-  const diasBase = new Set();
-
-  for (const id of ids) {
-    const registrosLoja = registros.filter(
-      (venda) => String(venda.loja_id) === id,
-    );
-    const vendidoLoja = registrosLoja.reduce(
-      (total, venda) => total + Number(venda.valor_vendido || 0), 0,
-    );
-    const vendasBase = turnoAberto
-      ? registrosLoja.filter((venda) => venda.data !== diaAtual)
-      : registrosLoja;
-    const diasDaLoja = new Set(vendasBase.map((venda) => venda.data));
-    diasDaLoja.forEach((data) => diasBase.add(data));
-
-    // Um lançamento parcial de hoje entra no realizado, mas nunca reduz
-    // a média de turnos já encerrados.
-    const mediaLoja = diasDaLoja.size
-      ? vendasBase.reduce(
-          (total, venda) => total + Number(venda.valor_vendido || 0), 0,
-        ) / diasDaLoja.size
-      : 0;
-    const vendidoHoje = registrosLoja
-      .filter((venda) => venda.data === diaAtual)
-      .reduce((total, venda) => total + Number(venda.valor_vendido || 0), 0);
-
-    mediaTotal += mediaLoja;
-    projecaoTotal += vendidoLoja + (
-      contexto.tipo === "encerrado" ? 0 :
-        mediaLoja * diasFuturos +
-        (turnoAberto ? Math.max(0, mediaLoja - vendidoHoje) : 0)
-    );
-  }
 
   if (contexto.tipo === "encerrado") {
     return {
       valor: totalVendido,
-      media: diasBase.size > 0 ? mediaTotal : null,
-      diasBase: diasBase.size,
+      media: null,
+      diasBase: new Set(registros.map((venda) => venda.data)).size,
+      pendentes: 0,
+      sazonal: false,
     };
   }
 
-  // Sem nenhum turno encerrado, o parcial não basta para projetar o mês.
-  if (!diasBase.size) {
-    return { valor: null, media: null, diasBase: 0 };
+  let mediaTotal = 0;
+  let projecaoTotal = 0;
+  let pendentes = 0;
+  let sazonal = false;
+  let semBase = false;
+  const diasBase = new Set();
+  const futuros = Math.max(contexto.ultimoDia - corte, 0);
+
+  for (const id of ids) {
+    const porDia = new Map();
+    for (const venda of registros) {
+      if (String(venda.loja_id) !== id) continue;
+      const dia = Number(String(venda.data).slice(8, 10));
+      porDia.set(dia, (porDia.get(dia) || 0) + Number(venda.valor_vendido));
+    }
+    const diaFechado = abertoHoje ? corte - 1 : corte;
+    const diasObservados = [...porDia.keys()].filter((dia) => dia <= diaFechado);
+    const diasComBase = diasObservados.length;
+    const fechadoVendido = diasObservados.reduce((soma, dia) => soma + porDia.get(dia), 0);
+    const mediaLoja = diasComBase ? fechadoVendido / diasComBase : null;
+    const vendidoLoja = [...porDia.values()].reduce((soma, valor) => soma + valor, 0);
+    const pendentesLoja = Math.max(diaFechado - diasComBase, 0);
+
+    pendentes += pendentesLoja;
+    diasObservados.forEach((dia) => diasBase.add(dia));
+    if (mediaLoja === null) {
+      semBase = true;
+      continue;
+    }
+
+    mediaTotal += mediaLoja;
+    const parcialHoje = abertoHoje ? (porDia.get(corte) || 0) : 0;
+    const diasEmAberto = abertoHoje && corte > 0 ? 1 : 0;
+    const previsaoRitmo = vendidoLoja
+      + mediaLoja * (futuros + pendentesLoja)
+      + (diasEmAberto ? Math.max(0, mediaLoja - parcialHoje) : 0);
+    let previsaoLoja = previsaoRitmo;
+
+    // Sem valor parcial hoje e sem lacunas no período histórico observado.
+    // Antes do dia 10, a amostra é instável: permanece somente o ritmo.
+    const diaHistorico = abertoHoje ? corte - 1 : corte;
+    const serieContigua = diaHistorico >= 10 && diasComBase === diaHistorico &&
+      !(abertoHoje && porDia.has(corte));
+    if (serieContigua && historicos.length && contexto.ultimoDia > diaHistorico &&
+        previsaoRitmo > 0) {
+      const fracao = fracaoHistorica({
+        historicos, ano: contexto.ano, numeroMes: contexto.numeroMes,
+        lojaId: id, periodo, diaCorte: diaHistorico, diasMes: contexto.ultimoDia,
+      });
+      if (fracao !== null) {
+        const sazonalBruta = fechadoVendido / fracao;
+        // Limita o peso de um ano atípico a 30% da previsão de ritmo.
+        const sazonalLimitada = Math.max(previsaoRitmo * 0.7,
+          Math.min(previsaoRitmo * 1.3, sazonalBruta));
+        const peso = diaHistorico < 20 ? 0.5 : 0.7;
+        previsaoLoja = previsaoRitmo * (1 - peso) + sazonalLimitada * peso;
+        sazonal = true;
+      }
+    }
+    projecaoTotal += previsaoLoja;
   }
 
+  // Nunca omitir silenciosamente da projeção uma loja sem histórico.
   return {
-    valor: projecaoTotal,
-    media: mediaTotal,
+    valor: semBase ? null : projecaoTotal,
+    media: semBase ? null : mediaTotal,
     diasBase: diasBase.size,
+    pendentes,
+    sazonal,
   };
 }
 
