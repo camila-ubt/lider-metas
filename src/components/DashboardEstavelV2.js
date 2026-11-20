@@ -335,7 +335,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const previsaoNoite = projetarTurno("noite");
     const projecao = somarProjecoes(previsaoManha.valor, previsaoNoite.valor);
     const media = somarProjecoes(previsaoManha.media, previsaoNoite.media);
-    const mediaProjetada = media;
+    const pendentesProjecao = previsaoManha.pendentes + previsaoNoite.pendentes;
+    const passoProjecao = projecao !== null && diasDepoisHoje > 0
+      ? (projecao - totalVendido) / diasDepoisHoje : 0;
     const necessarioDia = diasRestantesGeral > 0 ? jornada.falta / diasRestantesGeral : 0;
     const metaPorLojaDia = calcularMetaPorLojaDia({
       jornada, vendido: totalVendido, diasRestantes: diasRestantesGeral,
@@ -358,7 +360,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         projecao: mesAtual && projecao !== null && dia >= diaCorte
           ? dia === diaCorte
             ? totalVendido
-            : projecao - mediaProjetada * Math.max(totalDias - dia, 0)
+            : totalVendido + passoProjecao * (dia - diaCorte)
           : null,
         meta: meta ? (meta / totalDias) * dia : 0,
         supermeta: supermeta ? (supermeta / totalDias) * dia : 0,
@@ -400,7 +402,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       ano, numeroMes, totalDias, diaCorte, mesAtual, mesPassado, mesFuturo,
       diasRestantes: diasRestantesGeral, diasRestantesManha, diasRestantesNoite,
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
-      meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia, variacaoMetaPorLojaDia,
+      meta, supermeta, megameta, jornada, media, projecao, pendentesProjecao, necessarioDia, metaPorLojaDia, variacaoMetaPorLojaDia,
       historicoMetaLojaDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       periodoMaisAtrasado,
