@@ -521,13 +521,6 @@ export default function InteligenciaGerencial() {
     });
   }, [mes, vendas, metas, lojas, historicos, minutosAgora, horarios, filtroLoja, filtroPeriodo]);
 
-  const escopoSelecionado = [
-    filtroLoja === "geral"
-      ? "todas as lojas"
-      : lojas.find((loja) => String(loja.id) === String(filtroLoja))?.codigo || "loja selecionada",
-    filtroPeriodo === "todos" ? "manhã e noite" : filtroPeriodo === "manha" ? "manhã" : "noite",
-  ].join(" · ");
-
   // Compara somente períodos encerrados: hoje aberto não é comparável
   // ao mesmo dia completo dos anos anteriores.
   const diaCorteComparavel = analise
