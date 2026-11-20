@@ -467,15 +467,6 @@ export default function InteligenciaGerencial() {
           `${maisConsistente.codigo} apresenta a maior consistência entre as lojas.`,
         );
       }
-      if (probabilidades.super !== null) {
-        insights.push(
-          `A probabilidade de Supermeta é de ${percentual.format(probabilidades.super)}%.`,
-        );
-      } else {
-        insights.push(
-          "Continue alimentando os lançamentos: a base estatística ainda está sendo formada.",
-        );
-      }
     }
 
     return {
