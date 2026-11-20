@@ -7,6 +7,9 @@ on:
       - "src/lib/validacaoProjecoes.mjs"
       - "tests/validacaoProjecoes.test.mjs"
       - "tests/comparacaoMetodosProjecao.test.mjs"
+      - "tests/comparacaoHistoricaMetodos.test.mjs"
+      - "src/lib/comparacaoHistoricaMetodos.mjs"
+      - "src/components/ComparativoSeisMeses.js"
       - "src/lib/comparacaoMetodosProjecao.mjs"
       - "src/components/LaboratorioValidacao.js"
       - "tests/padroesNiveis.test.mjs"
@@ -28,4 +31,4 @@ jobs:
         with:
           node-version: "22"
       - name: Testar calculos de previsao e backtest
-        run: node --test tests/validacaoProjecoes.test.mjs tests/comparacaoMetodosProjecao.test.mjs tests/padroesNiveis.test.mjs
+        run: node --test tests/validacaoProjecoes.test.mjs tests/comparacaoMetodosProjecao.test.mjs tests/comparacaoHistoricaMetodos.test.mjs tests/padroesNiveis.test.mjs
