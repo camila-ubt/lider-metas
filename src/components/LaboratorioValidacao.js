@@ -1,97 +1,224 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { validarProjecoesHistoricas } from "@/lib/validacaoProjecoes.mjs";
+import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import {
+  compararMetodosPorLojaTurno,
+  compararMetodosProjecao,
+} from "@/lib/comparacaoMetodosProjecao.mjs";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
-const DIAS = [5, 10, 15, 20, 25];
+const porcentagem = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const MESES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
 
-function mostrarMoeda(valor) {
-  return valor === null ? "—" : moeda.format(valor);
+function emReais(valor) {
+  return valor === null || !Number.isFinite(valor) ? "—" : moeda.format(valor);
 }
-
-function mostrarPercentual(valor) {
-  return valor === null ? "—" : percentual.format(valor) + "%";
+function emPorcentagem(valor) {
+  return valor === null || !Number.isFinite(valor) ? "—" : porcentagem.format(valor) + "%";
 }
+function mesEncerrado(ano, mes) {
+  const hoje = new Date();
+  return ano < hoje.getFullYear() ||
+    (ano === hoje.getFullYear() && mes < hoje.getMonth() + 1);
+}
+function intervalo(ano, mes) {
+  const prefixo = ano + "-" + String(mes).padStart(2, "0") + "-";
+  return {
+    inicio: prefixo + "01",
+    fim: prefixo + String(new Date(ano, mes, 0).getDate()).padStart(2, "0"),
+  };
+}
+const linha = { display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 };
+const caixa = {
+  border: "1px solid var(--border, #ded9e6)", borderRadius: 12,
+  padding: "12px", display: "grid", gap: 8,
+};
 
 export default function LaboratorioValidacao({
-  historicos, lojas, ano, numeroMes, filtroLoja, filtroPeriodo,
+  lojas, ano, numeroMes, filtroLoja, filtroPeriodo,
 }) {
+  const supabase = useMemo(() => createClient(), []);
   const [anosAtras, setAnosAtras] = useState("1");
+  const [mesTeste, setMesTeste] = useState(numeroMes);
+  const [dados, setDados] = useState(null);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
   const anoTeste = ano - Number(anosAtras);
-  const lojasTeste = useMemo(() =>
-    lojas.filter((loja) => filtroLoja === "geral" || String(loja.id) === String(filtroLoja)),
-    [lojas, filtroLoja],
-  );
-  const resultado = useMemo(() => validarProjecoesHistoricas({
-    vendas: historicos,
-    lojas: lojasTeste,
-    ano: anoTeste,
-    numeroMes,
+  const chave = anoTeste + "-" + String(mesTeste).padStart(2, "0");
+  const encerrado = mesEncerrado(anoTeste, mesTeste);
+
+  useEffect(() => setMesTeste(numeroMes), [numeroMes]);
+
+  useEffect(() => {
+    if (!encerrado) return undefined;
+    let cancelado = false;
+
+    async function consultar() {
+      setCarregando(true);
+      setErro("");
+      const mesAtual = intervalo(anoTeste, mesTeste);
+      const mesAnterior = intervalo(anoTeste - 1, mesTeste);
+      const colunas = "data,loja_id,periodo,valor_vendido";
+
+      const respostas = await Promise.all(
+        [mesAtual, mesAnterior].map(({ inicio, fim }) =>
+          supabase.from("vendas_diarias")
+            .select(colunas)
+            .gte("data", inicio)
+            .lte("data", fim)
+            .order("data", { ascending: true }),
+        ),
+      );
+      if (cancelado) return;
+      const falha = respostas.find((resposta) => resposta.error);
+      if (falha) {
+        setErro(falha.error.message);
+        setDados(null);
+      } else {
+        setDados({
+          chave,
+          vendas: respostas[0].data || [],
+          vendasReferencia: respostas[1].data || [],
+        });
+      }
+      setCarregando(false);
+    }
+
+    consultar();
+    return () => { cancelado = true; };
+  }, [anoTeste, mesTeste, chave, encerrado, supabase]);
+
+  const lojasFiltradas = useMemo(() => lojas.filter((loja) =>
+    filtroLoja === "geral" || String(loja.id) === String(filtroLoja)), [lojas, filtroLoja]);
+
+  const dadosProntos = dados && dados.chave === chave;
+  const resultado = useMemo(() => !encerrado || !dadosProntos ? null : compararMetodosProjecao({
+    ...dados,
+    lojas: lojasFiltradas,
+    ano: anoTeste, numeroMes: mesTeste,
     periodo: filtroPeriodo,
-    diasCorte: DIAS,
-  }), [historicos, lojasTeste, anoTeste, numeroMes, filtroPeriodo]);
+  }), [encerrado, dadosProntos, dados, lojasFiltradas, anoTeste, mesTeste, filtroPeriodo]);
+
+  const turnos = useMemo(() => !resultado || resultado.status !== "ok" ||
+    filtroLoja !== "geral" || filtroPeriodo !== "todos" ? [] : compararMetodosPorLojaTurno({
+      ...dados, lojas: lojasFiltradas, ano: anoTeste, numeroMes: mesTeste,
+    }), [resultado, dados, lojasFiltradas, anoTeste, mesTeste, filtroLoja, filtroPeriodo]);
 
   return (
-    <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
-      <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span>Simular fechamento de</span>
-        <select
-          value={anosAtras}
-          onChange={(evento) => setAnosAtras(evento.target.value)}
-          aria-label="Ano para validação retrospectiva"
-        >
-          <option value="1">{ano - 1}</option>
-          <option value="2">{ano - 2}</option>
-        </select>
-      </label>
+    <div style={{ display: "grid", gap: 12, fontSize: 13 }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <label style={{ flex: "1 1 110px", display: "grid", gap: 4 }}>
+          <span>Ano avaliado</span>
+          <select value={anosAtras} onChange={(evento) => setAnosAtras(evento.target.value)}
+            aria-label="Ano da comparação">
+            <option value="0">{ano}</option>
+            <option value="1">{ano - 1}</option>
+            <option value="2">{ano - 2}</option>
+          </select>
+        </label>
+        <label style={{ flex: "1 1 140px", display: "grid", gap: 4 }}>
+          <span>Mês avaliado</span>
+          <select value={mesTeste} onChange={(evento) => setMesTeste(Number(evento.target.value))}
+            aria-label="Mês da comparação">
+            {MESES.map((nome, indice) => (
+              <option key={nome} value={indice + 1}>{nome}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       <p style={{ margin: 0 }}>
-        Usa os filtros de loja e período do Comparativo histórico.
-        Recria a previsão nos dias 5, 10, 15, 20 e 25, sem consultar vendas posteriores a cada dia.
+        Simula o fechamento nos dias 5, 10, 15, 20 e 25 com três métodos.
+        Usa os filtros de loja e período do comparativo acima.
       </p>
-      {resultado.status === "base_incompleta" ? (
-        <p role="status" style={{ margin: 0 }}>
-          Sem avaliação: {resultado.faltantes} lançamentos ausentes,{" "}
+
+      {!encerrado ? (
+        <p role="status">Este mês ainda está em andamento. Selecione um mês já encerrado.</p>
+      ) : carregando || !dadosProntos ? (
+        <p role="status">Consultando vendas históricas...</p>
+      ) : erro ? (
+        <p role="alert">{erro}</p>
+      ) : resultado?.status === "base_incompleta" ? (
+        <p role="status">
+          Não é possível testar este conjunto: {resultado.faltantes} lançamentos ausentes,{" "}
           {resultado.duplicados} duplicados e {resultado.invalidos} inválidos.
-          Dias sem registro não são considerados vendas de R$ 0.
+          Um dia sem lançamento não equivale a venda zero.
         </p>
-      ) : resultado.status !== "ok" ? (
-        <p role="status" style={{ margin: 0 }}>Selecione uma loja e período válidos.</p>
+      ) : resultado?.status !== "ok" ? (
+        <p role="status">Não há dados suficientes para esta seleção.</p>
       ) : (
         <>
-          <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <span><b>Realizado:</b> {mostrarMoeda(resultado.totalRealizado)}</span>
-            <span><b>MAPE:</b> {mostrarPercentual(resultado.metricas.mape)}</span>
-            <span><b>MAE:</b> {mostrarMoeda(resultado.metricas.mae)}</span>
-            <span><b>Viés:</b> {mostrarMoeda(resultado.metricas.vies)}</span>
+          <div style={{ ...linha, flexWrap: "wrap" }}>
+            <span><b>Fechamento real:</b> {emReais(resultado.totalRealizado)}</span>
+            <span><b>Ano de referência:</b> {resultado.anoReferencia}</span>
           </div>
-          <div style={{ width: "100%", overflowX: "auto" }}>
-            <table style={{ width: "100%", minWidth: 470, borderCollapse: "collapse", fontSize: 12 }}>
-              <thead>
-                <tr>
-                  {["Dia", "Previsão", "Fechamento real", "Erro (R$)", "Erro (%)"].map((nome) => (
-                    <th key={nome} scope="col" style={{ textAlign: "right", padding: "6px 4px", borderBottom: "1px solid #ddd" }}>{nome}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {resultado.previsoes.map((item) => (
-                  <tr key={item.diaCorte}>
-                    <td style={{ textAlign: "right", padding: "6px 4px" }}>{item.diaCorte}</td>
-                    <td style={{ textAlign: "right", padding: "6px 4px" }}>{mostrarMoeda(item.previsto)}</td>
-                    <td style={{ textAlign: "right", padding: "6px 4px" }}>{mostrarMoeda(item.realizado)}</td>
-                    <td style={{ textAlign: "right", padding: "6px 4px" }}>{mostrarMoeda(item.erro)}</td>
-                    <td style={{ textAlign: "right", padding: "6px 4px" }}>{mostrarPercentual(item.erroPercentual)}</td>
-                  </tr>
+          <p style={{ margin: 0 }}>
+            {resultado.melhor
+              ? <>Menor erro neste mês: <b>{resultado.melhor.nome}</b> (MAPE {emPorcentagem(resultado.melhor.mape)}).</>
+              : "Sem comparação percentual disponível neste mês."}
+          </p>
+
+          {resultado.modelos.map((modelo) => (
+            <section key={modelo.id} style={caixa}>
+              <div style={linha}>
+                <strong>{modelo.nome}</strong>
+                {resultado.melhor?.id === modelo.id && (
+                  <span style={{ fontSize: 11 }}>Menor erro</span>
+                )}
+              </div>
+              {!modelo.disponivel ? (
+                <small>{modelo.motivo || "Dados insuficientes para o cálculo."}</small>
+              ) : (
+                <>
+                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                    <span><b>MAPE</b> {emPorcentagem(modelo.metricas.mape)}</span>
+                    <span><b>MAE</b> {emReais(modelo.metricas.mae)}</span>
+                    <span><b>Viés</b> {emReais(modelo.metricas.vies)}</span>
+                  </div>
+                  <details>
+                    <summary style={{ cursor: "pointer" }}>Ver previsões dos cinco dias</summary>
+                    <div style={{ display: "grid", gap: 5, marginTop: 8 }}>
+                      {modelo.avaliacoes.map((item) => (
+                        <div key={item.diaCorte} style={linha}>
+                          <span>Dia {item.diaCorte}: {emReais(item.previsto)}</span>
+                          <span>Erro {emPorcentagem(item.erroPercentual)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </>
+              )}
+            </section>
+          ))}
+
+          {turnos.length > 0 && (
+            <details>
+              <summary style={{ cursor: "pointer" }}>Comparar cada loja e turno</summary>
+              <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                {turnos.map((item) => (
+                  <div key={item.lojaId + "-" + item.periodo} style={caixa}>
+                    <b>{item.lojaNome} · {item.periodo === "manha" ? "Manhã" : "Noite"}</b>
+                    <span>{item.status !== "ok"
+                      ? "Histórico incompleto"
+                      : item.melhor
+                        ? item.melhor.nome + " · MAPE " + emPorcentagem(item.melhor.mape)
+                        : "Sem métrica comparável"}</span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+            </details>
+          )}
+
           <small>
-            MAE: erro absoluto médio em reais. MAPE: erro percentual absoluto médio.
-            Viés positivo indica previsão acima do realizado; negativo, abaixo.
-            Cada comparação usa o mesmo fechamento do mês e não representa uma amostra independente.
+            MAPE mede o erro percentual absoluto médio; MAE, o erro médio em reais.
+            Viés negativo indica previsão abaixo do real. Os cinco cortes pertencem
+            ao mesmo mês e não são cinco meses independentes.
+            O menor erro observado aqui não garante melhor desempenho futuro.
+            Nenhum cálculo oficial foi alterado.
           </small>
         </>
       )}
