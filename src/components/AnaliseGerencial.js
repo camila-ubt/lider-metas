@@ -789,27 +789,17 @@ export default function AnaliseGerencial({ modo = "painel" }) {
           <Bloco
             modo={modo}
             titulo="Projeção do mês"
-            resumo="Fechamento estimado a partir das vendas de cada loja e turno."
           >
             <div className={styles.projectionExplain}>
               <article>
                 <span>Fechamento estimado</span>
                 <strong>
                   {analise.projecaoOperacional === null
-                    ? "Aguardando histórico de vendas"
+                    ? "—"
                     : dinheiro.format(analise.projecaoOperacional)}
                 </strong>
-                <p>
-                  Considera turnos já encerrados e os padrões dos mesmos meses de anos anteriores,
-                  quando há histórico completo. Lançamentos pendentes não são vendas zero.
-                  A previsão é uma estimativa, não uma garantia.
-                </p>
               </article>
             </div>
-            <p className={styles.infoText}>
-              As chances percentuais e faixas estatísticas ficam indisponíveis
-              até sua calibração com meses históricos.
-            </p>
           </Bloco>
 
           <Bloco
