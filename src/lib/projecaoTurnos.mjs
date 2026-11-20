@@ -92,9 +92,17 @@ export function calcularProjecaoTurno({
   );
 
   if (contexto.tipo === "encerrado") {
+    const medias = ids.map((id) => {
+      const lista = registros.filter((venda) => String(venda.loja_id) === id);
+      const dias = new Set(lista.map((venda) => venda.data)).size;
+      return dias > 0
+        ? lista.reduce((total, venda) => total + Number(venda.valor_vendido), 0) / dias
+        : null;
+    });
     return {
       valor: totalVendido,
-      media: null,
+      media: medias.every((valor) => valor !== null)
+        ? medias.reduce((soma, valor) => soma + valor, 0) : null,
       diasBase: new Set(registros.map((venda) => venda.data)).size,
       pendentes: 0,
       sazonal: false,
