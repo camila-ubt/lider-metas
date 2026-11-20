@@ -285,7 +285,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       lojas, metas, vendas, contexto, minutosAgora, fimManha, fimNoite,
     });
     const projetarTurno = (periodo, lojaId = null) => calcularProjecaoTurno({
-      vendas, lojas, periodo, lojaId, contexto, minutosAgora,
+      vendas, historicos: historicoAnterior, lojas, periodo, lojaId, contexto, minutosAgora,
       fimTurno: periodo === "manha" ? fimManha : fimNoite,
     });
     const diasDepoisHoje = mesAtual ? Math.max(totalDias - diaCorte, 0) : mesFuturo ? totalDias : 0;
