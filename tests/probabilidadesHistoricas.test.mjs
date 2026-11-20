@@ -151,8 +151,13 @@ test("sem meta válida não cria chances numéricas", () => {
   assert.equal(r.status, "sem_metas");
 });
 
-test("a série de fevereiro bissexto é comparada na proporção do mês", () => {
-  const r = simular({ ano: 2026, mes: 2, corte: 20 });
+test("fevereiro com 29 dias pode servir de referência para fevereiro com 28", () => {
+  const refs = historico([2024]);
+  const fevereiro = mesCompleto(2024, 2, () => 100);
+  refs.metasHistoricas.push(fevereiro.meta);
+  refs.vendasHistoricas.push(...fevereiro.vendas);
+  const r = simular({ ano: 2025, mes: 2, corte: 20, referencias: refs });
   assert.equal(r.status, "ok");
-  assert.equal(r.probabilidades.meta >= r.probabilidades.super, true);
+  assert.deepEqual(r.anosMesmoMes, [2024]);
+  assert.ok(r.probabilidades.meta >= r.probabilidades.super);
 });
