@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { validarProjecoesHistoricas } from "@/lib/validacaoProjecoes.mjs";
-import LaboratorioComparacaoAvancada from "./LaboratorioComparacaoAvancada";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
@@ -20,7 +19,6 @@ export default function LaboratorioValidacao({
   historicos, lojas, ano, numeroMes, filtroLoja, filtroPeriodo,
 }) {
   const [anosAtras, setAnosAtras] = useState("1");
-  const [avancadoAberto, setAvancadoAberto] = useState(false);
   const anoTeste = ano - Number(anosAtras);
   const lojasTeste = useMemo(() =>
     lojas.filter((loja) => filtroLoja === "geral" || String(loja.id) === String(filtroLoja)),
@@ -96,18 +94,6 @@ export default function LaboratorioValidacao({
             Viés positivo indica previsão acima do realizado; negativo, abaixo.
             Cada comparação usa o mesmo fechamento do mês e não representa uma amostra independente.
           </small>
-          <details onToggle={(evento) => setAvancadoAberto(evento.currentTarget.open)}>
-            <summary style={{ cursor: "pointer" }}>Comparar outros métodos (opcional)</summary>
-            {avancadoAberto && (
-              <LaboratorioComparacaoAvancada
-                lojas={lojas}
-                ano={ano}
-                numeroMes={numeroMes}
-                filtroLoja={filtroLoja}
-                filtroPeriodo={filtroPeriodo}
-              />
-            )}
-          </details>
         </>
       )}
     </div>
