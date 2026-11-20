@@ -304,6 +304,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
       lojas,
       metas,
       vendas: vendasAteCorte,
+      historicos: historico,
       contexto,
       minutosAgora,
       fimManha: minutosDoHorario(horarios.manhaFim),
