@@ -27,6 +27,7 @@ import {
   useMinutosAtuais,
 } from "@/lib/horariosPeriodos";
 import { analisarHistoricoMes } from "@/lib/historicoMes.mjs";
+import LaboratorioValidacao from "./LaboratorioValidacao";
 import styles from "./AnaliseGerencial.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -673,6 +674,18 @@ export default function InteligenciaGerencial() {
                 </>
               ) : null}
               <p className={styles.explanation}>{resumoHistorico}</p>
+            </section>
+
+            <section className="inteligencia-gerencial-secao">
+              <h3>🧪 Laboratório de validação das projeções</h3>
+              <LaboratorioValidacao
+                historicos={historicos}
+                lojas={lojas}
+                ano={analise.contexto.ano}
+                numeroMes={analise.contexto.numeroMes}
+                filtroLoja={filtroLoja}
+                filtroPeriodo={filtroPeriodo}
+              />
             </section>
 
             <section className="inteligencia-gerencial-secao">
