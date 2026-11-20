@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import ComparativoSeisMeses from "./ComparativoSeisMeses";
 import {
   compararMetodosPorLojaTurno,
   compararMetodosProjecao,
@@ -212,6 +213,14 @@ export default function LaboratorioValidacao({
               </div>
             </details>
           )}
+
+          <ComparativoSeisMeses
+            ano={anoTeste}
+            numeroMes={mesTeste}
+            lojas={lojasFiltradas}
+            filtroLoja={filtroLoja}
+            filtroPeriodo={filtroPeriodo}
+          />
 
           <small>
             MAPE mede o erro percentual absoluto médio; MAE, o erro médio em reais.
