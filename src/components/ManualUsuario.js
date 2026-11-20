@@ -9,7 +9,7 @@ const secoes = [
     titulo: "Vendas",
     itens: [
       ["Como lançar ou corrigir uma venda?", [
-        "Abra “Lançar vendas”, escolha o dia, o período e a loja, informe o valor e salve. Para corrigir, abra o mesmo lançamento, altere o valor e salve novamente.",
+        "Abra “Lançar vendas”, escolha a data em que a venda ocorreu, o período e a loja, informe o valor e salve. Quem entra de manhã registra a noite anterior; quem entra à noite registra a manhã do mesmo dia. Para corrigir, abra o mesmo lançamento e salve novamente.",
       ]],
       ["O que fazer quando o caixa não abriu?", [
         "Use “Marcar caixa não aberto”. O sistema registra o período com valor zero.",
@@ -32,7 +32,7 @@ const secoes = [
         "Em “Lançar vendas”, toque em “Acompanhar turno”. Escolha manhã ou noite e o nível da meta para simular as vendas e consultar o desempenho do dia. Os valores ficam apenas no aparelho e não preenchem caixas nem registram vendas oficiais. Use “Limpar valores” para zerar a simulação.",
       ]],
       ["Como consultar as projeções e prioridades do Painel?", [
-        "No Painel, veja a projeção dos turnos, a média necessária por loja e o menor desempenho entre lojas e períodos. O Roteiro da Reunião compara manhã e noite.",
+        "No Painel, veja a previsão única de fechamento, a meta necessária por loja e o menor desempenho por período. Turnos encerrados ainda sem registro aparecem como estimativas provisórias, nunca como venda zero. O Roteiro da Reunião usa a mesma previsão.",
       ]],
       ["Como consultar a tendência histórica?", [
         "No Painel, abra “Inteligência Gerencial”. A tendência recente usa as vendas do mês selecionado; o padrão histórico compara o mesmo mês dos dois anos anteriores. “Base em formação” indica dados insuficientes.",
