@@ -227,10 +227,13 @@ export function estimarChancesHistoricas({
 
   const anosMesmoMes = [...new Set(candidatas
     .filter((item) => item.mes === numeroMes).map((item) => item.ano))].sort();
+  const mesesMesmoMes = candidatas.filter((item) => item.mes === numeroMes).length;
 
   return {
     status: "ok", probabilidades, diaBase: atual.corte,
     meses: candidatas.length, mesesEfetivos: tamanhoEfetivo,
+    mesesMesmoMes,
+    mesesApoio: candidatas.length - mesesMesmoMes,
     anosMesmoMes,
   };
 }
