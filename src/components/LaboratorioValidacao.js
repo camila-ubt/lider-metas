@@ -20,6 +20,7 @@ export default function LaboratorioValidacao({
   historicos, lojas, ano, numeroMes, filtroLoja, filtroPeriodo,
 }) {
   const [anosAtras, setAnosAtras] = useState("1");
+  const [avancadoAberto, setAvancadoAberto] = useState(false);
   const anoTeste = ano - Number(anosAtras);
   const lojasTeste = useMemo(() =>
     lojas.filter((loja) => filtroLoja === "geral" || String(loja.id) === String(filtroLoja)),
@@ -95,15 +96,17 @@ export default function LaboratorioValidacao({
             Viés positivo indica previsão acima do realizado; negativo, abaixo.
             Cada comparação usa o mesmo fechamento do mês e não representa uma amostra independente.
           </small>
-          <details>
+          <details onToggle={(evento) => setAvancadoAberto(evento.currentTarget.open)}>
             <summary style={{ cursor: "pointer" }}>Comparar outros métodos (opcional)</summary>
-            <LaboratorioComparacaoAvancada
-              lojas={lojas}
-              ano={ano}
-              numeroMes={numeroMes}
-              filtroLoja={filtroLoja}
-              filtroPeriodo={filtroPeriodo}
-            />
+            {avancadoAberto && (
+              <LaboratorioComparacaoAvancada
+                lojas={lojas}
+                ano={ano}
+                numeroMes={numeroMes}
+                filtroLoja={filtroLoja}
+                filtroPeriodo={filtroPeriodo}
+              />
+            )}
           </details>
         </>
       )}
