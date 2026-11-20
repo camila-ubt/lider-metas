@@ -68,6 +68,7 @@ function nivelFechado(vendido, metaBase) {
 }
 
 function textoNivelProjetado(percentualProjetado) {
+  if (percentualProjetado === null) return "Previsão em formação";
   const nivel = nivelFechado(percentualProjetado, 100);
   return nivel === "abaixo da Meta" ? "No ritmo atual, fecharia abaixo da Meta" : `No ritmo atual, fecharia em ${nivel}`;
 }
@@ -282,7 +283,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const diaCorte = mesAtual ? Math.min(agora.getDate(), totalDias) : mesPassado ? totalDias : 0;
     const contexto = contextoDoMes(mes, agora);
     const periodoMaisAtrasado = encontrarPeriodoMaisAtrasado({
-      lojas, metas, vendas, contexto, minutosAgora, fimManha, fimNoite,
+      lojas, metas, vendas, historicos: historicoAnterior, contexto, minutosAgora, fimManha, fimNoite,
     });
     const projetarTurno = (periodo, lojaId = null) => calcularProjecaoTurno({
       vendas, historicos: historicoAnterior, lojas, periodo, lojaId, contexto, minutosAgora,
@@ -508,6 +509,12 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                   </>
                 )}
           </small>
+          {!dados.mesPassado && dados.pendentesProjecao > 0 && (
+            <small>
+              {dados.pendentesProjecao} lançamentos encerrados ainda pendentes.
+              A projeção é provisória, sem tratá-los como venda zero.
+            </small>
+          )}
         </article>
         {dados.mesPassado ? (
           <button type="button" className={`${styles.kpi} ${styles.metaKpiBotao}`} onClick={() => setMetaHistoricoAberto((aberto) => !aberto)} aria-expanded={metaHistoricoAberto} aria-controls={metaHistoricoAberto ? idMetaHistorico : undefined} title={metaHistoricoAberto ? "Recolher histórico da meta diária" : "Abrir histórico da meta diária"}>
@@ -609,7 +616,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                 </strong>
                 <div className={styles.periodoAlertaProjecaoDetalhes}>
                   <small>
-                    {dinheiro.format(dados.periodoMaisAtrasado.projecao)} · {textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal
+                    {dados.periodoMaisAtrasado.projecao === null ? "—" : dinheiro.format(dados.periodoMaisAtrasado.projecao)} · {dados.periodoMaisAtrasado.percentualProjetado === null ? "sem estimativa" : `${textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal`}
                   </small>
                   {dados.periodoMaisAtrasado.faltaProjetada > 0 && (
                     <small>
