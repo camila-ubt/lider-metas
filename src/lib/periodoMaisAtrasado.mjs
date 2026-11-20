@@ -1,4 +1,4 @@
-import { calcularTurnosRestantes } from "./projecaoTurnos.mjs";
+import { calcularProjecaoTurno, calcularTurnosRestantes } from "./projecaoTurnos.mjs";
 
 const PERIODOS = ["manha", "noite"];
 
@@ -15,6 +15,7 @@ export function encontrarPeriodoMaisAtrasado({
   lojas = [],
   metas = [],
   vendas = [],
+  historicos = [],
   contexto,
   minutosAgora = 0,
   fimManha = 960,
@@ -83,9 +84,17 @@ export function encontrarPeriodoMaisAtrasado({
         (total, dia) => total + dia.registros.get(item.chave), 0,
       );
       const atrasoCentavos = Math.max(0, esperadoCentavos - vendidoCentavos);
-      const projecaoCentavos = Math.round(vendidoCentavos * ultimoDia / diasCompletos.length);
-      const faltaProjetadaCentavos = Math.max(0, metaCentavos - projecaoCentavos);
-      const adicionalPorPeriodoRestante = periodosRestantes > 0 && faltaProjetadaCentavos > 0
+      // O alerta usa a mesma projeção do painel; o atraso histórico
+      // continua sendo apurado apenas em dias fechados e completos.
+      const projecaoValor = calcularProjecaoTurno({
+        vendas, historicos, lojas: [item.loja], periodo, contexto,
+        minutosAgora, fimTurno: fimPeriodo,
+      }).valor;
+      const projecaoCentavos = projecaoValor === null
+        ? null : Math.round(projecaoValor * 100);
+      const faltaProjetadaCentavos = projecaoCentavos === null
+        ? null : Math.max(0, metaCentavos - projecaoCentavos);
+      const adicionalPorPeriodoRestante = periodosRestantes > 0 && faltaProjetadaCentavos !== null && faltaProjetadaCentavos > 0
         ? Math.ceil(faltaProjetadaCentavos / periodosRestantes) / 100
         : null;
       resultados.push({
@@ -98,9 +107,11 @@ export function encontrarPeriodoMaisAtrasado({
         vendido: vendidoCentavos / 100,
         atraso: atrasoCentavos / 100,
         atrasoPercentual: esperadoCentavos > 0 ? (atrasoCentavos / esperadoCentavos) * 100 : 0,
-        projecao: projecaoCentavos / 100,
-        percentualProjetado: (projecaoCentavos / metaCentavos) * 100,
-        faltaProjetada: faltaProjetadaCentavos / 100,
+        projecao: projecaoCentavos === null ? null : projecaoCentavos / 100,
+        percentualProjetado: projecaoCentavos === null ? null
+          : (projecaoCentavos / metaCentavos) * 100,
+        faltaProjetada: faltaProjetadaCentavos === null ? null
+          : faltaProjetadaCentavos / 100,
         periodosRestantes,
         adicionalPorPeriodoRestante,
       });
