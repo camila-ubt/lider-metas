@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./FechamentoMensal.module.css";
+import { contextoDoMes } from "@/lib/contextoMes";
+import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
+import { useHorariosPeriodos, useMinutosAtuais, minutosDoHorario } from "@/lib/horariosPeriodos";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -223,6 +226,8 @@ function ChipNivel({ nome, valor, vendido }) {
 
 export default function FechamentoMensal() {
   const supabase = useMemo(() => createClient(), []);
+  const horarios = useHorariosPeriodos();
+  const minutosAgora = useMinutosAtuais();
   const [visivel, setVisivel] = useState(false);
   const [aberto, setAberto] = useState(false);
   const [carregando, setCarregando] = useState(false);
@@ -272,6 +277,7 @@ export default function FechamentoMensal() {
     const [ano, numeroMes] = valorMes.split("-").map(Number);
     const intervalo = intervaloMes(ano, numeroMes);
     const hoje = new Date();
+    const contexto = contextoDoMes(valorMes, hoje);
     const mesAtual = ano === hoje.getFullYear() && numeroMes === hoje.getMonth() + 1;
     const mesPassado =
       ano < hoje.getFullYear() ||
@@ -393,9 +399,14 @@ export default function FechamentoMensal() {
     const totalMeta = somar(metas, "valor_meta");
     const totalManha = somar(vendas.filter((venda) => venda.periodo === "manha"));
     const totalNoite = somar(vendas.filter((venda) => venda.periodo === "noite"));
-    const projecao = diaCorte > 0
-      ? (totalVendido / diaCorte) * intervalo.ultimoDia
-      : 0;
+    const historicosVendas = historicosResp.flatMap((resposta) => resposta.data || []);
+    const prev = periodos.map((periodo) => calcularProjecaoTurno({
+      vendas, lojas, historicos: historicosVendas, periodo, contexto,
+      minutosAgora, fimTurno: minutosDoHorario(
+        periodo === "manha" ? horarios.manhaFim : horarios.noiteFim,
+      ),
+    }).valor);
+    const projecao = somarProjecoes(...prev);
     const nivelGeral = avaliarNivel(totalVendido, totalMeta);
     const ranking = [...lojasResumo].sort(
       (a, b) => b.nivel.percentual - a.nivel.percentual
@@ -426,7 +437,9 @@ export default function FechamentoMensal() {
     const insights = [];
     if (previa) {
       insights.push(`Prévia calculada com os lançamentos realizados até o dia ${diaCorte}.`);
-      insights.push(`Mantido o ritmo atual, a projeção de fechamento é ${dinheiro.format(projecao)}.`);
+      insights.push(projecao === null
+        ? "A projeção depende de ao menos um turno encerrado e lançado por loja."
+        : `Com os dados disponíveis, o fechamento estimado é ${dinheiro.format(projecao)}.`);
     }
 
     if (nivelGeral.nome === "Abaixo da Meta") {
@@ -588,7 +601,7 @@ export default function FechamentoMensal() {
                   <article><span>Meta</span><strong>{dinheiro.format(dados.totalMeta)}</strong></article>
                   <article><span>Supermeta</span><strong>{dinheiro.format(dados.totalMeta * 1.1)}</strong></article>
                   <article><span>Megameta</span><strong>{dinheiro.format(dados.totalMeta * 1.2)}</strong></article>
-                  <article><span>Projeção</span><strong>{dinheiro.format(dados.projecao)}</strong></article>
+                  <article><span>Projeção</span><strong>{dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong></article>
                   <article><span>Caixas não abertos</span><strong>{dados.caixasNaoAbertos}</strong></article>
                 </section>
 

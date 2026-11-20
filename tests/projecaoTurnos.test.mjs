@@ -58,14 +58,15 @@ test("lançamento parcial de hoje não entra na média antes do fechamento", () 
   assert.equal(somarProjecoes(lojaUm.valor, lojaDois.valor), resultado.valor);
 });
 
-test("loja sem histórico não recebe projeção artificial, mas o total com base é preservado", () => {
+test("sem histórico de uma loja o geral não finge que ela vendeu zero", () => {
   const vendas = [venda(1, 1, "manha", 250)];
   const periodo = contexto("andamento", 1);
   const geral = projetar(vendas, "manha", periodo, 800, 720).valor;
   const uma = projetar(vendas, "manha", periodo, 800, 720, 1).valor;
   const duas = projetar(vendas, "manha", periodo, 800, 720, 2).valor;
   assert.equal(duas, null);
-  assert.equal(geral, uma);
+  assert.equal(geral, null);
+  assert.equal(uma, 7500);
 });
 
 test("antes e depois das 16h usa o fechamento configurado, não o lançamento", () => {
@@ -91,7 +92,8 @@ test("turno ainda não lançado mantém média anterior e muda apenas os turnos 
   assert.equal(depois.diasBase, 1);
   assert.equal(depois.media, 300);
   assert.equal(antes.valor, 9000);
-  assert.equal(depois.valor, 8700);
+  assert.equal(depois.valor, 9000);
+  assert.equal(depois.pendentes, 2);
 });
 
 test("um lançamento no dia faz entrar apenas os dias efetivamente lançados na média", () => {
@@ -104,7 +106,8 @@ test("um lançamento no dia faz entrar apenas os dias efetivamente lançados na 
   const calculado = projetar(vendas, "noite", contexto("andamento", 4), 1020, 1320);
   assert.equal(calculado.diasBase, 2);
   assert.equal(calculado.media, 450);
-  assert.equal(calculado.valor, 13050);
+  assert.equal(calculado.valor, 13500);
+  assert.equal(calculado.pendentes, 2);
 });
 
 test("o lançamento de uma loja não reduz artificialmente a média das outras", () => {
@@ -289,4 +292,90 @@ test("sem meta atingível, lojas ou dias válidos não inventa média", async ()
   assert.deepEqual(calcularValorPorLojaDia({ ...params, turnosRestantes: 0, diasMes: 30 }), {
     valor: 1.12, retrospectivo: true,
   });
+});
+
+test("às 22h venda da noite ainda não lançada continua estimada até a manhã seguinte", () => {
+  const v = [
+    venda(1, 1, "noite", 100), venda(2, 1, "noite", 200),
+  ];
+  const ctx = contexto("andamento", 3);
+  const aNoite = calcularProjecaoTurno({
+    vendas: v, lojas: [{ id: 1 }], periodo: "noite",
+    contexto: ctx, minutosAgora: 1340, fimTurno: 1320,
+  });
+  assert.equal(aNoite.pendentes, 1);
+  assert.equal(aNoite.media, 150);
+  assert.equal(aNoite.valor, 4500);
+
+  const manhaSeguinte = calcularProjecaoTurno({
+    vendas: [...v, venda(3, 1, "noite", 180)],
+    lojas: [{ id: 1 }], periodo: "noite",
+    contexto: { ...ctx, diaCorte: 4 },
+    minutosAgora: 900, fimTurno: 1320,
+  });
+  assert.equal(manhaSeguinte.pendentes, 0);
+  assert.equal(manhaSeguinte.diasBase, 3);
+  assert.ok(manhaSeguinte.valor > 0);
+});
+
+test("turno da manhã é considerado após 16h e noite aberta continua prevista", () => {
+  const dados = [
+    venda(1, 1, "manha", 100), venda(1, 1, "noite", 300),
+    venda(2, 1, "manha", 110),
+  ];
+  const ctx = contexto("andamento", 2);
+  const manha = calcularProjecaoTurno({
+    vendas: dados, lojas: [{ id: 1 }], periodo: "manha",
+    contexto: ctx, minutosAgora: 1000, fimTurno: 960,
+  });
+  const noite = calcularProjecaoTurno({
+    vendas: dados, lojas: [{ id: 1 }], periodo: "noite",
+    contexto: ctx, minutosAgora: 1000, fimTurno: 1320,
+  });
+  assert.equal(manha.pendentes, 0);
+  assert.equal(manha.diasBase, 2);
+  assert.equal(noite.pendentes, 0);
+  assert.equal(noite.diasBase, 1);
+  assert.equal(manha.valor, 3150);
+  assert.equal(noite.valor, 9000);
+});
+
+test("sazonalidade só usa mês anterior completo e não consulta vendas futuras", () => {
+  const ctx = { tipo: "andamento", ano: 2025, numeroMes: 11, diaCorte: 20, ultimoDia: 30 };
+  const serie = (ano, final) => Array.from({ length: 30 }, (_, i) => ({
+    data: ano + "-11-" + String(i + 1).padStart(2, "0"),
+    loja_id: 1,
+    periodo: "manha",
+    valor_vendido: i < 15 ? 100 : final,
+  }));
+  const historicos = serie(2024, 300);
+  const atual = serie(2025, 300);
+  const parametros = {
+    lojas: [{ id: 1 }], periodo: "manha", contexto: ctx,
+    minutosAgora: 1000, fimTurno: 960,
+  };
+  const base = calcularProjecaoTurno({ ...parametros, vendas: atual });
+  const ajustada = calcularProjecaoTurno({ ...parametros, vendas: atual, historicos });
+  assert.equal(base.sazonal, false);
+  assert.equal(ajustada.sazonal, true);
+  assert.ok(ajustada.valor > base.valor);
+  assert.ok(Math.abs(ajustada.valor - 6000) < Math.abs(base.valor - 6000));
+  const futuroAlterado = atual.map((v) => Number(v.data.slice(-2)) <= 20
+    ? v : { ...v, valor_vendido: 15000 });
+  const semVazamento = calcularProjecaoTurno({
+    ...parametros, vendas: futuroAlterado, historicos,
+  });
+  assert.equal(ajustada.valor, semVazamento.valor);
+});
+
+test("sem ano anterior completo a sazonalidade não inventa uma referência", () => {
+  const ctx = { tipo: "andamento", ano: 2025, numeroMes: 11, diaCorte: 20, ultimoDia: 30 };
+  const serie = (ano) => Array.from({ length: 20 }, (_, i) => ({
+    data: ano + "-11-" + String(i + 1).padStart(2, "0"),
+    loja_id: 1, periodo: "manha", valor_vendido: 100,
+  }));
+  const p = { lojas: [{ id: 1 }], periodo: "manha", contexto: ctx, minutosAgora: 1000, fimTurno: 960 };
+  const r = calcularProjecaoTurno({ ...p, vendas: serie(2025), historicos: serie(2024) });
+  assert.equal(r.sazonal, false);
+  assert.equal(r.valor, 3000);
 });

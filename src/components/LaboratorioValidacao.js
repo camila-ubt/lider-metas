@@ -26,6 +26,7 @@ export default function LaboratorioValidacao({
   );
   const resultado = useMemo(() => validarProjecoesHistoricas({
     vendas: historicos,
+    historicos,
     lojas: lojasTeste,
     ano: anoTeste,
     numeroMes,

@@ -21,8 +21,6 @@ const casos = [
   ["src/components/AnaliseGerencial.js", [
     'vendido >= meta * 1.1) return "Supermeta"',
     'vendido >= meta * 1.2) return "Megameta"',
-    "alvo: totalMeta * 1.1",
-    "alvo: totalMeta * 1.2",
     "periodo.percentual < 110",
   ]],
   ["src/components/LiderMetas.js", [

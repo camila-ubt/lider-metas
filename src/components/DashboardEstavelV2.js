@@ -68,6 +68,7 @@ function nivelFechado(vendido, metaBase) {
 }
 
 function textoNivelProjetado(percentualProjetado) {
+  if (percentualProjetado === null) return "Previsão em formação";
   const nivel = nivelFechado(percentualProjetado, 100);
   return nivel === "abaixo da Meta" ? "No ritmo atual, fecharia abaixo da Meta" : `No ritmo atual, fecharia em ${nivel}`;
 }
@@ -282,10 +283,10 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const diaCorte = mesAtual ? Math.min(agora.getDate(), totalDias) : mesPassado ? totalDias : 0;
     const contexto = contextoDoMes(mes, agora);
     const periodoMaisAtrasado = encontrarPeriodoMaisAtrasado({
-      lojas, metas, vendas, contexto, minutosAgora, fimManha, fimNoite,
+      lojas, metas, vendas, historicos: historicoAnterior, contexto, minutosAgora, fimManha, fimNoite,
     });
     const projetarTurno = (periodo, lojaId = null) => calcularProjecaoTurno({
-      vendas, lojas, periodo, lojaId, contexto, minutosAgora,
+      vendas, historicos: historicoAnterior, lojas, periodo, lojaId, contexto, minutosAgora,
       fimTurno: periodo === "manha" ? fimManha : fimNoite,
     });
     const diasDepoisHoje = mesAtual ? Math.max(totalDias - diaCorte, 0) : mesFuturo ? totalDias : 0;
@@ -335,7 +336,9 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     const previsaoNoite = projetarTurno("noite");
     const projecao = somarProjecoes(previsaoManha.valor, previsaoNoite.valor);
     const media = somarProjecoes(previsaoManha.media, previsaoNoite.media);
-    const mediaProjetada = media;
+    const pendentesProjecao = previsaoManha.pendentes + previsaoNoite.pendentes;
+    const passoProjecao = projecao !== null && diasDepoisHoje > 0
+      ? (projecao - totalVendido) / diasDepoisHoje : 0;
     const necessarioDia = diasRestantesGeral > 0 ? jornada.falta / diasRestantesGeral : 0;
     const metaPorLojaDia = calcularMetaPorLojaDia({
       jornada, vendido: totalVendido, diasRestantes: diasRestantesGeral,
@@ -358,7 +361,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         projecao: mesAtual && projecao !== null && dia >= diaCorte
           ? dia === diaCorte
             ? totalVendido
-            : projecao - mediaProjetada * Math.max(totalDias - dia, 0)
+            : totalVendido + passoProjecao * (dia - diaCorte)
           : null,
         meta: meta ? (meta / totalDias) * dia : 0,
         supermeta: supermeta ? (supermeta / totalDias) * dia : 0,
@@ -400,13 +403,13 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       ano, numeroMes, totalDias, diaCorte, mesAtual, mesPassado, mesFuturo,
       diasRestantes: diasRestantesGeral, diasRestantesManha, diasRestantesNoite,
       diasLancados: diasLancados.size, totalVendido, totalManha, totalNoite,
-      meta, supermeta, megameta, jornada, media, projecao, necessarioDia, metaPorLojaDia, variacaoMetaPorLojaDia,
+      meta, supermeta, megameta, jornada, media, projecao, pendentesProjecao, necessarioDia, metaPorLojaDia, variacaoMetaPorLojaDia,
       historicoMetaLojaDia,
       acumuladoGeral, lojasDetalhadas, ranking, nivelProjetado, maiorGrafico,
       periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
     };
-  }, [mes, vendas, metas, lojas, horarios, minutosAtuais]);
+  }, [mes, vendas, metas, lojas, historicoAnterior, horarios, minutosAtuais]);
 
   useEffect(() => { setLojaAberta(null); setMetaHistoricoAberto(false); }, [mes]);
 
@@ -506,6 +509,12 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                   </>
                 )}
           </small>
+          {!dados.mesPassado && dados.pendentesProjecao > 0 && (
+            <small>
+              {dados.pendentesProjecao} lançamentos encerrados ainda pendentes.
+              A projeção é provisória, sem tratá-los como venda zero.
+            </small>
+          )}
         </article>
         {dados.mesPassado ? (
           <button type="button" className={`${styles.kpi} ${styles.metaKpiBotao}`} onClick={() => setMetaHistoricoAberto((aberto) => !aberto)} aria-expanded={metaHistoricoAberto} aria-controls={metaHistoricoAberto ? idMetaHistorico : undefined} title={metaHistoricoAberto ? "Recolher histórico da meta diária" : "Abrir histórico da meta diária"}>
@@ -607,7 +616,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                 </strong>
                 <div className={styles.periodoAlertaProjecaoDetalhes}>
                   <small>
-                    {dinheiro.format(dados.periodoMaisAtrasado.projecao)} · {textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal
+                    {dados.periodoMaisAtrasado.projecao === null ? "—" : dinheiro.format(dados.periodoMaisAtrasado.projecao)} · {dados.periodoMaisAtrasado.percentualProjetado === null ? "sem estimativa" : `${textoPercentual(dados.periodoMaisAtrasado.percentualProjetado)} da meta mensal`}
                   </small>
                   {dados.periodoMaisAtrasado.faltaProjetada > 0 && (
                     <small>

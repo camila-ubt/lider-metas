@@ -167,25 +167,6 @@ function GraficoHistorico({ series, diaCorte }) {
   );
 }
 
-function BarraProbabilidade({ nome, valor }) {
-  const exibido = valor === null ? 0 : valor;
-  return (
-    <div className={styles.probabilityRow}>
-      <div>
-        <strong>{nome}</strong>
-        <span>
-          {valor === null
-            ? "Base estatística em formação"
-            : `${percentual.format(exibido)}%`}
-        </span>
-      </div>
-      <div className={styles.probabilityTrack}>
-        <i style={{ width: `${Math.max(0, Math.min(exibido, 100))}%` }} />
-      </div>
-    </div>
-  );
-}
-
 export default function InteligenciaGerencial() {
   const supabase = useMemo(() => createClient(), []);
   const horarios = useHorariosPeriodos();
@@ -334,7 +315,7 @@ export default function InteligenciaGerencial() {
 
     const contexto = contextoDoMes(mes);
     const metricas = analisarIndicadoresGerenciais({
-      vendas, metas, lojas, contexto, minutosAgora,
+      vendas, historicos, metas, lojas, contexto, minutosAgora,
       fimManha: minutosDoHorario(horarios.manhaFim),
       fimNoite: minutosDoHorario(horarios.noiteFim),
     });
@@ -533,12 +514,12 @@ export default function InteligenciaGerencial() {
   const analiseSelecionada = useMemo(() => {
     if (!mes) return null;
     return analisarIndicadoresGerenciais({
-      vendas, metas, lojas, contexto: contextoDoMes(mes), minutosAgora,
+      vendas, historicos, metas, lojas, contexto: contextoDoMes(mes), minutosAgora,
       fimManha: minutosDoHorario(horarios.manhaFim),
       fimNoite: minutosDoHorario(horarios.noiteFim),
       filtroLoja, filtroPeriodo,
     });
-  }, [mes, vendas, metas, lojas, minutosAgora, horarios, filtroLoja, filtroPeriodo]);
+  }, [mes, vendas, metas, lojas, historicos, minutosAgora, horarios, filtroLoja, filtroPeriodo]);
 
   const escopoSelecionado = [
     filtroLoja === "geral"
@@ -729,46 +710,37 @@ export default function InteligenciaGerencial() {
               ) : (
                 <>
                   <p className={styles.explanation}>
-                    Escopo: {escopoSelecionado}. Fechamento projetado usa a mesma
-                    média dos turnos do painel; as chances abaixo são estimativas estatísticas.
+                    Escopo: {escopoSelecionado}. A previsão considera o ritmo por loja e turno
+                    e, quando o histórico é suficiente, a distribuição de vendas do mesmo mês
+                    nos anos anteriores.
                   </p>
                   <div className={styles.projectionExplain}>
                     <article>
-                      <span>Fechamento projetado · ritmo dos turnos</span>
+                      <span>Fechamento estimado do mês</span>
                       <strong>
                         {analiseSelecionada.projecaoOperacional === null
-                          ? "Aguardando turnos encerrados"
+                          ? "Aguardando histórico de vendas"
                           : dinheiro.format(analiseSelecionada.projecaoOperacional)}
                       </strong>
                       <p>
-                        Faixa estatística aproximada:{" "}
-                        {analiseSelecionada.faixa
-                          ? `${dinheiro.format(analiseSelecionada.faixa.minimo)} a ${dinheiro.format(analiseSelecionada.faixa.maximo)}`
-                          : "aguardando ao menos 3 dias completos"}.
-                        O fechamento projetado não é uma garantia.
+                        O valor é uma estimativa, não uma garantia.
+                        A venda da noite é registrada na manhã seguinte e a da manhã,
+                        no período da noite. Um turno ainda sem lançamento não é considerado
+                        venda zero.
                       </p>
+                      {analiseSelecionada.pendentes > 0 && (
+                        <p>
+                          Existem {analiseSelecionada.pendentes} lançamentos de turnos
+                          encerrados ainda pendentes. A projeção é provisória e será
+                          atualizada quando forem registrados.
+                        </p>
+                      )}
                     </article>
                   </div>
-
-                  <p className={styles.explanation}>Chance estimada de atingir cada nível</p>
-                  <div className={styles.probabilityList}>
-                    <BarraProbabilidade nome="Meta" valor={analiseSelecionada.probabilidades.meta} />
-                    <BarraProbabilidade nome="Supermeta" valor={analiseSelecionada.probabilidades.super} />
-                    <BarraProbabilidade nome="Megameta" valor={analiseSelecionada.probabilidades.mega} />
-                  </div>
-
-                  <p className={
-                    analiseSelecionada.baseEstatistica.length >= 3
-                      ? styles.infoText
-                      : styles.warningText
-                  }>
-                    {analiseSelecionada.baseEstatistica.length >= 3
-                      ? `Base: ${analiseSelecionada.baseEstatistica.length} dias completos.
-                          A chance é uma aproximação pela variação diária deste mês,
-                          não inclui a tendência recente nem os anos anteriores.`
-                      : `Base insuficiente: ${analiseSelecionada.diasCompletos.length} dias
-                          completos; são necessários ao menos 3 para estimar chances.
-                          Dias e turnos ainda abertos não reduzem a média.`}
+                  <p className={styles.infoText}>
+                    Percentuais de chance de atingir Meta, Supermeta e Megameta,
+                    e faixas estatísticas, só serão exibidos quando puderem ser
+                    calibrados e validados nos dados históricos.
                   </p>
                 </>
               )}
@@ -899,16 +871,7 @@ export default function InteligenciaGerencial() {
                       </p>
                     </article>
                   </div>
-                  {analise.historicoDoMes.projecao && (
-                    <p className={styles.infoText}>
-                      Projeção pelo ritmo histórico: <strong>
-                        {dinheiro.format(analise.historicoDoMes.projecao.valor)}
-                      </strong>. Usa as vendas até o dia {analise.historicoDoMes.projecao.dia} e
-                      a proporção do mês normalmente vendida até essa data em{" "}
-                      {analise.historicoDoMes.projecao.anos.join(" e ")}.
-                      Estimativa, não garantia.
-                    </p>
-                  )}
+
                 </>
               ) : (
                 <p className={styles.infoText}>

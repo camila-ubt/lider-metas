@@ -11,15 +11,16 @@ import {
   coeficienteVariacao,
   desvioPadrao,
   diaDaData,
-  faixaEstimada,
   intervaloMes,
   media,
-  probabilidadeAtingir,
   regressaoLinear,
   somar,
   textoTendencia,
 } from "@/lib/analiseGerencial";
 import { extremosDiasSemana } from "@/lib/extremosDiasSemana.mjs";
+import { contextoDoMes } from "@/lib/contextoMes";
+import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
+import { minutosDoHorario, useHorariosPeriodos, useMinutosAtuais } from "@/lib/horariosPeriodos";
 import styles from "./AnaliseGerencial.module.css";
 import SinalExpandir from "./SinalExpandir";
 
@@ -189,23 +190,10 @@ function GraficoHistorico({ series, diaCorte }) {
   );
 }
 
-function BarraProbabilidade({ nome, valor }) {
-  const exibido = valor === null ? 0 : valor;
-  return (
-    <div className={styles.probabilityRow}>
-      <div>
-        <strong>{nome}</strong>
-        <span>{valor === null ? "Sem dados suficientes" : `${percentual.format(exibido)}%`}</span>
-      </div>
-      <div className={styles.probabilityTrack}>
-        <i style={{ width: `${Math.max(0, Math.min(exibido, 100))}%` }} />
-      </div>
-    </div>
-  );
-}
-
 export default function AnaliseGerencial({ modo = "painel" }) {
   const supabase = useMemo(() => createClient(), []);
+  const horarios = useHorariosPeriodos();
+  const minutosAgora = useMinutosAtuais();
   const [autenticado, setAutenticado] = useState(false);
   const [visivel, setVisivel] = useState(false);
   const [portal, setPortal] = useState(null);
@@ -372,44 +360,18 @@ export default function AnaliseGerencial({ modo = "painel" }) {
         ? totalVendido / diaCorte
         : 0;
     const desvioCompleto = desvioPadrao(valoresCompletos);
-    const projecaoOperacional = diaCorte > 0
-      ? (totalVendido / diaCorte) * intervalo.ultimoDia
-      : 0;
-    const faixa = faixaEstimada({
-      atual: totalVendido,
-      mediaDiaria: mediaCompleta,
-      desvioDiario: desvioCompleto,
-      diasRestantes,
-    });
-    const probabilidades = {
-      meta: valoresCompletos.length >= 3
-        ? probabilidadeAtingir({
-            atual: totalVendido,
-            alvo: totalMeta,
-            mediaDiaria: mediaCompleta,
-            desvioDiario: desvioCompleto,
-            diasRestantes,
-          })
-        : null,
-      super: valoresCompletos.length >= 3
-        ? probabilidadeAtingir({
-            atual: totalVendido,
-            alvo: totalMeta * 1.1,
-            mediaDiaria: mediaCompleta,
-            desvioDiario: desvioCompleto,
-            diasRestantes,
-          })
-        : null,
-      mega: valoresCompletos.length >= 3
-        ? probabilidadeAtingir({
-            atual: totalVendido,
-            alvo: totalMeta * 1.2,
-            mediaDiaria: mediaCompleta,
-            desvioDiario: desvioCompleto,
-            diasRestantes,
-          })
-        : null,
-    };
+    const contexto = contextoDoMes(mes, hoje);
+    const prever = (periodo, lojasDoEscopo = lojas) => calcularProjecaoTurno({
+      vendas: vendasConsideradas, historicos, lojas: lojasDoEscopo,
+      periodo, contexto, minutosAgora,
+      fimTurno: minutosDoHorario(
+        periodo === "manha" ? horarios.manhaFim : horarios.noiteFim,
+      ),
+    }).valor;
+    const projecaoOperacional = somarProjecoes(...PERIODOS.map((periodo) => prever(periodo)));
+    // Probabilidades numéricas não são confiáveis sem calibração temporal.
+    const faixa = null;
+    const probabilidades = { meta: null, super: null, mega: null };
 
     const metasPorSlot = new Map(
       metas.map((meta) => [
@@ -450,9 +412,7 @@ export default function AnaliseGerencial({ modo = "painel" }) {
           vendido: vendidoPeriodo,
           meta: metaPeriodo,
           percentual: porcentagem(vendidoPeriodo, metaPeriodo),
-          projecao: diaCorte > 0
-            ? (vendidoPeriodo / diaCorte) * intervalo.ultimoDia
-            : 0,
+          projecao: prever(periodo, [loja]),
         };
       };
 
@@ -462,7 +422,7 @@ export default function AnaliseGerencial({ modo = "painel" }) {
         meta,
         percentual: porcentagem(vendido, meta),
         falta: Math.max(meta - vendido, 0),
-        projecao: diaCorte > 0 ? (vendido / diaCorte) * intervalo.ultimoDia : 0,
+        projecao: somarProjecoes(prever("manha", [loja]), prever("noite", [loja])),
         nivel: nivelDoResultado(vendido, meta),
         consistencia: coeficienteVariacao(valoresDiasLoja),
         periodos: [
@@ -507,7 +467,7 @@ export default function AnaliseGerencial({ modo = "painel" }) {
         vendido,
         meta: metaPeriodo,
         percentual: porcentagem(vendido, metaPeriodo),
-        projecao: diaCorte > 0 ? (vendido / diaCorte) * intervalo.ultimoDia : 0,
+        projecao: prever(periodo),
         anterior,
         variacao: variacao(vendido, anterior),
         lider,
@@ -595,7 +555,7 @@ export default function AnaliseGerencial({ modo = "painel" }) {
       situacaoDiasSemana,
       acoes: acoes.slice(0, 7),
     };
-  }, [mes, vendas, metas, lojas, historicos]);
+  }, [mes, vendas, metas, lojas, historicos, horarios, minutosAgora]);
 
   const historicoFiltrado = useMemo(() => {
     if (!analise) return [];
@@ -828,37 +788,27 @@ export default function AnaliseGerencial({ modo = "painel" }) {
 
           <Bloco
             modo={modo}
-            titulo="Projeção e inferência estatística"
-            resumo="Estimativa de fechamento, faixa provável e chance de atingir os níveis."
+            titulo="Projeção do mês"
+            resumo="Fechamento estimado a partir das vendas de cada loja e turno."
           >
             <div className={styles.projectionExplain}>
               <article>
-                <span>O que é projeção?</span>
-                <p>
-                  É uma estimativa do fechamento caso o ritmo médio observado continue. A projeção operacional divide o vendido pelos dias decorridos e multiplica pelo total de dias do mês.
-                </p>
-              </article>
-              <article>
-                <span>Faixa estatística aproximada</span>
+                <span>Fechamento estimado</span>
                 <strong>
-                  {dinheiro.format(analise.faixa.minimo)} a {dinheiro.format(analise.faixa.maximo)}
+                  {analise.projecaoOperacional === null
+                    ? "Aguardando histórico de vendas"
+                    : dinheiro.format(analise.projecaoOperacional)}
                 </strong>
                 <p>
-                  Faixa de referência baseada na variação dos dias completos. Não é garantia e não considera clima, turismo, campanhas ou mudanças de equipe.
+                  Considera turnos já encerrados e os padrões dos mesmos meses de anos anteriores,
+                  quando há histórico completo. Lançamentos pendentes não são vendas zero.
+                  A previsão é uma estimativa, não uma garantia.
                 </p>
               </article>
             </div>
-
-            <div className={styles.probabilityList}>
-              <BarraProbabilidade nome="Meta" valor={analise.probabilidades.meta} />
-              <BarraProbabilidade nome="Supermeta" valor={analise.probabilidades.super} />
-              <BarraProbabilidade nome="Megameta" valor={analise.probabilidades.mega} />
-            </div>
-
-            <p className={analise.amostraSuficiente ? styles.infoText : styles.warningText}>
-              {analise.amostraSuficiente
-                ? `Estimativa calculada com ${analise.diasCompletos} dias completos e desvio diário de ${dinheiro.format(analise.desvioCompleto)}.`
-                : `Amostra ainda pequena: há ${analise.diasCompletos} dias completos. As probabilidades devem ser interpretadas com cautela.`}
+            <p className={styles.infoText}>
+              As chances percentuais e faixas estatísticas ficam indisponíveis
+              até sua calibração com meses históricos.
             </p>
           </Bloco>
 

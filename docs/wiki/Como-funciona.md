@@ -4,7 +4,7 @@
 
 A gestão seleciona o mês desejado e acompanha os lançamentos de vendas das lojas.
 
-Cada dia possui lançamentos separados por loja e período. O calendário indica o que já foi preenchido e o que ainda está pendente.
+Cada dia possui lançamentos separados por loja e período. A equipe da manhã registra a noite anterior e a equipe da noite registra a manhã do mesmo dia, sempre usando a **data em que a venda ocorreu**. O calendário indica o que já foi preenchido e o que ainda está pendente.
 
 Depois dos lançamentos, o painel consolida os valores e compara o realizado com as metas cadastradas.
 
@@ -28,7 +28,7 @@ Nos cards de **Manhã** e **Noite**, a barra segue a proporção real das vendas
 
 ## Inteligência Gerencial
 
-O Painel apresenta a tendência recente e o padrão do mesmo mês nos dois anos anteriores, com médias por dia da semana, comparação anual e projeção sazonal quando há dados suficientes. A análise histórica considera apenas dias completos e exige ao menos 80% do mês preenchido em cada ano de referência.
+O Painel usa uma única projeção de fechamento calculada por loja e turno. Um turno encerrado sem registro é tratado como pendente e estimado provisoriamente pela média das vendas já lançadas; não vira venda zero. Com histórico completo do mesmo mês de anos anteriores, o cálculo incorpora um ajuste sazonal conservador a partir do dia 10. Quando os dados históricos faltam, usa somente o ritmo das vendas atuais. A análise histórica continua comparando anos e dias da semana. Por não haver calibração suficiente, não são exibidas porcentagens exatas de chance de alcançar as metas. O laboratório mantém a comparação simples entre as previsões das datas de referência e o fechamento real; os valores de meses passados constituem simulações retrospectivas, não registros das previsões feitas naquela época.
 
 ## PA das vendedoras
 

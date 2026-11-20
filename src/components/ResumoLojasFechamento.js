@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./ResumoLojasFechamento.module.css";
+import { contextoDoMes } from "@/lib/contextoMes";
+import { calcularProjecaoTurno, somarProjecoes } from "@/lib/projecaoTurnos.mjs";
+import { useHorariosPeriodos, minutosDoHorario } from "@/lib/horariosPeriodos";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -112,7 +115,7 @@ function PeriodoResumo({ nome, vendido, meta, projecao }) {
         <b>{percentual.format(atingimento)}%</b>
       </div>
       <span className={styles.periodValue}>{dinheiro.format(vendido)}</span>
-      <small>Projeção: {dinheiro.format(projecao)}</small>
+      <small>Projeção: {projecao === null ? "—" : dinheiro.format(projecao)}</small>
       <NiveisVisuais vendido={vendido} meta={meta} />
     </div>
   );
@@ -120,6 +123,7 @@ function PeriodoResumo({ nome, vendido, meta, projecao }) {
 
 export default function ResumoLojasFechamento() {
   const supabase = useMemo(() => createClient(), []);
+  const horarios = useHorariosPeriodos();
   const [alvo, setAlvo] = useState(null);
   const [mes, setMes] = useState("");
   const [linhas, setLinhas] = useState([]);
@@ -166,7 +170,7 @@ export default function ResumoLojasFechamento() {
         intervalo.ultimoDia
       );
 
-      const [lojasResp, vendasResp, metasResp] = await Promise.all([
+      const [lojasResp, vendasResp, metasResp, ...historicosResp] = await Promise.all([
         supabase.from("lojas").select("id,codigo,nome,ordem").eq("ativa", true).order("ordem"),
         supabase
           .from("vendas_diarias")
@@ -177,10 +181,19 @@ export default function ResumoLojasFechamento() {
           .from("metas_mensais")
           .select("loja_id,periodo,valor_meta")
           .eq("mes", `${mes}-01`),
+        ...[intervalo.ano - 2, intervalo.ano - 1].map((anoHistorico) => {
+          const mesHistorico = `${anoHistorico}-${String(intervalo.mes).padStart(2, "0")}`;
+          const ultimo = new Date(anoHistorico, intervalo.mes, 0).getDate();
+          return supabase.from("vendas_diarias")
+            .select("data,loja_id,periodo,valor_vendido")
+            .gte("data", `${mesHistorico}-01`)
+            .lte("data", `${mesHistorico}-${String(ultimo).padStart(2, "0")}`);
+        }),
       ]);
 
       if (cancelado) return;
-      const falha = lojasResp.error || vendasResp.error || metasResp.error;
+      const falha = lojasResp.error || vendasResp.error || metasResp.error ||
+        historicosResp.find((resposta) => resposta.error)?.error;
       if (falha) {
         setErro(falha.message);
         setCarregando(false);
@@ -191,8 +204,19 @@ export default function ResumoLojasFechamento() {
         (item) => Number(String(item.data).slice(8, 10)) <= diaCorte
       );
       const metas = metasResp.data || [];
+      const lojas = lojasResp.data || [];
+      const historicos = historicosResp.flatMap((resposta) => resposta.data || []);
+      const contexto = contextoDoMes(mes);
+      const agora = new Date();
+      const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+      const prever = (loja, periodo) => calcularProjecaoTurno({
+        vendas, historicos, lojas: [loja], periodo, contexto, minutosAgora,
+        fimTurno: minutosDoHorario(
+          periodo === "manha" ? horarios.manhaFim : horarios.noiteFim,
+        ),
+      }).valor;
 
-      const resumo = (lojasResp.data || []).map((loja) => {
+      const resumo = lojas.map((loja) => {
         const vendasLoja = vendas.filter(
           (item) => Number(item.loja_id) === Number(loja.id)
         );
@@ -216,7 +240,8 @@ export default function ResumoLojasFechamento() {
           .filter((item) => item.periodo === "noite")
           .reduce((soma, item) => soma + Number(item.valor_meta || 0), 0);
         const meta = metaManha + metaNoite;
-        const fatorProjecao = diaCorte > 0 ? intervalo.ultimoDia / diaCorte : 0;
+        const projecaoManha = prever(loja, "manha");
+        const projecaoNoite = prever(loja, "noite");
 
         return {
           ...loja,
@@ -227,9 +252,9 @@ export default function ResumoLojasFechamento() {
           metaManha,
           metaNoite,
           percentual: meta > 0 ? (total / meta) * 100 : 0,
-          projecao: total * fatorProjecao,
-          projecaoManha: manha * fatorProjecao,
-          projecaoNoite: noite * fatorProjecao,
+          projecao: somarProjecoes(projecaoManha, projecaoNoite),
+          projecaoManha,
+          projecaoNoite,
         };
       });
 
@@ -242,7 +267,7 @@ export default function ResumoLojasFechamento() {
     return () => {
       cancelado = true;
     };
-  }, [alvo, mes, supabase]);
+  }, [alvo, mes, supabase, horarios]);
 
   if (!alvo) return null;
 
@@ -274,7 +299,7 @@ export default function ResumoLojasFechamento() {
                 </div>
                 <div className={styles.projectionBox}>
                   <span>Projeção</span>
-                  <strong>{dinheiro.format(loja.projecao)}</strong>
+                  <strong>{loja.projecao === null ? "—" : dinheiro.format(loja.projecao)}</strong>
                 </div>
               </div>
 
