@@ -675,7 +675,7 @@ export default function InteligenciaGerencial() {
                   ? "📈 Resultado estatístico final"
                   : futuro
                     ? "📈 Planejamento estatístico"
-                    : "📈 Projeção estatística"}
+                    : "📈 Projeção do mês"}
               </h3>
 
               {futuro || !analiseSelecionada?.temMeta || !analiseSelecionada?.temVendas ? (
@@ -708,41 +708,16 @@ export default function InteligenciaGerencial() {
                   </article>
                 </div>
               ) : (
-                <>
-                  <p className={styles.explanation}>
-                    Escopo: {escopoSelecionado}. A previsão considera o ritmo por loja e turno
-                    e, quando o histórico é suficiente, a distribuição de vendas do mesmo mês
-                    nos anos anteriores.
-                  </p>
-                  <div className={styles.projectionExplain}>
-                    <article>
-                      <span>Fechamento estimado do mês</span>
-                      <strong>
-                        {analiseSelecionada.projecaoOperacional === null
-                          ? "Aguardando histórico de vendas"
-                          : dinheiro.format(analiseSelecionada.projecaoOperacional)}
-                      </strong>
-                      <p>
-                        O valor é uma estimativa, não uma garantia.
-                        A venda da noite é registrada na manhã seguinte e a da manhã,
-                        no período da noite. Um turno ainda sem lançamento não é considerado
-                        venda zero.
-                      </p>
-                      {analiseSelecionada.pendentes > 0 && (
-                        <p>
-                          Existem {analiseSelecionada.pendentes} lançamentos de turnos
-                          encerrados ainda pendentes. A projeção é provisória e será
-                          atualizada quando forem registrados.
-                        </p>
-                      )}
-                    </article>
-                  </div>
-                  <p className={styles.infoText}>
-                    Percentuais de chance de atingir Meta, Supermeta e Megameta,
-                    e faixas estatísticas, só serão exibidos quando puderem ser
-                    calibrados e validados nos dados históricos.
-                  </p>
-                </>
+                <div className={styles.projectionExplain}>
+                  <article>
+                    <span>Fechamento estimado do mês</span>
+                    <strong>
+                      {analiseSelecionada.projecaoOperacional === null
+                        ? "—"
+                        : dinheiro.format(analiseSelecionada.projecaoOperacional)}
+                    </strong>
+                  </article>
+                </div>
               )}
             </section>
 
