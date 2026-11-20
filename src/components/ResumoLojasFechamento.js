@@ -50,8 +50,8 @@ function mesSelecionado() {
 function niveisDoResultado(vendido, meta) {
   const niveis = [
     { nome: "Meta", valor: meta },
-    { nome: "Super", valor: meta * 1.2 },
-    { nome: "Mega", valor: meta * 1.3 },
+    { nome: "Super", valor: meta * 1.1 },
+    { nome: "Mega", valor: meta * 1.2 },
   ];
 
   if (!(meta > 0)) {
