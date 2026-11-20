@@ -6,7 +6,6 @@ import MascaraMoeda from "@/components/MascaraMoeda";
 import ConferenciaAthos from "@/components/ConferenciaAthos";
 import InteligenciaGerencial from "@/components/InteligenciaGerencial";
 import PainelReuniao from "@/components/PainelReuniao";
-import AjusteProbabilidades from "@/components/AjusteProbabilidades";
 import FeedbackTurnos from "@/components/FeedbackTurnos";
 import RemoverLancamento from "@/components/RemoverLancamento";
 import AjusteDiasEquivalentes from "@/components/AjusteDiasEquivalentes";
@@ -29,7 +28,6 @@ export default function AppEnhancements() {
       <PainelReuniao />
       <InteligenciaGerencial />
       <MascaraMoeda />
-      <AjusteProbabilidades />
       <FeedbackTurnos />
       <RemoverLancamento />
       <AjusteDiasEquivalentes />
