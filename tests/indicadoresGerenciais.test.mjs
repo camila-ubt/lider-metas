@@ -42,7 +42,7 @@ test("dia de hoje não é completo enquanto a noite estiver aberta, mesmo com la
   assert.equal(dados.totalVendido, 3185);
 });
 
-test("centro e chances estatísticas seguem a projeção por turnos do painel", () => {
+test("previsão central é igual à soma dos turnos; chances não calibradas ficam ocultas", () => {
   const dados = analisar();
   const previstos = ["manha", "noite"].map((periodo) =>
     calcularProjecaoTurno({
@@ -51,9 +51,8 @@ test("centro e chances estatísticas seguem a projeção por turnos do painel", 
     }).valor,
   );
   assert.equal(dados.projecaoOperacional, previstos[0] + previstos[1]);
-  assert.equal(dados.faixa.centro, dados.projecaoOperacional);
-  assert.ok(dados.probabilidades.meta >= dados.probabilidades.super);
-  assert.ok(dados.probabilidades.super >= dados.probabilidades.mega);
+  assert.equal(dados.faixa, null);
+  assert.deepEqual(dados.probabilidades, { meta: null, super: null, mega: null });
 });
 
 test("filtros restringem vendas, metas, amostra e projeções ao mesmo escopo", () => {
@@ -73,7 +72,7 @@ test("turno da manhã fechado pode compor a base mesmo com a noite aberta", () =
   const dados = analisar({ filtroPeriodo: "manha" });
   assert.equal(dados.diasCompletos.length, 4);
   assert.equal(dados.totalMeta, 2000);
-  assert.equal(dados.probabilidades.meta !== null, true);
+  assert.equal(dados.probabilidades.meta, null);
 });
 
 test("sem três dias completos não são mostradas probabilidades artificiais", () => {
