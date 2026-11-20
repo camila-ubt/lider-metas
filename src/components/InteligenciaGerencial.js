@@ -28,6 +28,7 @@ import {
 } from "@/lib/horariosPeriodos";
 import { analisarHistoricoMes } from "@/lib/historicoMes.mjs";
 import LaboratorioValidacao from "./LaboratorioValidacao";
+import ProbabilidadesMetas from "./ProbabilidadesMetas";
 import styles from "./AnaliseGerencial.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -709,6 +710,17 @@ export default function InteligenciaGerencial() {
                         ? "—"
                         : dinheiro.format(analiseSelecionada.projecaoOperacional)}
                     </strong>
+                    <ProbabilidadesMetas
+                      ano={analise.contexto.ano}
+                      numeroMes={analise.contexto.numeroMes}
+                      diaLimite={analise.contexto.diaCorte}
+                      tipo={analise.contexto.tipo}
+                      lojas={lojas}
+                      vendas={vendas}
+                      metas={metas}
+                      filtroLoja={filtroLoja}
+                      filtroPeriodo={filtroPeriodo}
+                    />
                   </article>
                 </div>
               )}
