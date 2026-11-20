@@ -409,7 +409,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
       periodoMaisAtrasado,
       nivelFechado: nivelFechado(totalVendido, meta),
     };
-  }, [mes, vendas, metas, lojas, horarios, minutosAtuais]);
+  }, [mes, vendas, metas, lojas, historicoAnterior, horarios, minutosAtuais]);
 
   useEffect(() => { setLojaAberta(null); setMetaHistoricoAberto(false); }, [mes]);
 
