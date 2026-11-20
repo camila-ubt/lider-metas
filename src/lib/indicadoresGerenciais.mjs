@@ -1,9 +1,7 @@
 import {
   desvioPadrao,
   diaDaData,
-  faixaEstimada,
   media,
-  probabilidadeAtingir,
   regressaoLinear,
   somar,
   textoTendencia,
@@ -21,6 +19,7 @@ const NOMES_SEMANA = [
 // A dispersão usa somente dias com todos os slots encerrados e lançados.
 export function analisarIndicadoresGerenciais({
   vendas = [],
+  historicos = [],
   metas = [],
   lojas = [],
   contexto,
@@ -80,44 +79,23 @@ export function analisarIndicadoresGerenciais({
 
   const previsoes = periodos.map((periodo) => calcularProjecaoTurno({
     vendas: vendasSelecionadas,
+    historicos,
     lojas: lojasSelecionadas,
     periodo,
     contexto,
     minutosAgora,
     fimTurno: periodo === "manha" ? fimManha : fimNoite,
-  }).valor);
+  }));
   const projecaoOperacional = contexto.tipo === "futuro"
     ? null
-    : somarProjecoes(...previsoes);
-  // Para dois períodos, um turno em aberto equivale a meio dia de exposição.
-  const diasRestantesEquivalentes = Math.max(
-    contexto.ultimoDia - contexto.diaCorte, 0,
-  ) + periodos.filter(turnoAberto).length / periodos.length;
-  const baseSuficiente = valoresCompletos.length >= 3 &&
-    projecaoOperacional !== null;
-  const mediaRestante = diasRestantesEquivalentes > 0 && projecaoOperacional !== null
-    ? (projecaoOperacional - totalVendido) / diasRestantesEquivalentes
-    : 0;
+    : somarProjecoes(...previsoes.map((item) => item.valor));
+  const pendentes = previsoes.reduce((soma, item) => soma + (item.pendentes || 0), 0);
+  const sazonal = previsoes.some((item) => item.sazonal);
 
-  const faixa = baseSuficiente
-    ? faixaEstimada({
-        atual: totalVendido,
-        mediaDiaria: mediaRestante,
-        desvioDiario,
-        diasRestantes: diasRestantesEquivalentes,
-      })
-    : null;
-  function chance(alvo) {
-    if (!baseSuficiente || contexto.tipo === "futuro" ||
-        contexto.tipo === "encerrado" || !(alvo > 0)) return null;
-    return probabilidadeAtingir({
-      atual: totalVendido,
-      alvo,
-      mediaDiaria: mediaRestante,
-      desvioDiario,
-      diasRestantes: diasRestantesEquivalentes,
-    });
-  }
+  // Percentuais de chances e intervalos deixam de ser exibidos até existir
+  // calibração temporal verificável por loja/turno e horizonte de previsão.
+  // Não inferir probabilidades exatas a partir de apenas três dias.
+  const faixa = null;
 
   const extremos = extremosDiasSemana(diasCompletos, NOMES_SEMANA);
   return {
@@ -131,11 +109,9 @@ export function analisarIndicadoresGerenciais({
     desvioDiario,
     projecaoOperacional,
     faixa,
-    probabilidades: {
-      meta: chance(totalMeta),
-      super: chance(totalMeta * 1.1),
-      mega: chance(totalMeta * 1.2),
-    },
+    pendentes,
+    sazonal,
+    probabilidades: { meta: null, super: null, mega: null },
     tendencia,
     nomeTendencia,
     ultimosValores,
