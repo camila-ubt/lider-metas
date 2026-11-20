@@ -6,6 +6,15 @@ on:
       - "src/lib/projecaoTurnos.mjs"
       - "src/lib/validacaoProjecoes.mjs"
       - "tests/validacaoProjecoes.test.mjs"
+      - "tests/projecaoTurnos.test.mjs"
+      - "tests/indicadoresGerenciais.test.mjs"
+      - "tests/periodoMaisAtrasado.test.mjs"
+      - "src/lib/indicadoresGerenciais.mjs"
+      - "src/lib/periodoMaisAtrasado.mjs"
+      - "src/components/DashboardEstavelV2.js"
+      - "src/components/InteligenciaGerencial.js"
+      - "src/components/PainelReuniao.js"
+      - "src/components/ResumoLojasFechamento.js"
       - "src/components/LaboratorioValidacao.js"
       - "tests/laboratorioLeitura.test.mjs"
       - "tests/padroesNiveis.test.mjs"
@@ -27,4 +36,4 @@ jobs:
         with:
           node-version: "22"
       - name: Testar calculos de previsao e backtest
-        run: node --test tests/validacaoProjecoes.test.mjs tests/laboratorioLeitura.test.mjs tests/padroesNiveis.test.mjs
+        run: node --test tests/projecaoTurnos.test.mjs tests/indicadoresGerenciais.test.mjs tests/periodoMaisAtrasado.test.mjs tests/validacaoProjecoes.test.mjs tests/laboratorioLeitura.test.mjs tests/padroesNiveis.test.mjs
