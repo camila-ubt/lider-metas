@@ -74,8 +74,8 @@ function variacao(atual, anterior) {
 
 function nivelDoResultado(vendido, meta) {
   if (!(meta > 0)) return "Sem meta";
-  if (vendido >= meta * 1.3) return "Megameta";
-  if (vendido >= meta * 1.2) return "Supermeta";
+  if (vendido >= meta * 1.2) return "Megameta";
+  if (vendido >= meta * 1.1) return "Supermeta";
   if (vendido >= meta) return "Meta";
   return "Abaixo da Meta";
 }
@@ -394,7 +394,7 @@ export default function AnaliseGerencial({ modo = "painel" }) {
       super: valoresCompletos.length >= 3
         ? probabilidadeAtingir({
             atual: totalVendido,
-            alvo: totalMeta * 1.2,
+            alvo: totalMeta * 1.1,
             mediaDiaria: mediaCompleta,
             desvioDiario: desvioCompleto,
             diasRestantes,
@@ -403,7 +403,7 @@ export default function AnaliseGerencial({ modo = "painel" }) {
       mega: valoresCompletos.length >= 3
         ? probabilidadeAtingir({
             atual: totalVendido,
-            alvo: totalMeta * 1.3,
+            alvo: totalMeta * 1.2,
             mediaDiaria: mediaCompleta,
             desvioDiario: desvioCompleto,
             diasRestantes,
@@ -786,7 +786,7 @@ export default function AnaliseGerencial({ modo = "painel" }) {
                   <b>Ação sugerida:</b>{" "}
                   {periodo.percentual < 100 && periodo.pontoAtencao
                     ? `concentrar o acompanhamento em ${periodo.pontoAtencao.loja.codigo} e acompanhar diariamente o valor necessário para a Meta.`
-                    : periodo.percentual < 120
+                    : periodo.percentual < 110
                       ? `manter o ritmo e compartilhar as práticas de ${periodo.lider?.loja.codigo || "quem lidera"} para buscar a Supermeta.`
                       : "preservar o padrão atual e documentar as práticas que produziram o resultado."}
                 </p>
