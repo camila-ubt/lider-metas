@@ -371,6 +371,7 @@ export default function PainelReuniao({ destinoTurnos = "painel" } = {}) {
           : minutosDoHorario(horarios.noiteFim);
       const previsao = calcularProjecaoTurno({
         vendas: vendasAteCorte,
+        historicos: historico,
         lojas,
         periodo,
         contexto,
