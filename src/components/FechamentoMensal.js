@@ -58,8 +58,8 @@ function nomePeriodo(periodo) {
 }
 
 function avaliarNivel(vendido, meta) {
-  const supermeta = meta * 1.2;
-  const megameta = meta * 1.3;
+  const supermeta = meta * 1.1;
+  const megameta = meta * 1.2;
 
   if (!(meta > 0)) {
     return {
@@ -169,7 +169,7 @@ function GraficoAcumulado({ diario, meta, diaCorte, projecao }) {
     linhaProjecao[diario.length - 1] = projecao;
   }
 
-  const maximo = Math.max(...acumulado, projecao, meta * 1.3, 1);
+  const maximo = Math.max(...acumulado, projecao, meta * 1.2, 1);
 
   return (
     <div className={styles.chartBox}>
@@ -586,8 +586,8 @@ export default function FechamentoMensal() {
 
                 <section className={styles.kpis}>
                   <article><span>Meta</span><strong>{dinheiro.format(dados.totalMeta)}</strong></article>
-                  <article><span>Supermeta</span><strong>{dinheiro.format(dados.totalMeta * 1.2)}</strong></article>
-                  <article><span>Megameta</span><strong>{dinheiro.format(dados.totalMeta * 1.3)}</strong></article>
+                  <article><span>Supermeta</span><strong>{dinheiro.format(dados.totalMeta * 1.1)}</strong></article>
+                  <article><span>Megameta</span><strong>{dinheiro.format(dados.totalMeta * 1.2)}</strong></article>
                   <article><span>Projeção</span><strong>{dinheiro.format(dados.projecao)}</strong></article>
                   <article><span>Caixas não abertos</span><strong>{dados.caixasNaoAbertos}</strong></article>
                 </section>
@@ -621,8 +621,8 @@ export default function FechamentoMensal() {
                         </div>
                         <div className={styles.levelRow}>
                           <ChipNivel nome="Meta" valor={loja.meta} vendido={loja.vendido} />
-                          <ChipNivel nome="Super" valor={loja.meta * 1.2} vendido={loja.vendido} />
-                          <ChipNivel nome="Mega" valor={loja.meta * 1.3} vendido={loja.vendido} />
+                          <ChipNivel nome="Super" valor={loja.meta * 1.1} vendido={loja.vendido} />
+                          <ChipNivel nome="Mega" valor={loja.meta * 1.2} vendido={loja.vendido} />
                         </div>
                         <div className={styles.periodGrid}>
                           {loja.periodos.map((periodo) => (
