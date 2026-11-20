@@ -44,7 +44,7 @@ export function calcularMetricasPrevisao(observacoes = []) {
 // Exige um registro por loja, período e dia: ausência não vira venda zero.
 // Não grava nada no banco, nem altera a regra atual de projeção.
 export function validarProjecoesHistoricas({
-  vendas = [], lojas = [], ano, numeroMes, periodo = "todos",
+  vendas = [], historicos = [], lojas = [], ano, numeroMes, periodo = "todos",
   diasCorte = CORTES_PADRAO,
 }) {
   const ultimoDia = new Date(ano, numeroMes, 0).getDate();
@@ -115,7 +115,7 @@ export function validarProjecoesHistoricas({
     const contexto = { tipo: "andamento", ano, numeroMes, diaCorte, ultimoDia };
     const previstos = periodos.map((turno) =>
       calcularProjecaoTurno({
-        vendas: registros, lojas, periodo: turno,
+        vendas: registros, historicos, lojas, periodo: turno,
         contexto, minutosAgora: 24 * 60, fimTurno: 0,
       }).valor);
     const previsto = previstos.some((valor) => valor === null)
