@@ -514,12 +514,12 @@ export default function InteligenciaGerencial() {
   const analiseSelecionada = useMemo(() => {
     if (!mes) return null;
     return analisarIndicadoresGerenciais({
-      vendas, metas, lojas, contexto: contextoDoMes(mes), minutosAgora,
+      vendas, historicos, metas, lojas, contexto: contextoDoMes(mes), minutosAgora,
       fimManha: minutosDoHorario(horarios.manhaFim),
       fimNoite: minutosDoHorario(horarios.noiteFim),
       filtroLoja, filtroPeriodo,
     });
-  }, [mes, vendas, metas, lojas, minutosAgora, horarios, filtroLoja, filtroPeriodo]);
+  }, [mes, vendas, metas, lojas, historicos, minutosAgora, horarios, filtroLoja, filtroPeriodo]);
 
   const escopoSelecionado = [
     filtroLoja === "geral"
