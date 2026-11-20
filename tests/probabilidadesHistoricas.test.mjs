@@ -52,6 +52,8 @@ test("usa dois anos do mesmo mês quando disponíveis", () => {
   assert.equal(r.status, "ok");
   assert.deepEqual(r.anosMesmoMes, [2024, 2025]);
   assert.equal(r.meses, 18);
+  assert.equal(r.mesesMesmoMes, 2);
+  assert.equal(r.mesesApoio, 16);
   assert.equal(r.diaBase, 20);
   for (const id of ["meta", "super", "mega"]) {
     assert.equal(r.probabilidades[id] % 5, 0);
@@ -65,6 +67,8 @@ test("usa somente o mesmo mês do ano anterior quando 2024 não o possui", () =>
   const r = simular({ mes: 2 });
   assert.equal(r.status, "ok");
   assert.deepEqual(r.anosMesmoMes, [2025]);
+  assert.equal(r.mesesMesmoMes, 1);
+  assert.equal(r.mesesApoio, 17);
   assert.equal(r.meses, 18);
 });
 
@@ -72,6 +76,8 @@ test("para 2025 não usa vendas ou metas de 2025 na referência", () => {
   const r = simular({ ano: 2025, mes: 11 });
   assert.equal(r.status, "ok");
   assert.deepEqual(r.anosMesmoMes, [2024]);
+  assert.equal(r.mesesMesmoMes, 1);
+  assert.equal(r.mesesApoio, 5);
   assert.equal(r.meses, 6);
 });
 

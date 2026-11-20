@@ -48,68 +48,6 @@ export function coeficienteVariacao(valores) {
   return (desvioPadrao(valores) / valorMedio) * 100;
 }
 
-function aproximarErf(valor) {
-  const sinal = valor < 0 ? -1 : 1;
-  const x = Math.abs(valor);
-  const a1 = 0.254829592;
-  const a2 = -0.284496736;
-  const a3 = 1.421413741;
-  const a4 = -1.453152027;
-  const a5 = 1.061405429;
-  const p = 0.3275911;
-  const t = 1 / (1 + p * x);
-  const y =
-    1 -
-    (((((a5 * t + a4) * t + a3) * t + a2) * t + a1) * t) *
-      Math.exp(-x * x);
-  return sinal * y;
-}
-
-export function distribuicaoNormalAcumulada(z) {
-  return 0.5 * (1 + aproximarErf(z / Math.sqrt(2)));
-}
-
-export function probabilidadeAtingir({
-  atual,
-  alvo,
-  mediaDiaria,
-  desvioDiario,
-  diasRestantes,
-}) {
-  if (!(alvo > 0)) return null;
-  if (atual >= alvo) return 100;
-  if (diasRestantes <= 0) return 0;
-
-  const mediaFinal = atual + mediaDiaria * diasRestantes;
-  const desvioFinal = desvioDiario * Math.sqrt(diasRestantes);
-
-  if (!(desvioFinal > 0)) return mediaFinal >= alvo ? 100 : 0;
-
-  const z = (alvo - mediaFinal) / desvioFinal;
-  const chance = (1 - distribuicaoNormalAcumulada(z)) * 100;
-  return Math.max(0, Math.min(chance, 100));
-}
-
-export function faixaEstimada({
-  atual,
-  mediaDiaria,
-  desvioDiario,
-  diasRestantes,
-  fator = 1.28155,
-}) {
-  if (diasRestantes <= 0) {
-    return { centro: atual, minimo: atual, maximo: atual };
-  }
-
-  const centro = atual + mediaDiaria * diasRestantes;
-  const margem = fator * desvioDiario * Math.sqrt(diasRestantes);
-  return {
-    centro,
-    minimo: Math.max(atual, centro - margem),
-    maximo: Math.max(atual, centro + margem),
-  };
-}
-
 export function regressaoLinear(valores) {
   const lista = valores.map(Number).filter(Number.isFinite);
   const n = lista.length;

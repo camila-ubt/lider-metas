@@ -92,11 +92,6 @@ export function analisarIndicadoresGerenciais({
   const pendentes = previsoes.reduce((soma, item) => soma + (item.pendentes || 0), 0);
   const sazonal = previsoes.some((item) => item.sazonal);
 
-  // Percentuais de chances e intervalos deixam de ser exibidos até existir
-  // calibração temporal verificável por loja/turno e horizonte de previsão.
-  // Não inferir probabilidades exatas a partir de apenas três dias.
-  const faixa = null;
-
   const extremos = extremosDiasSemana(diasCompletos, NOMES_SEMANA);
   return {
     totalVendido,
@@ -108,10 +103,8 @@ export function analisarIndicadoresGerenciais({
     baseEstatistica: valoresCompletos,
     desvioDiario,
     projecaoOperacional,
-    faixa,
     pendentes,
     sazonal,
-    probabilidades: { meta: null, super: null, mega: null },
     tendencia,
     nomeTendencia,
     ultimosValores,

@@ -124,25 +124,6 @@ export function analisarHistoricoMes({
         }
       : null;
 
-  // Projeção só com meses históricos integralmente lançados; não preenche
-  // datas ausentes com zero nem extrapola lançamentos parciais do mês atual.
-  const anosCompletos = comparaveis.filter((item) =>
-    item.diasCompletos === item.ultimoDia && item.total > 0);
-  const fracoes = anosCompletos.map((item) => item.acumulado / item.total);
-  const fracaoMedia = fracoes.length
-    ? fracoes.reduce((soma, valor) => soma + valor, 0) / fracoes.length
-    : 0;
-  const projecao =
-    tipo !== "futuro" && tipo !== "encerrado" &&
-    diaComparacao >= 5 && diaComparacao < ultimoDiaAtual &&
-    fracaoMedia > 0 && atualAteCorte !== null
-      ? {
-          valor: atualAteCorte / fracaoMedia,
-          dia: diaComparacao,
-          anos: anosCompletos.map((item) => item.ano),
-        }
-      : null;
-
   return {
     referencias: referencias.map((item) => ({
       ano: item.ano,
@@ -154,6 +135,5 @@ export function analisarHistoricoMes({
     situacaoDias: situacao,
     variacaoMediaDiaria,
     comparacao,
-    projecao,
   };
 }

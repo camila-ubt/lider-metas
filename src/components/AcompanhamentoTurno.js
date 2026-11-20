@@ -256,7 +256,7 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, vendas, usuario
           )}
           {projecao && pronto && Object.values(vendasAtuais).some((valor) => valor !== "") && (
             <div className={styles.projecao} aria-live="polite">
-              <p className={styles.projecaoTitulo}>Amanhã · meta geral</p>
+              <p className={styles.projecaoTitulo}>Meta necessária amanhã</p>
               {projecao.map(({ nivel: faixa, metaAmanha, variacaoPercentual }) => (
                 <div className={styles.projecaoLinha} key={faixa}>
                   <span>{faixa === 100 ? "Meta" : faixa === 110 ? "Super" : "Mega"} {faixa}%</span>
@@ -268,7 +268,7 @@ export default function AcompanhamentoTurno({ mes, metas, lojas, vendas, usuario
                   </span>
                 </div>
               ))}
-              <small className={styles.projecaoNota}>Projeção com as vendas informadas até agora.</small>
+              <small className={styles.projecaoNota}>Meta recalculada com os valores informados neste turno.</small>
             </div>
           )}
         </div>

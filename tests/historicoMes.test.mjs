@@ -52,8 +52,7 @@ test("distingue crescimento dos anos anteriores do ritmo do ano atual", () => {
   assert.equal(r.comparacao.dia, 7);
   assert.equal(r.comparacao.variacao.toFixed(3), (100 * (150 / 105 - 1)).toFixed(3));
   assert.deepEqual(r.comparacao.anos, [2024, 2025]);
-  assert.equal(r.projecao.dia, 7);
-  assert.ok(r.projecao.valor > r.comparacao.atual);
+  assert.ok(r.comparacao.atual > 0);
 });
 
 test("não confunde lançamento parcial do dia de hoje com queda nas vendas", () => {
@@ -83,7 +82,7 @@ test("exclui ano histórico sem pelo menos 80% de dias completos", () => {
   assert.deepEqual(r.comparacao.anos, [2025]);
 });
 
-test("não gera projeção se os meses antigos estiverem incompletos", () => {
+test("mantém comparação histórica sem gerar outra previsão de fechamento", () => {
   const r = analisarHistoricoMes({
     historicos: [
       ...gerarMes(2024, 10, 31, () => 100, [30]),
@@ -92,8 +91,8 @@ test("não gera projeção se os meses antigos estiverem incompletos", () => {
     vendasAtuais: gerarMes(2026, 10, 7),
     lojas, ano: 2026, numeroMes: 10, diaCorte: 8,
   });
-  assert.equal(r.projecao, null);
   assert.ok(r.comparacao !== null);
+  assert.equal(Object.hasOwn(r, "projecao"), false);
 });
 
 test("não calcula comparação nem previsão com dia anterior incompleto", () => {
@@ -103,7 +102,7 @@ test("não calcula comparação nem previsão com dia anterior incompleto", () =
     lojas, ano: 2026, numeroMes: 10, diaCorte: 8,
   });
   assert.equal(r.comparacao, null);
-  assert.equal(r.projecao, null);
+  assert.equal(Object.hasOwn(r, "projecao"), false);
 });
 
 test("padrão histórico funciona para mês futuro sem inventar previsão", () => {
@@ -114,7 +113,7 @@ test("padrão histórico funciona para mês futuro sem inventar previsão", () =
   });
   assert.equal(r.referencias.length, 2);
   assert.equal(r.comparacao, null);
-  assert.equal(r.projecao, null);
+  assert.equal(Object.hasOwn(r, "projecao"), false);
 });
 
 test("ignora anos não solicitados e lojas inativas ao agregar", () => {

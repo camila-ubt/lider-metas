@@ -369,10 +369,6 @@ export default function AnaliseGerencial({ modo = "painel" }) {
       ),
     }).valor;
     const projecaoOperacional = somarProjecoes(...PERIODOS.map((periodo) => prever(periodo)));
-    // Probabilidades numéricas não são confiáveis sem calibração temporal.
-    const faixa = null;
-    const probabilidades = { meta: null, super: null, mega: null };
-
     const metasPorSlot = new Map(
       metas.map((meta) => [
         `${Number(meta.loja_id)}|${meta.periodo}`,
@@ -532,8 +528,6 @@ export default function AnaliseGerencial({ modo = "painel" }) {
       percentualMeta: porcentagem(totalVendido, totalMeta),
       nivel: nivelDoResultado(totalVendido, totalMeta),
       projecaoOperacional,
-      faixa,
-      probabilidades,
       diasCompletos: diasCompletos.length,
       pendentes,
       amostraSuficiente: valoresCompletos.length >= 5,

@@ -9,6 +9,10 @@ const METAS = [
   { chave: "super", nome: "Supermeta" },
   { chave: "mega", nome: "Megameta" },
 ];
+const NOMES_MESES = [
+  "janeiro", "fevereiro", "março", "abril", "maio", "junho",
+  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+];
 
 function intervalosHistoricos(ano) {
   const intervalos = [];
@@ -112,10 +116,10 @@ export default function ProbabilidadesMetas({
       </div>
       <small style={{ opacity: 0.8 }}>
         {resultado.anosMesmoMes.length
-          ? `Mesmo mês: ${resultado.anosMesmoMes.join(" e ")}`
-          : "Sem ano anterior do mesmo mês"}
-        {" · "}{resultado.meses} meses usados
-        {" · "}vendas até o dia {resultado.diaBase}
+          ? `Mesmo mês: ${NOMES_MESES[numeroMes - 1]} de ${resultado.anosMesmoMes.join(" e ")}`
+          : "Sem referência do mesmo mês"}
+        {" · "}{resultado.mesesApoio} outros meses de apoio
+        {" · "}até o dia {resultado.diaBase}
       </small>
     </div>
   );

@@ -42,7 +42,7 @@ test("dia de hoje não é completo enquanto a noite estiver aberta, mesmo com la
   assert.equal(dados.totalVendido, 3185);
 });
 
-test("previsão central é igual à soma dos turnos; chances não calibradas ficam ocultas", () => {
+test("previsão central soma turnos e não calcula probabilidades alternativas", () => {
   const dados = analisar();
   const previstos = ["manha", "noite"].map((periodo) =>
     calcularProjecaoTurno({
@@ -51,8 +51,8 @@ test("previsão central é igual à soma dos turnos; chances não calibradas fic
     }).valor,
   );
   assert.equal(dados.projecaoOperacional, previstos[0] + previstos[1]);
-  assert.equal(dados.faixa, null);
-  assert.deepEqual(dados.probabilidades, { meta: null, super: null, mega: null });
+  assert.equal(Object.hasOwn(dados, "faixa"), false);
+  assert.equal(Object.hasOwn(dados, "probabilidades"), false);
 });
 
 test("filtros restringem vendas, metas, amostra e projeções ao mesmo escopo", () => {
@@ -72,18 +72,17 @@ test("turno da manhã fechado pode compor a base mesmo com a noite aberta", () =
   const dados = analisar({ filtroPeriodo: "manha" });
   assert.equal(dados.diasCompletos.length, 4);
   assert.equal(dados.totalMeta, 2000);
-  assert.equal(dados.probabilidades.meta, null);
+  assert.equal(Object.hasOwn(dados, "probabilidades"), false);
 });
 
-test("sem três dias completos não são mostradas probabilidades artificiais", () => {
+test("sem três dias completos não há probabilidades alternativas", () => {
   const registros = vendas.filter((v) =>
     v.data !== "2026-10-02" || v.periodo !== "noite" || v.loja_id !== 2,
   ).filter((v) => v.data !== "2026-10-03");
   const dados = analisar({ vendas: registros });
   assert.equal(dados.diasCompletos.length, 1);
-  assert.equal(dados.faixa, null);
-  assert.equal(dados.probabilidades.meta, null);
-  assert.equal(dados.probabilidades.mega, null);
+  assert.equal(Object.hasOwn(dados, "faixa"), false);
+  assert.equal(Object.hasOwn(dados, "probabilidades"), false);
 });
 
 test("após encerrar a noite, o dia inteiro pode entrar na base", () => {

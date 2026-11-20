@@ -322,8 +322,8 @@ export default function InteligenciaGerencial() {
     });
     const {
       totalVendido, totalMeta, diasObservados, diasCompletos,
-      baseEstatistica, desvioDiario, projecaoOperacional, faixa,
-      probabilidades, tendencia, nomeTendencia, ultimosValores,
+      baseEstatistica, desvioDiario, projecaoOperacional,
+      tendencia, nomeTendencia, ultimosValores,
     } = metricas;
     const vendasConsideradas = vendas.filter(
       (venda) => diaDaData(venda.data) <= contexto.diaCorte,
@@ -479,8 +479,6 @@ export default function InteligenciaGerencial() {
       percentualGeral,
       nivelGeral,
       projecaoOperacional,
-      faixa,
-      probabilidades,
       diasObservados: diasObservados.length,
       diasCompletos: diasCompletos.length,
       baseEstatistica: baseEstatistica.length,
