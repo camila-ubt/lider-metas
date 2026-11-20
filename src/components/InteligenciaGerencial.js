@@ -334,7 +334,7 @@ export default function InteligenciaGerencial() {
 
     const contexto = contextoDoMes(mes);
     const metricas = analisarIndicadoresGerenciais({
-      vendas, metas, lojas, contexto, minutosAgora,
+      vendas, historicos, metas, lojas, contexto, minutosAgora,
       fimManha: minutosDoHorario(horarios.manhaFim),
       fimNoite: minutosDoHorario(horarios.noiteFim),
     });
