@@ -582,16 +582,15 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         )}
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
-      {projecaoDetalhesAbertos && (
-        <article id={idProjecaoDetalhes}
-          className={`${styles.card} ${styles.projecaoDetalheCard}`}>
-          <DetalhesProjecao
-            mes={mes} vendas={vendas} metas={metas} lojas={lojas}
-            historicos={historicoAnterior} horarios={horarios}
-            minutosAgora={minutosAtuais}
-          />
-        </article>
-      )}
+      <article id={idProjecaoDetalhes}
+        hidden={!projecaoDetalhesAbertos}
+        className={`${styles.card} ${styles.projecaoDetalheCard}`}>
+        <DetalhesProjecao
+          mes={mes} vendas={vendas} metas={metas} lojas={lojas}
+          historicos={historicoAnterior} horarios={horarios}
+          minutosAgora={minutosAtuais}
+        />
+      </article>
       {metaHistoricoAberto && (
         <article id={idMetaHistorico} className={`${styles.card} ${styles.metaHistoricoCard}`}>
           <HistoricoMetaLojaDia historico={dados.historicoMetaLojaDia} mes={mes} mesAtual={dados.mesAtual} />
