@@ -55,6 +55,8 @@ const th = {
   borderBottom: "1px solid var(--border, #ddd)", whiteSpace: "nowrap",
 };
 const td = { textAlign: "right", padding: "6px 5px", whiteSpace: "nowrap" };
+const thCompacto = { ...th, padding: "5px 1px", textAlign: "center" };
+const tdCompacto = { ...td, padding: "5px 1px", textAlign: "center" };
 
 export default function LaboratorioCalibracao({
   lojas, filtroLoja, filtroPeriodo,
@@ -262,19 +264,34 @@ export default function LaboratorioCalibracao({
               </div>
 
               <strong>Conferência mês a mês — dia {diaCorte}</strong>
-              <div style={{ width: "100%", overflowX: "auto" }}>
-                <table style={{ width: "100%", minWidth: 540, borderCollapse: "collapse", fontSize: 12 }}>
+              <div style={{ width: "100%" }}>
+                <table style={{
+                  width: "100%", tableLayout: "fixed",
+                  borderCollapse: "collapse", fontSize: "clamp(10px, 2.7vw, 12px)",
+                }}>
                   <thead>
                     <tr>
-                      {["Mês", "Meta", "Real", "Supermeta", "Real", "Megameta", "Real"].map((nome, i) => (
-                        <th key={nome + i} scope="col" style={th}>{nome}</th>
+                      {[
+                        ["Mês", "Mês"],
+                        ["Meta", "Probabilidade de Meta"],
+                        ["Real", "Meta atingida no fechamento"],
+                        ["Super", "Probabilidade de Supermeta"],
+                        ["Real", "Supermeta atingida no fechamento"],
+                        ["Mega", "Probabilidade de Megameta"],
+                        ["Real", "Megameta atingida no fechamento"],
+                      ].map(([nome, descricao], i) => (
+                        <th key={i} scope="col" title={descricao} aria-label={descricao}
+                          style={{
+                            ...thCompacto,
+                            width: i === 0 ? "19%" : i % 2 === 1 ? "14.5%" : "12.5%",
+                          }}>{nome}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {observacoes.map((item) => (
                       <tr key={item.mes}>
-                        <td style={{ ...td, textAlign: "left" }}>{item.mes.slice(5, 7)}/{item.mes.slice(0, 4)}</td>
+                        <td style={{ ...tdCompacto, textAlign: "left" }}>{item.mes.slice(5, 7)}/{item.mes.slice(0, 4)}</td>
                         {NIVEIS_CALIBRACAO.map(({ id }) => (
                           <FragmentoNivel key={id}
                             probabilidade={item.probabilidades[id]}
@@ -301,8 +318,8 @@ export default function LaboratorioCalibracao({
 function FragmentoNivel({ probabilidade, atingiu }) {
   return (
     <>
-      <td style={td}>{textoPercentual(probabilidade)}</td>
-      <td style={td}>{atingiu ? "Sim" : "Não"}</td>
+      <td style={tdCompacto}>{textoPercentual(probabilidade)}</td>
+      <td style={tdCompacto}>{atingiu ? "Sim" : "Não"}</td>
     </>
   );
 }
