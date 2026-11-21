@@ -12,6 +12,14 @@ import {
 const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 const numero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 3 });
 
+// A cor indica a magnitude do desvio, não se a previsão é otimista ou conservadora.
+const LIMIAR_DESVIO_PP = 5;
+
+function corDesvio(valor) {
+  if (!Number.isFinite(valor)) return "inherit";
+  return Math.abs(valor) <= LIMIAR_DESVIO_PP ? "#15803d" : "#b91c1c";
+}
+
 function textoPercentual(valor) {
   return valor === null || !Number.isFinite(valor)
     ? "—" : percentual.format(valor) + "%";
@@ -47,6 +55,8 @@ const th = {
   borderBottom: "1px solid var(--border, #ddd)", whiteSpace: "nowrap",
 };
 const td = { textAlign: "right", padding: "6px 5px", whiteSpace: "nowrap" };
+const thCompacto = { ...th, padding: "5px 1px", textAlign: "center" };
+const tdCompacto = { ...td, padding: "5px 1px", textAlign: "center" };
 
 export default function LaboratorioCalibracao({
   lojas, filtroLoja, filtroPeriodo,
@@ -200,10 +210,9 @@ export default function LaboratorioCalibracao({
                           <td style={{ ...td, textAlign: "left" }}>{nome}</td>
                           <td style={td}>{textoPercentual(item.chanceMedia)}</td>
                           <td style={td}>{textoPercentual(item.frequenciaReal)}</td>
-                          <td style={{
-                            ...td, color: item.desvioPp > 0 ? "#b91c1c" :
-                              item.desvioPp < 0 ? "#15803d" : "inherit",
-                          }}>{textoPontos(item.desvioPp)}</td>
+                          <td style={{ ...td, color: corDesvio(item.desvioPp) }}>
+                            {textoPontos(item.desvioPp)}
+                          </td>
                           <td style={td}>{item.brier === null ? "—" : numero.format(item.brier)}</td>
                         </tr>
                       );
@@ -212,8 +221,10 @@ export default function LaboratorioCalibracao({
                 </table>
               </div>
               <small>
-                Diferença positiva: chance estimada otimista. Negativa: conservadora.
-                Brier mede o erro das probabilidades (0 é melhor; 1 é pior).
+                Diferença positiva: a chance foi superestimada. Negativa: foi subestimada.
+                Verde indica desvio absoluto de até 5 p.p.; vermelho, acima de 5 p.p.,
+                independentemente do sinal. Brier mede o erro das probabilidades
+                (0 é melhor; 1 é pior).
                 O mesmo mês é analisado em cinco datas, mas cada dia é avaliado separadamente.
                 Com poucos meses, as porcentagens observadas ainda oscilam bastante.
               </small>
@@ -253,19 +264,34 @@ export default function LaboratorioCalibracao({
               </div>
 
               <strong>Conferência mês a mês — dia {diaCorte}</strong>
-              <div style={{ width: "100%", overflowX: "auto" }}>
-                <table style={{ width: "100%", minWidth: 540, borderCollapse: "collapse", fontSize: 12 }}>
+              <div style={{ width: "100%" }}>
+                <table style={{
+                  width: "100%", tableLayout: "fixed",
+                  borderCollapse: "collapse", fontSize: "clamp(10px, 2.7vw, 12px)",
+                }}>
                   <thead>
                     <tr>
-                      {["Mês", "Meta", "Real", "Supermeta", "Real", "Megameta", "Real"].map((nome, i) => (
-                        <th key={nome + i} scope="col" style={th}>{nome}</th>
+                      {[
+                        ["Mês", "Mês"],
+                        ["Meta", "Probabilidade de Meta"],
+                        ["Real", "Meta atingida no fechamento"],
+                        ["Super", "Probabilidade de Supermeta"],
+                        ["Real", "Supermeta atingida no fechamento"],
+                        ["Mega", "Probabilidade de Megameta"],
+                        ["Real", "Megameta atingida no fechamento"],
+                      ].map(([nome, descricao], i) => (
+                        <th key={i} scope="col" title={descricao} aria-label={descricao}
+                          style={{
+                            ...thCompacto,
+                            width: i === 0 ? "19%" : i % 2 === 1 ? "14.5%" : "12.5%",
+                          }}>{nome}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {observacoes.map((item) => (
                       <tr key={item.mes}>
-                        <td style={{ ...td, textAlign: "left" }}>{item.mes.slice(5, 7)}/{item.mes.slice(0, 4)}</td>
+                        <td style={{ ...tdCompacto, textAlign: "left" }}>{item.mes.slice(5, 7)}/{item.mes.slice(0, 4)}</td>
                         {NIVEIS_CALIBRACAO.map(({ id }) => (
                           <FragmentoNivel key={id}
                             probabilidade={item.probabilidades[id]}
@@ -292,8 +318,8 @@ export default function LaboratorioCalibracao({
 function FragmentoNivel({ probabilidade, atingiu }) {
   return (
     <>
-      <td style={td}>{textoPercentual(probabilidade)}</td>
-      <td style={td}>{atingiu ? "Sim" : "Não"}</td>
+      <td style={tdCompacto}>{textoPercentual(probabilidade)}</td>
+      <td style={tdCompacto}>{atingiu ? "Sim" : "Não"}</td>
     </>
   );
 }
