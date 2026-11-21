@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { validarProjecoesHistoricas } from "@/lib/validacaoProjecoes.mjs";
+import LaboratorioCalibracao from "./LaboratorioCalibracao";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
@@ -97,6 +98,11 @@ export default function LaboratorioValidacao({
           </small>
         </>
       )}
+      <LaboratorioCalibracao
+        lojas={lojas}
+        filtroLoja={filtroLoja}
+        filtroPeriodo={filtroPeriodo}
+      />
     </div>
   );
 }
