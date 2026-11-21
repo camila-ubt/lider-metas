@@ -11,6 +11,9 @@ on:
       - "src/components/AcompanhamentoTurno.js"
       - "src/components/AppEnhancements.js"
       - "src/lib/probabilidadesHistoricas.mjs"
+      - "src/lib/validacaoProbabilidades.mjs"
+      - "src/components/LaboratorioCalibracao.js"
+      - "tests/validacaoProbabilidades.test.mjs"
       - "src/lib/calibracaoProbabilidades.mjs"
       - "src/lib/qualidadeDados.mjs"
       - "src/components/RegistroPrevisoes.js"
@@ -51,4 +54,4 @@ jobs:
         with:
           node-version: "22"
       - name: Testar calculos de previsao e backtest
-        run: node --test tests/probabilidadesHistoricas.test.mjs tests/projecaoTurnos.test.mjs tests/indicadoresGerenciais.test.mjs tests/periodoMaisAtrasado.test.mjs tests/validacaoProjecoes.test.mjs tests/laboratorioLeitura.test.mjs tests/padroesNiveis.test.mjs tests/consistenciaProjecoes.test.mjs tests/historicoMes.test.mjs tests/calibracaoProbabilidades.test.mjs tests/qualidadeDados.test.mjs
+        run: node --test tests/probabilidadesHistoricas.test.mjs tests/projecaoTurnos.test.mjs tests/indicadoresGerenciais.test.mjs tests/periodoMaisAtrasado.test.mjs tests/validacaoProjecoes.test.mjs tests/laboratorioLeitura.test.mjs tests/padroesNiveis.test.mjs tests/consistenciaProjecoes.test.mjs tests/historicoMes.test.mjs tests/calibracaoProbabilidades.test.mjs tests/qualidadeDados.test.mjs tests/validacaoProbabilidades.test.mjs
