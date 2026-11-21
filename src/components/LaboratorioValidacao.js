@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { validarProjecoesHistoricas } from "@/lib/validacaoProjecoes.mjs";
 import { verificarQualidadeLancamentos } from "@/lib/qualidadeDados.mjs";
-import RegistroPrevisoes from "./RegistroPrevisoes";
 import LaboratorioCalibracao from "./LaboratorioCalibracao";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -115,9 +114,6 @@ export default function LaboratorioValidacao({
       )}
       <LaboratorioCalibracao lojas={lojas} filtroLoja={filtroLoja}
         filtroPeriodo={filtroPeriodo} />
-      <hr style={{ border: 0, borderTop: "1px solid var(--border, #ddd)", width: "100%" }} />
-      <RegistroPrevisoes lojas={lojasTeste} ano={ano} numeroMes={numeroMes}
-        filtroLoja={filtroLoja} filtroPeriodo={filtroPeriodo} />
     </div>
   );
 }
