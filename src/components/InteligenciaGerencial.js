@@ -644,6 +644,10 @@ export default function InteligenciaGerencial() {
               <h3>🧪 Laboratório de validação das projeções</h3>
               <LaboratorioValidacao
                 historicos={historicos}
+                vendasAtuais={vendas}
+                metasAtuais={metas}
+                diaLimite={analise.contexto.diaCorte}
+                mesEncerrado={analise.contexto.tipo === "encerrado"}
                 lojas={lojas}
                 ano={analise.contexto.ano}
                 numeroMes={analise.contexto.numeroMes}
@@ -707,6 +711,7 @@ export default function InteligenciaGerencial() {
                       lojas={lojas}
                       vendas={vendas}
                       metas={metas}
+                      projecaoMensal={analiseSelecionada.projecaoOperacional}
                       filtroLoja={filtroLoja}
                       filtroPeriodo={filtroPeriodo}
                     />
