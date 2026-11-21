@@ -15,7 +15,6 @@ import { gerarHistoricoMetaLojaDia } from "@/lib/historicoMetaLojaDia.mjs";
 import { encontrarPeriodoMaisAtrasado } from "@/lib/periodoMaisAtrasado.mjs";
 import ResumoPADashboard from "./ResumoPADashboard";
 import HistoricoMetaLojaDia from "./HistoricoMetaLojaDia";
-import DetalhesProjecao from "./DetalhesProjecao";
 import SinalExpandir from "./SinalExpandir";
 import { descreverSituacaoNivel } from "@/lib/situacaoNiveis.mjs";
 import styles from "./DashboardEstavelV2.module.css";
@@ -247,10 +246,8 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
   const [lojaAberta, setLojaAberta] = useState(null);
   const [jornadaDetalhesAbertos, setJornadaDetalhesAbertos] = useState(false);
   const [metaHistoricoAberto, setMetaHistoricoAberto] = useState(false);
-  const [projecaoDetalhesAbertos, setProjecaoDetalhesAbertos] = useState(false);
   const idJornadaDetalhes = useId();
   const idMetaHistorico = useId();
-  const idProjecaoDetalhes = useId();
 
   useEffect(() => {
     let cancelado = false;
@@ -414,11 +411,7 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
     };
   }, [mes, vendas, metas, lojas, historicoAnterior, horarios, minutosAtuais]);
 
-  useEffect(() => {
-    setLojaAberta(null);
-    setMetaHistoricoAberto(false);
-    setProjecaoDetalhesAbertos(false);
-  }, [mes]);
+  useEffect(() => { setLojaAberta(null); setMetaHistoricoAberto(false); }, [mes]);
 
   const comparativoHistorico = useMemo(() => {
     const anos = [dados.ano - 2, dados.ano - 1, dados.ano];
@@ -499,16 +492,8 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
 
       <div className={styles.kpiGrid}>
         <article className={styles.kpi}><span>Total vendido</span><strong>{dinheiro.format(dados.totalVendido)}</strong><small>{textoPercentual(porcentagem(dados.totalVendido, dados.meta))} da Meta</small></article>
-        <button type="button"
-          className={`${styles.kpi} ${styles.projecaoKpiBotao}`}
-          aria-label={projecaoDetalhesAbertos ? "Recolher projeção e previsões diárias" : "Abrir projeção e previsões diárias"}
-          aria-expanded={projecaoDetalhesAbertos}
-          aria-controls={idProjecaoDetalhes}
-          onClick={() => setProjecaoDetalhesAbertos((aberto) => !aberto)}>
-          <div className={styles.metaKpiCabecalho}>
-            <span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span>
-            <SinalExpandir aberto={projecaoDetalhesAbertos} />
-          </div>
+        <article className={styles.kpi}>
+          <span>{dados.mesPassado ? "Resultado final" : "Projeção"}</span>
           <strong>{dados.mesPassado ? dados.nivelFechado : dados.projecao === null ? "—" : dinheiro.format(dados.projecao)}</strong>
           <small className={!dados.mesPassado && dados.projecao !== null ? styles.projecaoLegenda : undefined}>
             {dados.mesPassado
@@ -525,9 +510,11 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
                 )}
           </small>
           {!dados.mesPassado && dados.pendentesProjecao > 0 && (
-            <small>{dados.pendentesProjecao} lançamentos encerrados ainda pendentes.</small>
+            <small>
+              {dados.pendentesProjecao} lançamentos encerrados ainda pendentes.
+            </small>
           )}
-        </button>
+        </article>
         {dados.mesPassado ? (
           <button type="button" className={`${styles.kpi} ${styles.metaKpiBotao}`} onClick={() => setMetaHistoricoAberto((aberto) => !aberto)} aria-expanded={metaHistoricoAberto} aria-controls={metaHistoricoAberto ? idMetaHistorico : undefined} title={metaHistoricoAberto ? "Recolher histórico da meta diária" : "Abrir histórico da meta diária"}>
             <div className={styles.metaKpiCabecalho}><span>Fechamento</span><SinalExpandir aberto={metaHistoricoAberto} /></div>
@@ -582,15 +569,6 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
         )}
         <article className={styles.kpi}><span>Média diária</span><strong>{dados.media === null ? "—" : dinheiro.format(dados.media)}</strong><small>{dados.diasLancados} dias com lançamento</small></article>
       </div>
-      <article id={idProjecaoDetalhes}
-        hidden={!projecaoDetalhesAbertos}
-        className={`${styles.card} ${styles.projecaoDetalheCard}`}>
-        <DetalhesProjecao
-          mes={mes} vendas={vendas} metas={metas} lojas={lojas}
-          historicos={historicoAnterior} horarios={horarios}
-          minutosAgora={minutosAtuais}
-        />
-      </article>
       {metaHistoricoAberto && (
         <article id={idMetaHistorico} className={`${styles.card} ${styles.metaHistoricoCard}`}>
           <HistoricoMetaLojaDia historico={dados.historicoMetaLojaDia} mes={mes} mesAtual={dados.mesAtual} />
