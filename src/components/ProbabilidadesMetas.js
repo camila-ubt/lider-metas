@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { estimarChancesHistoricas } from "@/lib/probabilidadesHistoricas.mjs";
+import { avaliarCalibracaoProbabilidades } from "@/lib/calibracaoProbabilidades.mjs";
+import { verificarQualidadeLancamentos } from "@/lib/qualidadeDados.mjs";
 
 const METAS = [
   { chave: "meta", nome: "Meta" },
@@ -28,14 +30,28 @@ function intervalosHistoricos(ano) {
   return intervalos;
 }
 
+function intervalosMesesEncerrados(ano, numeroMes) {
+  const intervalos = [];
+  for (let mes = 1; mes < numeroMes; mes += 3) {
+    const ultimoMes = Math.min(mes + 2, numeroMes - 1);
+    const fim = new Date(ano, ultimoMes, 0).getDate();
+    intervalos.push({
+      inicio: `${ano}-${String(mes).padStart(2, "0")}-01`,
+      fim: `${ano}-${String(ultimoMes).padStart(2, "0")}-${String(fim).padStart(2, "0")}`,
+    });
+  }
+  return intervalos;
+}
+
 export default function ProbabilidadesMetas({
   ano, numeroMes, diaLimite, tipo, lojas, vendas, metas,
-  filtroLoja = "geral", filtroPeriodo = "todos",
+  filtroLoja = "geral", filtroPeriodo = "todos", projecaoMensal = null,
 }) {
   const supabase = useMemo(() => createClient(), []);
   const [historico, setHistorico] = useState(null);
   const [erro, setErro] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [erroRegistro, setErroRegistro] = useState(false);
   const chave = `${ano}-${numeroMes}`;
   const ativo = tipo === "andamento" || tipo === "ultimo-dia";
 
@@ -46,7 +62,10 @@ export default function ProbabilidadesMetas({
     async function carregar() {
       setCarregando(true);
       setErro(false);
-      const intervalos = intervalosHistoricos(ano);
+      const intervalos = [
+        ...intervalosHistoricos(ano),
+        ...intervalosMesesEncerrados(ano, numeroMes),
+      ];
       const anos = [...new Set(intervalos.map((item) => Number(item.inicio.slice(0, 4))))];
       const requisicoes = [
         ...intervalos.map(({ inicio, fim }) =>
@@ -89,6 +108,43 @@ export default function ProbabilidadesMetas({
     }), [ativo, pronto, historico, vendas, metas, lojas,
       ano, numeroMes, diaLimite, filtroLoja, filtroPeriodo]);
 
+  const calibracao = useMemo(() => resultado?.status !== "ok" ? null :
+    avaliarCalibracaoProbabilidades({
+      ...historico, lojas, ano, numeroMes, diaLimite,
+      filtroLoja, filtroPeriodo, probabilidades: resultado.probabilidades,
+    }), [resultado, historico, lojas, ano, numeroMes, diaLimite, filtroLoja, filtroPeriodo]);
+  const qualidade = useMemo(() => verificarQualidadeLancamentos({
+    vendas, metas, lojas, ano, numeroMes,
+    diaConcluido: Math.max(0, diaLimite - 1), filtroLoja, filtroPeriodo,
+  }), [vendas, metas, lojas, ano, numeroMes, diaLimite, filtroLoja, filtroPeriodo]);
+
+  useEffect(() => {
+    if (!pronto || resultado?.status !== "ok" || !calibracao ||
+        qualidade.status !== "ok" || !Number.isFinite(projecaoMensal)) return;
+    const hoje = new Date();
+    if (ano !== hoje.getFullYear() || numeroMes !== hoje.getMonth() + 1 ||
+        diaLimite !== hoje.getDate() || resultado.diaBase < Math.max(3, diaLimite - 1)) return;
+    let cancelado = false;
+    const data = `${ano}-${String(numeroMes).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+    const raw = resultado.probabilidades;
+    const ajustada = calibracao.probabilidades;
+    async function registrar() {
+      const { error: falha } = await supabase.from("previsoes_diarias").upsert({
+        data_previsao: data, mes: `${ano}-${String(numeroMes).padStart(2, "0")}-01`,
+        filtro_loja: String(filtroLoja), filtro_periodo: filtroPeriodo,
+        dia_base: resultado.diaBase, projecao_valor: projecaoMensal,
+        chance_meta_original: raw.meta, chance_super_original: raw.super,
+        chance_mega_original: raw.mega, chance_meta: ajustada.meta,
+        chance_super: ajustada.super, chance_mega: ajustada.mega,
+        meses_calibracao: calibracao.totalMeses,
+      }, { onConflict: "data_previsao,mes,filtro_loja,filtro_periodo", ignoreDuplicates: true });
+      if (!cancelado) setErroRegistro(Boolean(falha));
+    }
+    registrar();
+    return () => { cancelado = true; };
+  }, [pronto, resultado, calibracao, qualidade, projecaoMensal,
+    ano, numeroMes, diaLimite, filtroLoja, filtroPeriodo, supabase]);
+
   if (!ativo || erro) return null;
   if (carregando || !pronto) {
     return <small style={{ display: "block", marginTop: 8 }}>Calculando chances...</small>;
@@ -110,7 +166,7 @@ export default function ProbabilidadesMetas({
             display: "grid", gap: 3,
           }}>
             <span style={{ fontSize: 11 }}>{nome}</span>
-            <strong style={{ fontSize: 19 }}>{resultado.probabilidades[nivel]}%</strong>
+            <strong style={{ fontSize: 19 }}>{(calibracao?.probabilidades?.[nivel] ?? resultado.probabilidades[nivel])}%</strong>
           </div>
         ))}
       </div>
@@ -121,6 +177,24 @@ export default function ProbabilidadesMetas({
         {" · "}{resultado.mesesApoio} outros meses de apoio
         {" · "}até o dia {resultado.diaBase}
       </small>
+      {calibracao && (
+        <small style={{ opacity: 0.8 }}>
+          Calibração: {calibracao.totalMeses} meses retrospectivos.{" "}
+          {METAS.map(({ chave: nivel, nome }) => {
+            const item = calibracao.niveis[nivel];
+            return `${nome}: ${item?.validado ? `${item.semelhantes} casos semelhantes, ${Math.round(item.frequencia)}% atingiram` : "amostra insuficiente para confirmar a chance"}`;
+          }).join(" · ")}.
+        </small>
+      )}
+      {qualidade.status === "inconsistente" && (
+        <small role="status" style={{ color: "#b42318" }}>
+          Conferência dos lançamentos até ontem: {qualidade.faltantes} ausentes,{" "}
+          {qualidade.duplicados} duplicados, {qualidade.invalidos} incompatíveis;{" "}
+          {qualidade.metasAusentes + qualidade.metasDuplicadas + qualidade.metasInvalidas} problemas nas metas.
+          {" "}Verifique antes de confiar na previsão.
+        </small>
+      )}
+      {erroRegistro && <small>Registro diário indisponível; confira a migração do banco.</small>}
     </div>
   );
 }
