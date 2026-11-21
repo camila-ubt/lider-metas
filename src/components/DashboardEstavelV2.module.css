@@ -1266,6 +1266,8 @@
 .metaHistoricoValores small,
 .metaHistoricoDetalhe > small { display: block; color: var(--muted); font-size: 11px; }
 .metaHistoricoValores strong { display: block; margin-top: 4px; font-size: 17px; }
+.metaHistoricoValores .metaHistoricoPiora { color: #a3324c; }
+.metaHistoricoValores .metaHistoricoMelhora { color: #2c7243; }
 .metaHistoricoDetalhe .metaHistoricoVariacao { color: var(--primary-dark); font-weight: 700; }
 @media (max-width: 620px) {
   .metaHistoricoCard { padding: 14px; }
