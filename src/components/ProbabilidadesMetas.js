@@ -157,7 +157,7 @@ export default function ProbabilidadesMetas({
 
   return (
     <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
-      <strong style={{ fontSize: 13 }}>Chance estimada de atingir</strong>
+      <strong style={{ fontSize: 13 }}>Probabilidade de atingir cada meta até o fechamento</strong>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
         {METAS.map(({ chave: nivel, nome }) => (
           <div key={nivel} style={{
