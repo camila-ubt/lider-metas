@@ -512,7 +512,6 @@ export default function DashboardEstavelV2({ mes, vendas, metas, lojas, modoRela
           {!dados.mesPassado && dados.pendentesProjecao > 0 && (
             <small>
               {dados.pendentesProjecao} lançamentos encerrados ainda pendentes.
-              A projeção é provisória, sem tratá-los como venda zero.
             </small>
           )}
         </article>

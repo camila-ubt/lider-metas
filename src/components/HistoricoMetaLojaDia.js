@@ -24,6 +24,13 @@ function pontosPercentuais(valor) {
   return decimal.format(Math.abs(valor)) + " p.p.";
 }
 
+// Desvio positivo significa maior venda necessária (piora); negativo, melhora.
+function corDaVariacao(valor) {
+  if (valor > 0) return styles.metaHistoricoPiora;
+  if (valor < 0) return styles.metaHistoricoMelhora;
+  return undefined;
+}
+
 // O ponto conhece o dia pelo próprio payload. Não depende do rótulo de hover,
 // que pode corresponder ao ponto vizinho em telas estreitas.
 function PontoSelecionavel({ cx, cy, payload, diaSelecionado, selecionarDia }) {
@@ -191,11 +198,11 @@ export default function HistoricoMetaLojaDia({ historico, mes, mesAtual }) {
         <div className={styles.metaHistoricoValores}>
           <div>
             <small>Em relação à meta fixa</small>
-            <strong>{percentual(selecionado.desvioPercentual, true)}</strong>
+            <strong className={corDaVariacao(selecionado.desvioPercentual)}>{percentual(selecionado.desvioPercentual, true)}</strong>
           </div>
           <div>
             <small>Mudança em relação ao dia anterior</small>
-            <strong>{textoMudanca}</strong>
+            <strong className={corDaVariacao(variacao)}>{textoMudanca}</strong>
           </div>
         </div>
         {variacao === null && (
