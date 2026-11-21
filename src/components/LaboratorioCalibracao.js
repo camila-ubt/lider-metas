@@ -12,6 +12,14 @@ import {
 const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 const numero = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 3 });
 
+// A cor indica a magnitude do desvio, não se a previsão é otimista ou conservadora.
+const LIMIAR_DESVIO_PP = 5;
+
+function corDesvio(valor) {
+  if (!Number.isFinite(valor)) return "inherit";
+  return Math.abs(valor) <= LIMIAR_DESVIO_PP ? "#15803d" : "#b91c1c";
+}
+
 function textoPercentual(valor) {
   return valor === null || !Number.isFinite(valor)
     ? "—" : percentual.format(valor) + "%";
@@ -200,10 +208,9 @@ export default function LaboratorioCalibracao({
                           <td style={{ ...td, textAlign: "left" }}>{nome}</td>
                           <td style={td}>{textoPercentual(item.chanceMedia)}</td>
                           <td style={td}>{textoPercentual(item.frequenciaReal)}</td>
-                          <td style={{
-                            ...td, color: item.desvioPp > 0 ? "#b91c1c" :
-                              item.desvioPp < 0 ? "#15803d" : "inherit",
-                          }}>{textoPontos(item.desvioPp)}</td>
+                          <td style={{ ...td, color: corDesvio(item.desvioPp) }}>
+                            {textoPontos(item.desvioPp)}
+                          </td>
                           <td style={td}>{item.brier === null ? "—" : numero.format(item.brier)}</td>
                         </tr>
                       );
@@ -212,8 +219,10 @@ export default function LaboratorioCalibracao({
                 </table>
               </div>
               <small>
-                Diferença positiva: chance estimada otimista. Negativa: conservadora.
-                Brier mede o erro das probabilidades (0 é melhor; 1 é pior).
+                Diferença positiva: a chance foi superestimada. Negativa: foi subestimada.
+                Verde indica desvio absoluto de até 5 p.p.; vermelho, acima de 5 p.p.,
+                independentemente do sinal. Brier mede o erro das probabilidades
+                (0 é melhor; 1 é pior).
                 O mesmo mês é analisado em cinco datas, mas cada dia é avaliado separadamente.
                 Com poucos meses, as porcentagens observadas ainda oscilam bastante.
               </small>
