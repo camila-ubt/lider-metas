@@ -30,7 +30,7 @@ function indicadores(dias, corte, meta) {
 
 // Reconstrói somente meses completos, com um valor por loja, turno e dia.
 // Ausência de lançamento não representa venda zero, mas zero explícito vale.
-function reconstruirMeses({ vendas, metas, slots, anoLimite }) {
+export function reconstruirMeses({ vendas, metas, slots, anoLimite }) {
   const esperados = new Set(slots);
   const metasMap = new Map();
   for (const item of metas) {
