@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { validarProjecoesHistoricas } from "@/lib/validacaoProjecoes.mjs";
+import { verificarQualidadeLancamentos } from "@/lib/qualidadeDados.mjs";
+import RegistroPrevisoes from "./RegistroPrevisoes";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
@@ -17,6 +19,7 @@ function mostrarPercentual(valor) {
 
 export default function LaboratorioValidacao({
   historicos, lojas, ano, numeroMes, filtroLoja, filtroPeriodo,
+  vendasAtuais = [], metasAtuais = [], diaLimite = 0,
 }) {
   const [anosAtras, setAnosAtras] = useState("1");
   const anoTeste = ano - Number(anosAtras);
@@ -33,6 +36,12 @@ export default function LaboratorioValidacao({
     periodo: filtroPeriodo,
     diasCorte: DIAS,
   }), [historicos, lojasTeste, anoTeste, numeroMes, filtroPeriodo]);
+
+  const qualidade = useMemo(() => verificarQualidadeLancamentos({
+    vendas: vendasAtuais, metas: metasAtuais,
+    lojas: lojasTeste, ano, numeroMes,
+    diaConcluido: Math.max(0, diaLimite - 1), filtroLoja, filtroPeriodo,
+  }), [vendasAtuais, metasAtuais, lojasTeste, ano, numeroMes, diaLimite, filtroLoja, filtroPeriodo]);
 
   return (
     <div style={{ display: "grid", gap: 10, fontSize: 13 }}>
@@ -52,6 +61,12 @@ export default function LaboratorioValidacao({
         Em cada data (5, 10, 15, 20 e 25), mostra quanto o sistema previa
         para o fechamento do mês, considerando as vendas registradas até então.
       </p>
+      <small role="status" style={{ color: qualidade.status === "inconsistente" ? "#b42318" : undefined }}>
+        Conferência do mês exibido até ontem: {qualidade.faltantes} lançamentos ausentes,{" "}
+        {qualidade.duplicados} duplicados, {qualidade.invalidos} incompatíveis e{" "}
+        {qualidade.metasAusentes + qualidade.metasDuplicadas + qualidade.metasInvalidas} problemas de metas.
+        {qualidade.exemplos.length > 0 ? " Exemplos: " + qualidade.exemplos.join("; ") : ""}
+      </small>
       {resultado.status === "base_incompleta" ? (
         <p role="status" style={{ margin: 0 }}>
           Sem avaliação: {resultado.faltantes} lançamentos ausentes,{" "}
@@ -97,6 +112,9 @@ export default function LaboratorioValidacao({
           </small>
         </>
       )}
+      <hr style={{ border: 0, borderTop: "1px solid var(--border, #ddd)", width: "100%" }} />
+      <RegistroPrevisoes lojas={lojasTeste} ano={ano} numeroMes={numeroMes}
+        filtroLoja={filtroLoja} filtroPeriodo={filtroPeriodo} />
     </div>
   );
 }
