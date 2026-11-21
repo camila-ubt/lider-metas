@@ -28,7 +28,6 @@ import {
 } from "@/lib/horariosPeriodos";
 import { analisarHistoricoMes } from "@/lib/historicoMes.mjs";
 import LaboratorioValidacao from "./LaboratorioValidacao";
-import ProbabilidadesMetas from "./ProbabilidadesMetas";
 import styles from "./AnaliseGerencial.module.css";
 
 const dinheiro = new Intl.NumberFormat("pt-BR", {
@@ -654,70 +653,6 @@ export default function InteligenciaGerencial() {
                 filtroLoja={filtroLoja}
                 filtroPeriodo={filtroPeriodo}
               />
-            </section>
-
-            <section className="inteligencia-gerencial-secao">
-              <h3>
-                {encerrado
-                  ? "📈 Resultado estatístico final"
-                  : futuro
-                    ? "📈 Planejamento estatístico"
-                    : "📈 Projeção do mês"}
-              </h3>
-
-              {futuro || !analiseSelecionada?.temMeta || !analiseSelecionada?.temVendas ? (
-                <p className={styles.infoText}>
-                  {fraseSemBase(
-                    analise.contexto.tipo,
-                    analiseSelecionada.temMeta,
-                    analiseSelecionada.temVendas,
-                  )}
-                </p>
-              ) : encerrado ? (
-                <div className={styles.projectionExplain}>
-                  <article>
-                    <span>Resultado final</span>
-                    <strong>{dinheiro.format(analiseSelecionada.totalVendido)}</strong>
-                    <p>
-                      {percentual.format(
-                        analiseSelecionada.totalMeta > 0
-                          ? (analiseSelecionada.totalVendido / analiseSelecionada.totalMeta) * 100
-                          : 0,
-                      )}% da Meta do escopo selecionado.
-                    </p>
-                  </article>
-                  <article>
-                    <span>Leitura da variação diária</span>
-                    <strong>{analiseSelecionada.diasObservados.length} dias com lançamentos</strong>
-                    <p>
-                      Desvio diário de dias completos: {dinheiro.format(analiseSelecionada.desvioDiario)}. Como o mês encerrou, não há mais projeção nem probabilidade futura.
-                    </p>
-                  </article>
-                </div>
-              ) : (
-                <div className={styles.projectionExplain}>
-                  <article>
-                    <span>Fechamento estimado do mês</span>
-                    <strong>
-                      {analiseSelecionada.projecaoOperacional === null
-                        ? "—"
-                        : dinheiro.format(analiseSelecionada.projecaoOperacional)}
-                    </strong>
-                    <ProbabilidadesMetas
-                      ano={analise.contexto.ano}
-                      numeroMes={analise.contexto.numeroMes}
-                      diaLimite={analise.contexto.diaCorte}
-                      tipo={analise.contexto.tipo}
-                      lojas={lojas}
-                      vendas={vendas}
-                      metas={metas}
-                      projecaoMensal={analiseSelecionada.projecaoOperacional}
-                      filtroLoja={filtroLoja}
-                      filtroPeriodo={filtroPeriodo}
-                    />
-                  </article>
-                </div>
-              )}
             </section>
 
             <section className="inteligencia-gerencial-secao">
