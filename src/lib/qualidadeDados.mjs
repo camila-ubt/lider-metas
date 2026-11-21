@@ -67,10 +67,10 @@ export function verificarQualidadeLancamentos({
       const quantidade = contagemVendas.get(id) || 0;
       if (quantidade === 0) {
         faltantes += 1;
-        if (exemplos.length < 3) exemplos.push(data + " · " + chave.replace("|", " / "));
+        if (exemplos.length < 3) exemplos.push(data + " · " + chave.replaceAll("|", " / "));
       } else if (quantidade > 1) {
         duplicados += 1;
-        if (exemplos.length < 3) exemplos.push("Duplicado: " + data + " · " + chave.replace("|", " / "));
+        if (exemplos.length < 3) exemplos.push("Duplicado: " + data + " · " + chave.replaceAll("|", " / "));
       }
     }
   }
