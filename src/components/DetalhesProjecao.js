@@ -70,9 +70,11 @@ export default function DetalhesProjecao({
         ) : (
           <div className={styles.resultado}>
             <span>{encerrado ? "Vendido no mês" : "Fechamento estimado do mês"}</span>
-            <strong>{dinheiro.format(
-              encerrado ? analise.totalVendido : analise.projecaoOperacional ?? 0
-            )}</strong>
+            <strong>{encerrado
+              ? dinheiro.format(analise.totalVendido)
+              : analise.projecaoOperacional === null
+                ? "—"
+                : dinheiro.format(analise.projecaoOperacional)}</strong>
             {encerrado ? (
               <small>{percentual.format(
                 analise.totalMeta > 0 ? analise.totalVendido / analise.totalMeta * 100 : 0
