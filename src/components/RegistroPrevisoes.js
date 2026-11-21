@@ -43,10 +43,13 @@ export default function RegistroPrevisoes({
   const linhas = useMemo(() => registros.filter((item) =>
     item.mes.slice(0, 7) === mesEscolhido), [registros, mesEscolhido]);
   const meses = [...new Set(registros.map((item) => item.mes.slice(0, 7)))];
-  const mesAtual = String(ano) + "-" + String(numeroMes).padStart(2, "0");
+  const agora = new Date();
+  const mesAtual = String(agora.getFullYear()) + "-" + String(agora.getMonth() + 1).padStart(2, "0");
 
   useEffect(() => {
     if (!mesEscolhido || mesEscolhido >= mesAtual) {
+      setFechamento(null);
+      setValidando(false);
       return undefined;
     }
     let cancelado = false;
