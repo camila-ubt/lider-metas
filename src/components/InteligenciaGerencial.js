@@ -647,6 +647,7 @@ export default function InteligenciaGerencial() {
                 vendasAtuais={vendas}
                 metasAtuais={metas}
                 diaLimite={analise.contexto.diaCorte}
+                mesEncerrado={analise.contexto.tipo === "encerrado"}
                 lojas={lojas}
                 ano={analise.contexto.ano}
                 numeroMes={analise.contexto.numeroMes}
