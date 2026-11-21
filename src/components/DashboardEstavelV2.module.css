@@ -1274,24 +1274,3 @@
   .metaHistoricoGrafico { height: 225px; }
   .metaHistoricoValores strong { font-size: 15px; }
 }
-
-
-/* O KPI de projeção passa a abrir a previsão detalhada sem navegar para o rodapé. */
-.projecaoKpiBotao {
-  width: 100%;
-  display: block;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  appearance: none;
-}
-
-.projecaoKpiBotao:focus-visible {
-  outline: 3px solid #7650a7;
-  outline-offset: 2px;
-}
-
-.projecaoDetalheCard {
-  min-width: 0;
-}
