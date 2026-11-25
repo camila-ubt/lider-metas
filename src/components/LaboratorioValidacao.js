@@ -5,6 +5,7 @@ import { validarProjecoesHistoricas } from "@/lib/validacaoProjecoes.mjs";
 import { verificarQualidadeLancamentos } from "@/lib/qualidadeDados.mjs";
 import RegistroPrevisoes from "./RegistroPrevisoes";
 import LaboratorioCalibracao from "./LaboratorioCalibracao";
+import LaboratorioCalendario from "./LaboratorioCalendario";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const percentual = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 1 });
@@ -115,6 +116,10 @@ export default function LaboratorioValidacao({
       )}
       <LaboratorioCalibracao lojas={lojas} filtroLoja={filtroLoja}
         filtroPeriodo={filtroPeriodo} />
+      <LaboratorioCalendario lojas={lojas} filtroLoja={filtroLoja}
+        filtroPeriodo={filtroPeriodo} vendasAtuais={vendasAtuais}
+        ano={ano} numeroMes={numeroMes} diaLimite={diaLimite}
+        mesEncerrado={mesEncerrado} />
       <hr style={{ border: 0, borderTop: "1px solid var(--border, #ddd)", width: "100%" }} />
       <RegistroPrevisoes lojas={lojasTeste} ano={ano} numeroMes={numeroMes}
         filtroLoja={filtroLoja} filtroPeriodo={filtroPeriodo} />
