@@ -120,6 +120,7 @@ export function planejarProximosSeteDias({
         const linha = {
           data, lojaId: loja.id, loja: loja.codigo || loja.nome || String(loja.id),
           periodo, previsto, meta, falta, situacao,
+          motivoSemPrevisao: previsto === null ? base.status : null,
           percentualAbaixo: falta !== null && meta > 0
             ? (falta / meta) * 100 : null,
           diasBase: base.diasCompletos || 0,
