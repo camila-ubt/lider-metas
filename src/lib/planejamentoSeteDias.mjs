@@ -65,10 +65,10 @@ function baseRecente({ vendas, hoje, lojaId, periodo, perfil }) {
 }
 
 // Previsão auxiliar, somente leitura: usa os últimos dias COMPLETOS,
-// perfil histórico por loja/turno e metas fixas do mês da data futura.
+// perfil histórico por loja/turno e metas fixas do mês avaliado.
 export function planejarProximosSeteDias({
   hoje, lojas = [], vendasAtuais = [], historicos = [],
-  metasAtuais = [], metasProximoMes = [], quantidadeDias = 7,
+  metasAtuais = [], quantidadeDias = 7,
 }) {
   const referencia = String(hoje || "");
   const valida = expressaoData.test(referencia) &&
@@ -80,8 +80,16 @@ export function planejarProximosSeteDias({
   }
   const ano = Number(referencia.slice(0, 4));
   const numeroMes = Number(referencia.slice(5, 7));
+  const diasDisponiveis = ultimoDia(referencia) - Number(referencia.slice(8));
+  const diasPlanejados = Math.min(quantidadeDias, diasDisponiveis);
+  if (diasPlanejados <= 0) {
+    return {
+      status: "sem_dias_restantes", dias: [], alertas: [],
+      semPrevisao: 0, semMeta: 0, totalTurnos: 0, quantidadeDias: 0,
+    };
+  }
   const vendas = [...historicos, ...vendasAtuais];
-  const metas = [...metasAtuais, ...metasProximoMes];
+  const metas = metasAtuais;
   const perfis = new Map();
   for (const loja of lojas) {
     for (const periodo of TURNOS) {
@@ -99,7 +107,7 @@ export function planejarProximosSeteDias({
   const alertas = [];
   let semPrevisao = 0;
   let semMeta = 0;
-  for (let i = 1; i <= quantidadeDias; i++) {
+  for (let i = 1; i <= diasPlanejados; i++) {
     const data = adicionarDias(referencia, i);
     const linhas = [];
     for (const loja of lojas) {
@@ -134,5 +142,6 @@ export function planejarProximosSeteDias({
   alertas.sort((a, b) => b.percentualAbaixo - a.percentualAbaixo ||
     a.data.localeCompare(b.data) || b.falta - a.falta);
   return { status: "ok", dias, alertas, semPrevisao, semMeta,
+    quantidadeDias: diasPlanejados,
     totalTurnos: dias.reduce((soma, dia) => soma + dia.linhas.length, 0) };
 }
