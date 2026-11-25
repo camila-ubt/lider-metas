@@ -40,41 +40,63 @@ function calcular(opcoes = {}) {
     hoje: "2026-11-25", lojas, historicos,
     vendasAtuais: atuais(),
     metasAtuais: metas("11", 9000),
-    metasProximoMes: metas("12", 9300),
     ...opcoes,
   });
 }
 
-test("mostra amanhã e os seis dias seguintes, separados por loja e turno", () => {
+test("em 25/11 avalia só 26 a 30/11, sem entrar em dezembro", () => {
   const resultado = calcular();
   assert.equal(resultado.status, "ok");
-  assert.equal(resultado.dias.length, 7);
+  assert.equal(resultado.dias.length, 5);
+  assert.equal(resultado.quantidadeDias, 5);
   assert.equal(resultado.dias[0].data, "2026-11-26");
-  assert.equal(resultado.dias[6].data, "2026-12-02");
-  assert.equal(resultado.totalTurnos, 28);
+  assert.equal(resultado.dias[4].data, "2026-11-30");
+  assert.equal(resultado.totalTurnos, 20);
   assert.equal(resultado.dias[0].linhas.length, 4);
   assert.equal(resultado.dias[0].linhas[0].loja, "AB");
   assert.equal(resultado.dias[0].linhas[1].periodo, "noite");
   assert.ok(resultado.dias[0].linhas[0].previsto > 0);
 });
 
-test("usa meta fixa do mês correto, inclusive quando vira o mês", () => {
+test("não usa nem exige metas de dezembro para avaliar novembro", () => {
   const resultado = calcular();
-  assert.equal(resultado.dias[0].linhas[0].meta, 300); // 9000 / 30.
-  assert.equal(resultado.dias[5].linhas[0].meta, 300); // 9300 / 31.
-  const diferente = calcular({
-    metasProximoMes: metas("12", 15500),
-  });
-  assert.equal(diferente.dias[5].linhas[0].meta, 500);
-  assert.equal(diferente.dias[0].linhas[0].meta, 300);
+  const diferente = calcular({ metasProximoMes: metas("12", 15500) });
+  assert.equal(resultado.dias[0].linhas[0].meta, 300);
+  assert.equal(resultado.dias[4].linhas[0].meta, 300);
+  assert.equal(resultado.semMeta, 0);
+  assert.deepEqual(resultado.dias, diferente.dias);
+  assert.equal(resultado.dias.some((item) => item.data.startsWith("2026-12")), false);
 });
 
-test("nunca reaproveita meta do mês anterior quando o mês futuro não foi configurado", () => {
-  const resultado = calcular({ metasProximoMes: [] });
-  assert.equal(resultado.dias[5].linhas[0].meta, null);
-  assert.equal(resultado.dias[5].linhas[0].situacao, "sem_meta");
-  assert.equal(resultado.dias[5].linhas[0].falta, null);
-  assert.equal(resultado.dias[0].linhas[0].meta, 300);
+test("no fim do mês não inventa datas futuras no mês seguinte", () => {
+  const resultado = calcular({ hoje: "2026-11-30" });
+  assert.equal(resultado.status, "sem_dias_restantes");
+  assert.equal(resultado.quantidadeDias, 0);
+  assert.equal(resultado.dias.length, 0);
+  assert.equal(resultado.alertas.length, 0);
+});
+
+test("com mais de sete dias no mês preserva horizonte máximo de sete dias", () => {
+  const resultado = calcular({ hoje: "2026-11-20" });
+  assert.equal(resultado.status, "ok");
+  assert.equal(resultado.dias.length, 7);
+  assert.equal(resultado.dias.at(-1).data, "2026-11-27");
+});
+
+test("novo mês avalia suas próprias metas sem reaproveitar novembro", () => {
+  const dezembro = calcular({
+    hoje: "2026-12-01",
+    metasAtuais: metas("12", 15500),
+    vendasAtuais: atuais(14, 30),
+  });
+  assert.equal(dezembro.status, "ok");
+  assert.equal(dezembro.dias[0].data, "2026-12-02");
+  assert.equal(dezembro.dias[0].linhas[0].meta, 500);
+  const semMetas = calcular({
+    hoje: "2026-12-01", metasAtuais: [], vendasAtuais: atuais(14, 30),
+  });
+  assert.equal(semMetas.dias[0].linhas[0].meta, null);
+  assert.equal(semMetas.dias[0].linhas[0].situacao, "sem_meta");
 });
 
 test("destaca o risco real como diferença entre previsão e meta", () => {
@@ -104,7 +126,7 @@ test("último dia sem lançamento bloqueia estimativa sem tratá-lo como zero", 
   assert.equal(r.dias[0].linhas[0].situacao, "sem_previsao");
   assert.equal(r.dias[0].linhas[0].motivoSemPrevisao, "lancamentos_insuficientes");
   assert.equal(r.alertas.length, 0);
-  assert.equal(r.semPrevisao, 28);
+  assert.equal(r.semPrevisao, 20);
 });
 
 test("duplicação do último dia bloqueia estimativa, zero explícito é válido", () => {
