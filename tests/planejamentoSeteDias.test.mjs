@@ -102,6 +102,7 @@ test("último dia sem lançamento bloqueia estimativa sem tratá-lo como zero", 
   });
   assert.equal(r.dias[0].linhas[0].previsto, null);
   assert.equal(r.dias[0].linhas[0].situacao, "sem_previsao");
+  assert.equal(r.dias[0].linhas[0].motivoSemPrevisao, "lancamentos_insuficientes");
   assert.equal(r.alertas.length, 0);
   assert.equal(r.semPrevisao, 28);
 });
@@ -125,6 +126,7 @@ test("sem quatro meses completos de treino não promete previsão", () => {
   const resultado = calcular({ historicos: historicos.filter((item) =>
     item.data.startsWith("2026-01") || item.data.startsWith("2026-02")) });
   assert.equal(resultado.dias[0].linhas[0].situacao, "sem_previsao");
+  assert.equal(resultado.dias[0].linhas[0].motivoSemPrevisao, "historico_insuficiente");
   assert.equal(resultado.alertas.length, 0);
 });
 
