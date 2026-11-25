@@ -23,6 +23,13 @@ on:
       - "src/components/ProbabilidadesMetas.js"
       - "tests/probabilidadesHistoricas.test.mjs"
       - "src/lib/validacaoProjecoes.mjs"
+      - "src/lib/previsaoCalendario.mjs"
+      - "src/lib/planejamentoSeteDias.mjs"
+      - "src/components/PrevisaoProximosDias.js"
+      - "tests/planejamentoSeteDias.test.mjs"
+      - "src/lib/validacaoCalendario.mjs"
+      - "src/components/LaboratorioCalendario.js"
+      - "tests/previsaoCalendario.test.mjs"
       - "tests/validacaoProjecoes.test.mjs"
       - "tests/projecaoTurnos.test.mjs"
       - "tests/indicadoresGerenciais.test.mjs"
@@ -54,4 +61,4 @@ jobs:
         with:
           node-version: "22"
       - name: Testar calculos de previsao e backtest
-        run: node --test tests/probabilidadesHistoricas.test.mjs tests/projecaoTurnos.test.mjs tests/indicadoresGerenciais.test.mjs tests/periodoMaisAtrasado.test.mjs tests/validacaoProjecoes.test.mjs tests/laboratorioLeitura.test.mjs tests/padroesNiveis.test.mjs tests/consistenciaProjecoes.test.mjs tests/historicoMes.test.mjs tests/calibracaoProbabilidades.test.mjs tests/qualidadeDados.test.mjs tests/validacaoProbabilidades.test.mjs
+        run: node --test tests/probabilidadesHistoricas.test.mjs tests/projecaoTurnos.test.mjs tests/indicadoresGerenciais.test.mjs tests/periodoMaisAtrasado.test.mjs tests/validacaoProjecoes.test.mjs tests/laboratorioLeitura.test.mjs tests/padroesNiveis.test.mjs tests/consistenciaProjecoes.test.mjs tests/historicoMes.test.mjs tests/calibracaoProbabilidades.test.mjs tests/qualidadeDados.test.mjs tests/validacaoProbabilidades.test.mjs tests/previsaoCalendario.test.mjs tests/planejamentoSeteDias.test.mjs
