@@ -85,7 +85,7 @@ export default function LaboratorioCalendario({
       }) : null,
   [dados, lojas, mesAtual, filtroLoja, filtroPeriodo]);
 
-  const previa = useMemo(() => {
+  const previa = (() => {
     const exibido = String(ano) + "-" + String(numeroMes).padStart(2, "0");
     if (dados?.mesAtual !== mesAtual || mesEncerrado ||
         exibido !== mesAtual || diaLimite <= 7) return null;
@@ -107,8 +107,7 @@ export default function LaboratorioCalendario({
       }
     }
     return { status: "ok", valor: total, mesesHistoricos: menorAmostra, diaCorte };
-  }, [dados, mesAtual, lojas, filtroLoja, filtroPeriodo,
-    vendasAtuais, ano, numeroMes, diaLimite, mesEncerrado]);
+  })();
 
   return (
     <section style={{ borderTop: "1px solid var(--border, #ddd)", paddingTop: 10 }}>
