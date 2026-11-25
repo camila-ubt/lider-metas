@@ -159,10 +159,10 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
             <div style={{ display: "flex", alignItems: "baseline",
               gap: 8, flexWrap: "wrap" }}>
               <strong style={{ fontSize: 17 }}>
-                {candidatos.length} previsão{candidatos.length === 1 ? "" : "ões"} abaixo da meta
+                {candidatos.length} {candidatos.length === 1 ? "previsão" : "previsões"} abaixo da meta
               </strong>
               <span style={{ opacity: 0.8 }}>
-                em {grupos.size} combinação{grupos.size === 1 ? "" : "ões"} de loja e turno
+                em {grupos.size} {grupos.size === 1 ? "combinação" : "combinações"} de loja e turno
               </span>
             </div>
             {prioridades.length ? (
