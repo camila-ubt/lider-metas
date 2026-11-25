@@ -53,26 +53,23 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
   const [carregando, setCarregando] = useState(true);
   const hoje = new Date();
   const dataHoje = formatoData(hoje);
-  const mesAtual = formatoMes(hoje);
-  const mesSeguinte = formatoMes(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1));
+  const fimDoMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate();
+  const diasNaPrevisao = Math.min(7, Math.max(0, fimDoMes - hoje.getDate()));
+  const dataLimite = String(fimDoMes).padStart(2, "0") + "/" +
+    String(hoje.getMonth() + 1).padStart(2, "0");
 
   useEffect(() => {
-    if (!lojas.length) return undefined;
+    if (!lojas.length || diasNaPrevisao === 0) return undefined;
     let cancelado = false;
     async function carregar() {
       setCarregando(true);
       setErro("");
       try {
         const intervalos = intervalosHistoricos(new Date(dataHoje + "T12:00:00"));
-        const consultas = [
-          ...intervalos.map(({ inicio, fim }) =>
-            supabase.from("vendas_diarias")
-              .select("data,loja_id,periodo,valor_vendido")
-              .gte("data", inicio).lt("data", fim)),
-          supabase.from("metas_mensais")
-            .select("mes,loja_id,periodo,valor_meta")
-            .eq("mes", mesSeguinte + "-01"),
-        ];
+        const consultas = intervalos.map(({ inicio, fim }) =>
+          supabase.from("vendas_diarias")
+            .select("data,loja_id,periodo,valor_vendido")
+            .gte("data", inicio).lt("data", fim));
         const respostas = await Promise.all(consultas);
         if (cancelado) return;
         const falha = respostas.find((resposta) => resposta.error);
@@ -82,8 +79,7 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
         } else {
           setHistorico({
             chave: dataHoje,
-            vendas: respostas.slice(0, -1).flatMap((resposta) => resposta.data || []),
-            metasProximoMes: respostas.at(-1).data || [],
+            vendas: respostas.flatMap((resposta) => resposta.data || []),
           });
         }
       } catch {
@@ -97,12 +93,12 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
     }
     carregar();
     return () => { cancelado = true; };
-  }, [dataHoje, mesSeguinte, supabase, lojas.length]);
+  }, [dataHoje, diasNaPrevisao, supabase, lojas.length]);
 
   const planejamento = historico?.chave === dataHoje && !carregando && !erro
     ? planejarProximosSeteDias({
         hoje: dataHoje, lojas, vendasAtuais, historicos: historico.vendas,
-        metasAtuais, metasProximoMes: historico.metasProximoMes,
+        metasAtuais,
       }) : null;
   const candidatos = planejamento?.alertas || [];
   // Cada alerta é uma ocorrência em uma data. Agrupar evita repetir a
@@ -141,14 +137,16 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
       color: "inherit",
     }}>
       <summary style={{ cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
-        📅 Próximos 7 dias — onde preciso agir?
+        📅 {diasNaPrevisao === 0 ? "Fechamento do mês" : `Próximos ${diasNaPrevisao} dias`} — onde preciso agir?
       </summary>
       <div style={{ display: "grid", gap: 9, paddingTop: 9, fontSize: 12 }}>
         <span style={{ opacity: 0.8 }}>
-          De amanhã até o sétimo dia, considerando cada loja e turno.
-          Uma previsão abaixo da meta indica onde vale agir antecipadamente.
+          {diasNaPrevisao === 0
+            ? "Hoje é o último dia do mês. Não há datas futuras neste período para prever."
+            : `De amanhã até ${dataLimite}, sem misturar metas de outros meses.
+                Uma previsão abaixo da meta indica onde agir antecipadamente.`}
         </span>
-        {carregando || !planejamento ? (
+        {diasNaPrevisao === 0 ? null : carregando || !planejamento ? (
           <small role="status">
             {erro || "Analisando os registros para os próximos dias..."}
           </small>
@@ -231,7 +229,7 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
             </div>
             <details>
               <summary style={{ cursor: "pointer", fontWeight: 700 }}>
-                Ver os 7 dias, todas as lojas e turnos
+                Ver todos os {diasNaPrevisao} dias, lojas e turnos
               </summary>
               <div style={{ display: "grid", gap: 10, paddingTop: 8 }}>
                 {planejamento.dias.map((dia) => (
