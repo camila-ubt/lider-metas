@@ -110,6 +110,33 @@ function aprenderPesos(amostras) {
   };
 }
 
+// Perfil compartilhado com o planejamento dos proximos dias.
+export function obterPerfilCalendario({
+  historicos = [], ano, numeroMes, lojaId, periodo,
+  minimoMeses = MESES_MINIMOS,
+}) {
+  if (!Number.isInteger(ano) || !Number.isInteger(numeroMes) ||
+      numeroMes < 1 || numeroMes > 12 || lojaId == null ||
+      !["manha", "noite"].includes(periodo)) {
+    return { status: "parametros_invalidos" };
+  }
+  const { amostras, meses } = consolidarHistorico(
+    historicos, chaveMes(ano, numeroMes), lojaId, periodo,
+  );
+  if (meses < minimoMeses) {
+    return { status: "historico_insuficiente", mesesHistoricos: meses };
+  }
+  return { status: "ok", mesesHistoricos: meses, ...aprenderPesos(amostras) };
+}
+
+export function pesoDoDiaCalendario(perfil, data) {
+  if (perfil?.status !== "ok" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(String(data))) return null;
+  const peso = perfil.semana[diaSemana(data)] *
+    (ehFeriadoNacional(data) ? perfil.fatorFeriado : 1);
+  return Number.isFinite(peso) && peso > 0 ? peso : null;
+}
+
 export function preverFechamentoCalendario({
   vendas = [], historicos = [], ano, numeroMes, diaCorte,
   lojaId, periodo, minimoMeses = MESES_MINIMOS,
