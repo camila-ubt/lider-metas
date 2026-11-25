@@ -28,6 +28,7 @@ import {
 } from "@/lib/horariosPeriodos";
 import { analisarHistoricoMes } from "@/lib/historicoMes.mjs";
 import LaboratorioValidacao from "./LaboratorioValidacao";
+import PrevisaoProximosDias from "./PrevisaoProximosDias";
 import ProbabilidadesMetas from "./ProbabilidadesMetas";
 import styles from "./AnaliseGerencial.module.css";
 
@@ -580,8 +581,15 @@ export default function InteligenciaGerencial() {
     resumoHistorico = "Há vendas no mês selecionado, mas não existe base do ano anterior para comparação.";
   }
 
+  const referenciaAtual = new Date();
+  const mesCorrente = String(referenciaAtual.getFullYear()) + "-" +
+    String(referenciaAtual.getMonth() + 1).padStart(2, "0");
   const conteudo = (
-    <details className={`inteligencia-gerencial-unificada${alvoInteligencia ? " inteligencia-gerencial-no-painel" : ""}`}>
+    <>
+      {!carregando && !erro && analise && mes === mesCorrente && lojas.length > 0 && (
+        <PrevisaoProximosDias lojas={lojas} vendasAtuais={vendas} metasAtuais={metas} />
+      )}
+      <details className={`inteligencia-gerencial-unificada${alvoInteligencia ? " inteligencia-gerencial-no-painel" : ""}`}>
       <summary>
         <div>
           <strong>🧠 Inteligência Gerencial</strong>
@@ -877,7 +885,8 @@ export default function InteligenciaGerencial() {
           </>
         )}
       </div>
-    </details>
+      </details>
+    </>
   );
 
   return alvoInteligencia ? createPortal(conteudo, alvoInteligencia) : conteudo;
