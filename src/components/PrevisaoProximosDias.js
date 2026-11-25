@@ -16,6 +16,9 @@ const formatoData = (data) => formatoMes(data) + "-" +
   String(data.getDate()).padStart(2, "0");
 const turno = (periodo) => periodo === "manha" ? "Manhã" : "Noite";
 const dataLegivel = (data) => nomeData.format(new Date(data + "T12:00:00Z"));
+const mesDoDia = (data) => new Intl.DateTimeFormat("pt-BR", {
+  month: "long", timeZone: "UTC",
+}).format(new Date(data + "T12:00:00Z"));
 
 function intervalosHistoricos(hoje) {
   const fim = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
@@ -33,7 +36,11 @@ function rotuloLinha(item) {
   return item.loja + " · " + turno(item.periodo);
 }
 function textoPrevisao(item) {
-  if (item.previsto === null) return "Sem previsão: faltam registros ou histórico.";
+  if (item.previsto === null) {
+    return item.motivoSemPrevisao === "historico_insuficiente"
+      ? "Sem previsão: faltam meses completos no histórico deste turno."
+      : "Sem previsão: confira os lançamentos dos últimos dias deste turno.";
+  }
   if (item.meta === null) return "Meta do mês ainda não cadastrada.";
   if (item.situacao === "atencao") return "Pode ficar " + dinheiro.format(item.falta) + " abaixo da meta.";
   return "Previsão igual ou acima da meta.";
@@ -98,13 +105,32 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
         metasAtuais, metasProximoMes: historico.metasProximoMes,
       }) : null;
   const candidatos = planejamento?.alertas || [];
-  const chaves = new Set();
-  const prioridades = candidatos.filter((item) => {
-    const chave = String(item.lojaId) + "|" + item.periodo;
-    if (chaves.has(chave)) return false;
-    chaves.add(chave);
-    return true;
-  }).slice(0, 4);
+  // Cada alerta é uma ocorrência em uma data. Agrupar evita repetir a
+  // mesma loja/turno e mostra quantos dias exigem atenção.
+  const grupos = new Map();
+  const pendenciasVendas = new Map();
+  const pendenciasMetas = new Set();
+  for (const dia of planejamento?.dias || []) {
+    for (const item of dia.linhas) {
+      const chave = String(item.lojaId) + "|" + item.periodo;
+      if (item.situacao === "atencao") {
+        if (!grupos.has(chave)) grupos.set(chave, { exemplo: item, dias: 0 });
+        const grupo = grupos.get(chave);
+        grupo.dias++;
+        if (item.percentualAbaixo > grupo.exemplo.percentualAbaixo) {
+          grupo.exemplo = item;
+        }
+      } else if (item.situacao === "sem_previsao") {
+        pendenciasVendas.set(chave, item);
+      } else if (item.situacao === "sem_meta") {
+        pendenciasMetas.add(mesDoDia(item.data));
+      }
+    }
+  }
+  const prioridades = [...grupos.values()]
+    .sort((a, b) => b.dias - a.dias ||
+      b.exemplo.percentualAbaixo - a.exemplo.percentualAbaixo)
+    .slice(0, 4);
   const avaliados = planejamento
     ? planejamento.totalTurnos - planejamento.semPrevisao - planejamento.semMeta : 0;
 
@@ -133,33 +159,38 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
             <div style={{ display: "flex", alignItems: "baseline",
               gap: 8, flexWrap: "wrap" }}>
               <strong style={{ fontSize: 17 }}>
-                {candidatos.length} turno{candidatos.length === 1 ? "" : "s"} em atenção
+                {candidatos.length} previsão{candidatos.length === 1 ? "" : "ões"} abaixo da meta
               </strong>
               <span style={{ opacity: 0.8 }}>
-                nos próximos 7 dias · {avaliados} de {planejamento.totalTurnos} avaliados
+                em {grupos.size} combinação{grupos.size === 1 ? "" : "ões"} de loja e turno
               </span>
             </div>
             {prioridades.length ? (
               <div style={{ display: "grid", gap: 6 }}>
-                <strong>Prioridades para acompanhar</strong>
-                {prioridades.map((item) => (
-                  <div key={item.data + item.lojaId + item.periodo}
+                <strong>Onde concentrar a atenção</strong>
+                {prioridades.map((grupo) => (
+                  <div key={grupo.exemplo.lojaId + "|" + grupo.exemplo.periodo}
                     style={{ display: "grid", gap: 3,
                       borderBottom: "1px solid var(--border, #eee)", paddingBottom: 6 }}>
                     <div style={{ display: "flex", justifyContent: "space-between",
                       gap: 8, flexWrap: "wrap" }}>
-                      <strong>{dataLegivel(item.data)} · {rotuloLinha(item)}</strong>
+                      <strong>{rotuloLinha(grupo.exemplo)}</strong>
                       <strong style={{ color: "#b42318" }}>
-                        {Math.round(item.percentualAbaixo)}% abaixo da meta
+                        {grupo.dias} dia{grupo.dias === 1 ? "" : "s"} abaixo da meta
                       </strong>
                     </div>
                     <span>
-                      Previsão: {dinheiro.format(item.previsto)} · Meta diária fixa:
-                      {" "}{dinheiro.format(item.meta)} · Diferença: {dinheiro.format(item.falta)}
+                      Maior risco: {dataLegivel(grupo.exemplo.data)} ·
+                      {" "}{Math.round(grupo.exemplo.percentualAbaixo)}% abaixo da meta
+                    </span>
+                    <span>
+                      Venda prevista: {dinheiro.format(grupo.exemplo.previsto)} ·
+                      {" "}Meta do turno: {dinheiro.format(grupo.exemplo.meta)} ·
+                      {" "}Faltariam: {dinheiro.format(grupo.exemplo.falta)}
                     </span>
                   </div>
                 ))}
-                <small>Vale reforçar as ações de venda nesses turnos antes da data.</small>
+                <small>Prepare ações de venda para esses turnos. As datas estão na visão completa abaixo.</small>
               </div>
             ) : (
               <small>
@@ -168,14 +199,36 @@ export default function PrevisaoProximosDias({ lojas, vendasAtuais, metasAtuais 
                   : "Nenhum dos turnos com dados suficientes está previsto abaixo da meta."}
               </small>
             )}
-            {(planejamento.semPrevisao > 0 || planejamento.semMeta > 0) && (
-              <small role="status" style={{ opacity: 0.85 }}>
-                {planejamento.semPrevisao > 0 &&
-                  planejamento.semPrevisao + " turnos sem previsão por falta de dados completos. "}
-                {planejamento.semMeta > 0 &&
-                  planejamento.semMeta + " turnos sem meta cadastrada para a data."}
-              </small>
-            )}
+            <div role="status" style={{
+              display: "grid", gap: 4, padding: "7px 0",
+              borderTop: "1px solid var(--border, #eee)",
+            }}>
+              <strong>
+                Conferência dos dados: {avaliados} de {planejamento.totalTurnos} previsões avaliadas
+              </strong>
+              {avaliados < planejamento.totalTurnos && (
+                <small>
+                  Atenção: o resultado cobre apenas parte dos dias e turnos.
+                  Sem previsão não significa que a meta será atingida.
+                </small>
+              )}
+              {pendenciasVendas.size > 0 && (
+                <small>
+                  Faltam dados para prever: {[
+                    ...pendenciasVendas.values(),
+                  ].map((item) => rotuloLinha(item) + " (" +
+                    (item.motivoSemPrevisao === "historico_insuficiente"
+                      ? "histórico insuficiente" : "conferir vendas recentes") + ")").join("; ")}.
+                  Isso afeta {planejamento.semPrevisao} datas/turnos.
+                </small>
+              )}
+              {pendenciasMetas.size > 0 && (
+                <small>
+                  Há {planejamento.semMeta} datas/turnos sem meta cadastrada
+                  {": " + [...pendenciasMetas].join(", ")}.
+                </small>
+              )}
+            </div>
             <details>
               <summary style={{ cursor: "pointer", fontWeight: 700 }}>
                 Ver os 7 dias, todas as lojas e turnos
