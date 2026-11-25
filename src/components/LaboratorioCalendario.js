@@ -109,6 +109,15 @@ export default function LaboratorioCalendario({
     return { status: "ok", valor: total, mesesHistoricos: menorAmostra, diaCorte };
   })();
 
+  const diferencaErro = comparativo?.metricas
+    ? comparativo.metricas.maeAtual - comparativo.metricas.maeCalendario : null;
+  const resultadoComparacao = diferencaErro === null ? "" :
+    Math.abs(diferencaErro) < 0.01
+      ? "As duas previsões tiveram praticamente o mesmo erro médio."
+      : diferencaErro > 0
+        ? "A previsão com calendário ficou mais próxima das vendas reais."
+        : "A previsão atual ficou mais próxima das vendas reais.";
+
   return (
     <section style={{ borderTop: "1px solid var(--border, #ddd)", paddingTop: 10 }}>
       <button type="button" aria-expanded={aberto}
@@ -116,53 +125,61 @@ export default function LaboratorioCalendario({
         style={{ border: 0, padding: "4px 0", background: "transparent",
           color: "inherit", textAlign: "left", fontWeight: 700,
           fontSize: 13, cursor: "pointer" }}>
-        {aberto ? "⌄ " : "› "}Modelo experimental: calendário e feriados
+        {aberto ? "⌄ " : "› "}Comparar previsões: dias da semana e feriados
       </button>
       {aberto && (
         <div style={{ display: "grid", gap: 9, marginTop: 6, fontSize: 12 }}>
           <p style={{ margin: 0 }}>
-            Compara a previsão oficial com um modelo que aprende, por loja e turno,
-            o efeito dos dias da semana e dos feriados nacionais brasileiros,
-            incluindo a Sexta-feira Santa. Não muda as projeções oficiais.
-            Não inclui feriados locais, pontos facultativos ou eventos turísticos.
+            Será que considerar os dias da semana e os feriados ajuda a prever
+            quanto a loja vai vender até o fim do mês? Aqui comparamos a
+            previsão que já usamos com uma nova versão em teste.
           </p>
           {carregando ? (
-            <small role="status">Consultando histórico para comparar modelos...</small>
+            <small role="status">Conferindo as vendas dos meses anteriores...</small>
           ) : erro ? (
             <small role="alert">{erro}</small>
           ) : comparativo?.status !== "ok" ? (
-            <small>Não há meses completos suficientes para testar os dois modelos no mesmo período.</small>
+            <small>Ainda faltam meses com dados completos para comparar as duas previsões.</small>
           ) : (
             <>
               {previa?.status === "ok" && (
-                <small>
-                  <strong>Prévia experimental do mês: {moeda.format(previa.valor)}</strong>
-                  {" · "}Base até o dia {previa.diaCorte}; mínimo de {previa.mesesHistoricos} meses por loja/turno.
-                </small>
+                <div style={{ display: "grid", gap: 3 }}>
+                  <strong>Nova previsão para o fim deste mês: {moeda.format(previa.valor)}</strong>
+                  <small>
+                    Valor estimado usando vendas registradas até o dia {previa.diaCorte}.
+                    É apenas um teste; não substitui a previsão atual.
+                  </small>
+                </div>
               )}
               {previa && previa.status !== "ok" && (
-                <small>Prévia não disponível: histórico ou lançamentos insuficientes no recorte.</small>
+                <small>Sem previsão de teste para este mês: faltam registros ou dados anteriores.</small>
               )}
+              <div style={{ display: "grid", gap: 5 }}>
+                <strong>Qual previsão errou menos nos meses anteriores?</strong>
+                <span>{resultadoComparacao}</span>
+                <small>
+                  Comparação de {comparativo.metricas.meses} meses encerrados.
+                  Quanto menor o erro, mais perto ficou das vendas reais.
+                </small>
+              </div>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <span>Meses avaliados: <strong>{comparativo.metricas.meses}</strong></span>
-                <span>MAE atual: <strong>{formatarErro(comparativo.metricas.maeAtual)}</strong></span>
-                <span>MAE calendário: <strong>{formatarErro(comparativo.metricas.maeCalendario)}</strong></span>
-                <span>Meses com menor erro: <strong>{comparativo.metricas.mesesMelhores}</strong></span>
+                <span>Erro médio da previsão atual: <strong>{formatarErro(comparativo.metricas.maeAtual)}</strong></span>
+                <span>Erro médio com calendário: <strong>{formatarErro(comparativo.metricas.maeCalendario)}</strong></span>
               </div>
               <small>
-                MAPE atual: {comparativo.metricas.mapeAtual === null ? "—" :
-                  percentual.format(comparativo.metricas.mapeAtual) + "%"}
-                {" · "}MAPE calendário: {comparativo.metricas.mapeCalendario === null ? "—" :
-                  percentual.format(comparativo.metricas.mapeCalendario) + "%"}
+                Em {comparativo.metricas.mesesMelhores} de {comparativo.metricas.meses} meses,
+                a previsão com calendário teve um erro menor.
+                {comparativo.metricas.meses < 3 &&
+                  " A comparação ainda é pequena; o resultado não é conclusivo."}
               </small>
               <div style={{ width: "100%", overflowX: "auto" }}>
                 <table style={{ width: "100%", minWidth: 355, borderCollapse: "collapse" }}>
                   <thead>
                     <tr>
                       <th style={{ ...celula, textAlign: "left" }}>Mês</th>
-                      <th style={celula}>MAE atual</th>
-                      <th style={celula}>MAE calendário</th>
-                      <th style={celula}>Cortes</th>
+                      <th style={celula}>Erro atual</th>
+                      <th style={celula}>Erro com calendário</th>
+                      <th style={{ ...celula, textAlign: "left" }}>Errou menos</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -170,22 +187,46 @@ export default function LaboratorioCalendario({
                       <tr key={item.mes}>
                         <td style={{ ...celula, textAlign: "left" }}>{item.mes.slice(5) + "/" + item.mes.slice(0, 4)}</td>
                         <td style={celula}>{formatarErro(item.maeAtual)}</td>
-                        <td style={{ ...celula,
-                          color: item.maeCalendario <= item.maeAtual ? "#15803d" : "#b91c1c" }}>
-                          {formatarErro(item.maeCalendario)}
+                        <td style={celula}>{formatarErro(item.maeCalendario)}</td>
+                        <td style={{ ...celula, textAlign: "left" }}>
+                          {Math.abs(item.maeCalendario - item.maeAtual) < 0.01
+                            ? "Empate" : item.maeCalendario < item.maeAtual
+                              ? "Calendário" : "Atual"}
                         </td>
-                        <td style={celula}>{item.testes}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               <small>
-                Backtest com cortes nos dias 10, 15, 20 e 25. Cada mês entra uma
-                vez na média dos erros, mesmo tendo vários cortes. Só compara
-                meses com lançamentos completos e histórico anterior suficiente.
-                Erro menor não é garantido: o modelo segue experimental.
+                Exemplo: se a loja vendeu R$ 100 mil e a previsão indicou R$ 95 mil,
+                o erro foi de R$ 5 mil. A tabela mostra o erro médio de cada mês.
               </small>
+              <details>
+                <summary style={{ cursor: "pointer" }}>Como foi feita essa comparação?</summary>
+                <div style={{ display: "grid", gap: 6, marginTop: 6 }}>
+                  <span>
+                    Recalculamos o fechamento que cada previsão estimaria nos
+                    dias 10, 15, 20 e 25, usando só as vendas disponíveis até
+                    aquela data. Depois comparamos com o faturamento real.
+                  </span>
+                  <span>
+                    Erro percentual médio: atual{" "}
+                    {comparativo.metricas.mapeAtual === null ? "—" :
+                      percentual.format(comparativo.metricas.mapeAtual) + "%"}
+                    {" · "}com calendário{" "}
+                    {comparativo.metricas.mapeCalendario === null ? "—" :
+                      percentual.format(comparativo.metricas.mapeCalendario) + "%"}.
+                    Quanto menor esse percentual, melhor.
+                  </span>
+                  <span>
+                    Usamos apenas meses com registros completos. A nova versão
+                    considera feriados nacionais, mas ainda não inclui feriados
+                    locais, pontos facultativos ou eventos turísticos.
+                    Ela continua em teste e não muda o cálculo oficial.
+                  </span>
+                </div>
+              </details>
             </>
           )}
         </div>
